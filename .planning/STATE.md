@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-code-generation-engine/02-01-PLAN.md
-last_updated: "2026-03-16T06:22:09.206Z"
+stopped_at: Completed 02-code-generation-engine/02-02-PLAN.md
+last_updated: "2026-03-16T06:26:27.752Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-runtime-dsl-foundation P02 | 2min | 2 tasks | 5 files |
 | Phase 01-runtime-dsl-foundation P03 | 4min | 2 tasks | 3 files |
 | Phase 02-code-generation-engine P01 | 2min | 2 tasks | 7 files |
+| Phase 02-code-generation-engine P02 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 02-01]: Static field reflection for table singleton discovery (not INSTANCE): Kotlin companion object fields use the property name (e.g., ORGANIZATION), not a fixed 'INSTANCE' name
 - [Phase 02-01]: URLClassLoader parent is Thread.currentThread().contextClassLoader: ensures jOOQ API types from running test classpath resolve when loading user-compiled classes
 - [Phase 02-01]: Two-pass IR extraction: build all TableIR objects first, then cross-link inboundFKs in second pass to avoid ordering dependency
+- [Phase 02-02]: Root builders use private val graph: RecordGraph; child builders use non-private recordGraph/parentNode/parentFkField params — matches TestBuilders.kt golden pattern
+- [Phase 02-02]: DslResultEmitter generates accessors for every table (not only roots) so callers can retrieve child records after execution
+- [Phase 02-02]: CodeGenerator.generateSource() returns List<Pair<String,String>> (filename, source) for kotlin-compile-testing without disk I/O
 
 ### Pending Todos
 
@@ -90,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T06:22:09.205Z
-Stopped at: Completed 02-code-generation-engine/02-01-PLAN.md
+Last session: 2026-03-16T06:26:27.750Z
+Stopped at: Completed 02-code-generation-engine/02-02-PLAN.md
 Resume file: None

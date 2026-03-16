@@ -11,10 +11,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **CODEGEN-01**: Gradle plugin with `apply plugin:` syntax and extension configuration for specifying jOOQ source directory and output package
 - [x] **CODEGEN-02**: Recursive scan of a configured directory for jOOQ-generated record classes (classes extending UpdatableRecordImpl)
-- [ ] **CODEGEN-03**: Generate a DSL builder class per table with typed property setters matching jOOQ record fields
-- [ ] **CODEGEN-04**: Generate a result class per table with typed property accessors and the underlying jOOQ record
-- [ ] **CODEGEN-05**: Generate a top-level `DslResult` class containing ordered lists of result objects per root table
-- [ ] **CODEGEN-06**: Generate nested builder functions for single-column FK relationships (child builders inside parent builders)
+- [x] **CODEGEN-03**: Generate a DSL builder class per table with typed property setters matching jOOQ record fields
+- [x] **CODEGEN-04**: Generate a result class per table with typed property accessors and the underlying jOOQ record
+- [x] **CODEGEN-05**: Generate a top-level `DslResult` class containing ordered lists of result objects per root table
+- [x] **CODEGEN-06**: Generate nested builder functions for single-column FK relationships (child builders inside parent builders)
 - [ ] **CODEGEN-07**: Generate builder support for self-referential FKs (e.g., category.parent_id → category.id)
 - [ ] **CODEGEN-08**: Generate disambiguated builder functions when multiple FKs from one table point to the same target table (e.g., created_by/updated_by → user)
 
@@ -73,10 +73,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | CODEGEN-01 | Phase 3 | Pending |
 | CODEGEN-02 | Phase 2 | Complete |
-| CODEGEN-03 | Phase 2 | Pending |
-| CODEGEN-04 | Phase 2 | Pending |
-| CODEGEN-05 | Phase 2 | Pending |
-| CODEGEN-06 | Phase 2 | Pending |
+| CODEGEN-03 | Phase 2 | Complete |
+| CODEGEN-04 | Phase 2 | Complete |
+| CODEGEN-05 | Phase 2 | Complete |
+| CODEGEN-06 | Phase 2 | Complete |
 | CODEGEN-07 | Phase 4 | Pending |
 | CODEGEN-08 | Phase 4 | Pending |
 | DSL-01 | Phase 1 | Complete |

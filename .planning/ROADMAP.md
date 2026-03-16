@@ -46,7 +46,7 @@ Plans:
   3. Nested FK builder functions are generated inside parent builders, with automatic FK resolution matching the declared relationship.
   4. A generated top-level `DslResult` class contains ordered lists of result objects per root table.
   5. The `codegen` module is independently testable — no Gradle daemon or plugin required to run codegen tests.
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 02-01-PLAN.md — Build setup, IR data classes, ClasspathScanner, MetadataExtractor
@@ -82,6 +82,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Runtime DSL Foundation | 2/3 | In Progress|  |
-| 2. Code Generation Engine | 1/3 | In Progress|  |
+| 2. Code Generation Engine | 2/3 | In Progress|  |
 | 3. Gradle Plugin | 0/TBD | Not started | - |
 | 4. Edge Cases and Integration | 0/TBD | Not started | - |
