@@ -2,13 +2,9 @@ package com.example.declarativejooq
 
 import org.h2.jdbcx.JdbcDataSource
 import org.jooq.DSLContext
-import org.jooq.DataType
 import org.jooq.ForeignKey
 import org.jooq.Identity
-import org.jooq.Record
 import org.jooq.SQLDialect
-import org.jooq.Schema
-import org.jooq.Table
 import org.jooq.TableField
 import org.jooq.UniqueKey
 import org.jooq.impl.DSL
@@ -16,25 +12,6 @@ import org.jooq.impl.Internal
 import org.jooq.impl.SQLDataType
 import org.jooq.impl.TableImpl
 import org.jooq.impl.UpdatableRecordImpl
-
-// ---------------------------------------------------------------------------
-// OrganizationRecord
-// ---------------------------------------------------------------------------
-
-class OrganizationRecord(table: OrganizationTable) :
-    UpdatableRecordImpl<OrganizationRecord>(table) {
-
-    var id: Long?
-        get() = get(table().ID)
-        set(value) = set(table().ID, value)
-
-    var name: String?
-        get() = get(table().NAME)
-        set(value) = set(table().NAME, value)
-
-    @Suppress("UNCHECKED_CAST")
-    private fun table(): OrganizationTable = table as OrganizationTable
-}
 
 // ---------------------------------------------------------------------------
 // OrganizationTable
@@ -65,30 +42,23 @@ class OrganizationTable private constructor() : TableImpl<OrganizationRecord>(
 }
 
 // ---------------------------------------------------------------------------
-// AppUserRecord
+// OrganizationRecord
 // ---------------------------------------------------------------------------
 
-class AppUserRecord(table: AppUserTable) :
-    UpdatableRecordImpl<AppUserRecord>(table) {
+/**
+ * No-arg constructor required by jOOQ's reflective record factory.
+ * Must be declared after OrganizationTable to avoid forward-reference at class load.
+ */
+class OrganizationRecord() :
+    UpdatableRecordImpl<OrganizationRecord>(OrganizationTable.ORGANIZATION) {
 
     var id: Long?
-        get() = get(table().ID)
-        set(value) = set(table().ID, value)
+        get() = get(OrganizationTable.ORGANIZATION.ID)
+        set(value) = set(OrganizationTable.ORGANIZATION.ID, value)
 
     var name: String?
-        get() = get(table().NAME)
-        set(value) = set(table().NAME, value)
-
-    var email: String?
-        get() = get(table().EMAIL)
-        set(value) = set(table().EMAIL, value)
-
-    var organizationId: Long?
-        get() = get(table().ORGANIZATION_ID)
-        set(value) = set(table().ORGANIZATION_ID, value)
-
-    @Suppress("UNCHECKED_CAST")
-    private fun table(): AppUserTable = table as AppUserTable
+        get() = get(OrganizationTable.ORGANIZATION.NAME)
+        set(value) = set(OrganizationTable.ORGANIZATION.NAME, value)
 }
 
 // ---------------------------------------------------------------------------
@@ -135,12 +105,40 @@ class AppUserTable private constructor() : TableImpl<AppUserRecord>(
 }
 
 // ---------------------------------------------------------------------------
+// AppUserRecord
+// ---------------------------------------------------------------------------
+
+/**
+ * No-arg constructor required by jOOQ's reflective record factory.
+ * Must be declared after AppUserTable to avoid forward-reference at class load.
+ */
+class AppUserRecord() :
+    UpdatableRecordImpl<AppUserRecord>(AppUserTable.APP_USER) {
+
+    var id: Long?
+        get() = get(AppUserTable.APP_USER.ID)
+        set(value) = set(AppUserTable.APP_USER.ID, value)
+
+    var name: String?
+        get() = get(AppUserTable.APP_USER.NAME)
+        set(value) = set(AppUserTable.APP_USER.NAME, value)
+
+    var email: String?
+        get() = get(AppUserTable.APP_USER.EMAIL)
+        set(value) = set(AppUserTable.APP_USER.EMAIL, value)
+
+    var organizationId: Long?
+        get() = get(AppUserTable.APP_USER.ORGANIZATION_ID)
+        set(value) = set(AppUserTable.APP_USER.ORGANIZATION_ID, value)
+}
+
+// ---------------------------------------------------------------------------
 // TestSchema — database setup
 // ---------------------------------------------------------------------------
 
 object TestSchema {
     private const val JDBC_URL =
-        "jdbc:h2:mem:declarative_jooq_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
+        "jdbc:h2:mem:declarative_jooq_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE"
 
     fun createDslContext(): DSLContext {
         val ds = JdbcDataSource().apply { setURL(JDBC_URL) }
