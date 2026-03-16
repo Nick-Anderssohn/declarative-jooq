@@ -20,14 +20,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Runtime DSL
 
-- [ ] **DSL-01**: `execute(dslContext) { ... }` entry point that creates all declared records and returns a typed `DslResult`
+- [x] **DSL-01**: `execute(dslContext) { ... }` entry point that creates all declared records and returns a typed `DslResult`
 - [ ] **DSL-02**: Root table builder functions at the top level of the execute block (tables with no required FKs)
 - [ ] **DSL-03**: Child table builder functions nested under their FK parent with automatic FK value resolution from parent context
 - [ ] **DSL-04**: Support multiple records of the same type within a single block (e.g., multiple users under one organization)
-- [ ] **DSL-05**: Topological insert order — parent tables inserted before child tables based on FK dependency graph
-- [ ] **DSL-06**: Batch insert per table for efficiency (all records of a table type in one batch)
-- [ ] **DSL-07**: Record refresh after insert to capture DB-generated values (IDs, timestamps, defaults)
-- [ ] **DSL-08**: Result object ordering matches declaration order in the DSL
+- [x] **DSL-05**: Topological insert order — parent tables inserted before child tables based on FK dependency graph
+- [x] **DSL-06**: Batch insert per table for efficiency (all records of a table type in one batch)
+- [x] **DSL-07**: Record refresh after insert to capture DB-generated values (IDs, timestamps, defaults)
+- [x] **DSL-08**: Result object ordering matches declaration order in the DSL
 - [ ] **DSL-09**: Self-referential FK two-pass insert (insert with null FK, then update after ID is generated)
 - [ ] **DSL-10**: Multiple-FK-to-same-table runtime resolution (correct FK column populated based on which named builder was used)
 
@@ -79,14 +79,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CODEGEN-06 | Phase 2 | Pending |
 | CODEGEN-07 | Phase 4 | Pending |
 | CODEGEN-08 | Phase 4 | Pending |
-| DSL-01 | Phase 1 | Pending |
+| DSL-01 | Phase 1 | Complete |
 | DSL-02 | Phase 1 | Pending |
 | DSL-03 | Phase 1 | Pending |
 | DSL-04 | Phase 1 | Pending |
-| DSL-05 | Phase 1 | Pending |
-| DSL-06 | Phase 1 | Pending |
-| DSL-07 | Phase 1 | Pending |
-| DSL-08 | Phase 1 | Pending |
+| DSL-05 | Phase 1 | Complete |
+| DSL-06 | Phase 1 | Complete |
+| DSL-07 | Phase 1 | Complete |
+| DSL-08 | Phase 1 | Complete |
 | DSL-09 | Phase 4 | Pending |
 | DSL-10 | Phase 4 | Pending |
 | PROJ-01 | Phase 1 | Complete |

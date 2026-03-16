@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-16T02:06:44.230Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-16T02:10:39.188Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-runtime-dsl-foundation P01 | 3min | 2 tasks | 12 files |
+| Phase 01-runtime-dsl-foundation P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - Test data focus only (keeps scope tight, allows opinionated defaults)
 - [Phase 01-01]: JVM target 11 via compilerOptions.jvmTarget (not jvmToolchain) to use available JDK 21 without toolchain download
 - [Phase 01-01]: RecordNode stores UpdatableRecord<*> reference (not field values map) — closer to generated code, avoids parallel copy step
+- [Phase 01-02]: Used individual store() calls per record rather than batchInsert() — batchInsert does not return generated keys via JDBC, breaking FK chain resolution
+- [Phase 01-02]: FK resolution happens immediately before each child's store() call (not in a separate second pass after all inserts)
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:06:44.228Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-03-16T02:10:39.187Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
