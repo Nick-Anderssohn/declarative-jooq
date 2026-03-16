@@ -71,37 +71,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CODEGEN-01 | — | Pending |
-| CODEGEN-02 | — | Pending |
-| CODEGEN-03 | — | Pending |
-| CODEGEN-04 | — | Pending |
-| CODEGEN-05 | — | Pending |
-| CODEGEN-06 | — | Pending |
-| CODEGEN-07 | — | Pending |
-| CODEGEN-08 | — | Pending |
-| DSL-01 | — | Pending |
-| DSL-02 | — | Pending |
-| DSL-03 | — | Pending |
-| DSL-04 | — | Pending |
-| DSL-05 | — | Pending |
-| DSL-06 | — | Pending |
-| DSL-07 | — | Pending |
-| DSL-08 | — | Pending |
-| DSL-09 | — | Pending |
-| DSL-10 | — | Pending |
-| PROJ-01 | — | Pending |
-| PROJ-02 | — | Pending |
-| PROJ-03 | — | Pending |
-| PROJ-04 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
+| CODEGEN-01 | Phase 3 | Pending |
+| CODEGEN-02 | Phase 2 | Pending |
+| CODEGEN-03 | Phase 2 | Pending |
+| CODEGEN-04 | Phase 2 | Pending |
+| CODEGEN-05 | Phase 2 | Pending |
+| CODEGEN-06 | Phase 2 | Pending |
+| CODEGEN-07 | Phase 4 | Pending |
+| CODEGEN-08 | Phase 4 | Pending |
+| DSL-01 | Phase 1 | Pending |
+| DSL-02 | Phase 1 | Pending |
+| DSL-03 | Phase 1 | Pending |
+| DSL-04 | Phase 1 | Pending |
+| DSL-05 | Phase 1 | Pending |
+| DSL-06 | Phase 1 | Pending |
+| DSL-07 | Phase 1 | Pending |
+| DSL-08 | Phase 1 | Pending |
+| DSL-09 | Phase 4 | Pending |
+| DSL-10 | Phase 4 | Pending |
+| PROJ-01 | Phase 1 | Pending |
+| PROJ-02 | Phase 1 | Pending |
+| PROJ-03 | Phase 1 | Pending |
+| PROJ-04 | Phase 1 | Pending |
+| TEST-01 | Phase 2 | Pending |
+| TEST-02 | Phase 3 | Pending |
+| TEST-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after initial definition*
+*Last updated: 2026-03-15 after roadmap creation*
