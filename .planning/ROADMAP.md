@@ -13,7 +13,7 @@ Four phases that mirror the module dependency graph: build the runtime first (it
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Runtime DSL Foundation** - Three-module project scaffold + complete DSL runtime engine with topological insert, FK resolution, and typed results
-- [ ] **Phase 2: Code Generation Engine** - ClasspathScanner, MetadataExtractor, IR models, and KotlinEmitter producing compilable DSL source
+- [x] **Phase 2: Code Generation Engine** - ClasspathScanner, MetadataExtractor, IR models, and KotlinEmitter producing compilable DSL source (completed 2026-03-16)
 - [ ] **Phase 3: Gradle Plugin** - Plugin wiring, extension config, source set registration, and mavenLocal publishing
 - [ ] **Phase 4: Edge Cases and Integration** - Self-referential FKs, multiple-FK disambiguation, and end-to-end Postgres integration tests
 
@@ -46,7 +46,7 @@ Plans:
   3. Nested FK builder functions are generated inside parent builders, with automatic FK resolution matching the declared relationship.
   4. A generated top-level `DslResult` class contains ordered lists of result objects per root table.
   5. The `codegen` module is independently testable — no Gradle daemon or plugin required to run codegen tests.
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 02-01-PLAN.md — Build setup, IR data classes, ClasspathScanner, MetadataExtractor
@@ -82,6 +82,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Runtime DSL Foundation | 2/3 | In Progress|  |
-| 2. Code Generation Engine | 2/3 | In Progress|  |
+| 2. Code Generation Engine | 3/3 | Complete   | 2026-03-16 |
 | 3. Gradle Plugin | 0/TBD | Not started | - |
 | 4. Edge Cases and Integration | 0/TBD | Not started | - |
