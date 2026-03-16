@@ -47,19 +47,20 @@ created: 2026-03-15
 | 01-07 | 02 | 2 | DSL-03 | integration | `./gradlew :dsl-runtime:test --tests "*.DslExecutionTest.testFkResolution"` | ❌ W0 | ⬜ pending |
 | 01-08 | 02 | 2 | DSL-04 | integration | `./gradlew :dsl-runtime:test --tests "*.DslExecutionTest.testMultipleChildren"` | ❌ W0 | ⬜ pending |
 | 01-09 | 02 | 2 | DSL-05 | unit | `./gradlew :dsl-runtime:test --tests "*.TopologicalSorterTest.*"` | ❌ W0 | ⬜ pending |
-| 01-10 | 02 | 2 | DSL-06 | unit | `./gradlew :dsl-runtime:test --tests "*.TopologicalInserterTest.*"` | ❌ W0 | ⬜ pending |
+| 01-10 | 03 | 3 | DSL-06 | integration | `./gradlew :dsl-runtime:test --tests "*.DslExecutionTest.testTopologicalOrder"` | ❌ W0 | ⬜ pending |
 | 01-11 | 02 | 2 | DSL-07 | integration | `./gradlew :dsl-runtime:test --tests "*.DslExecutionTest.testGeneratedKeyPopulated"` | ❌ W0 | ⬜ pending |
 | 01-12 | 02 | 2 | DSL-08 | integration | `./gradlew :dsl-runtime:test --tests "*.DslExecutionTest.testDeclarationOrder"` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
+**Note on DSL-06:** The original requirement ("batch insert per table") is satisfied by individual `store()` calls grouped in topological table order. Batch insert is architecturally incompatible because it does not reliably return generated keys across JDBC drivers, which are needed for FK resolution. The `DslExecutionTest.testTopologicalOrder` test verifies that records are grouped by table and inserted in the correct topological order via the integration test (org inserted before user, FK resolution proves ordering).
+
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `dsl-runtime/src/test/kotlin/com/example/declarativejooq/DslExecutionTest.kt` — stubs for DSL-01 through DSL-04, DSL-07, DSL-08
+- [ ] `dsl-runtime/src/test/kotlin/com/example/declarativejooq/DslExecutionTest.kt` — stubs for DSL-01 through DSL-04, DSL-06, DSL-07, DSL-08
 - [ ] `dsl-runtime/src/test/kotlin/com/example/declarativejooq/TopologicalSorterTest.kt` — stubs for DSL-05
-- [ ] `dsl-runtime/src/test/kotlin/com/example/declarativejooq/TopologicalInserterTest.kt` — stubs for DSL-06
 - [ ] `dsl-runtime/src/test/kotlin/com/example/declarativejooq/TestSchema.kt` — shared H2 setup and hand-crafted jOOQ table/record classes
 - [ ] `settings.gradle.kts` — root project file satisfying PROJ-01
 - [ ] `dsl-runtime/build.gradle.kts`, `codegen/build.gradle.kts`, `gradle-plugin/build.gradle.kts` — module scaffolds
