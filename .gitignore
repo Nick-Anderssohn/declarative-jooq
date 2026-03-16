@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+*.gradle
+gradlew
+gradlew.bat
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
