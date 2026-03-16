@@ -29,7 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Records in DslResult appear in the same order they were declared in the DSL block.
   4. The `dsl-runtime` module has no compile dependency on KotlinPoet, Gradle APIs, or the `codegen` module.
   5. All three modules (`dsl-runtime`, `codegen`, `gradle-plugin`) exist as a Gradle multi-project build with correct inter-module dependency declarations.
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Gradle project scaffold + core DSL runtime types
+- [ ] 01-02-PLAN.md — Topological sort, insert engine, result assembler, execute() entry point
+- [ ] 01-03-PLAN.md — H2 test schema, hand-written builders, integration tests
 
 ### Phase 2: Code Generation Engine
 **Goal**: A standalone code generator that scans a directory of compiled jOOQ classes, extracts table/column/FK metadata through an internal IR, and emits compilable Kotlin DSL builder and result classes using KotlinPoet — testable entirely without Gradle.
@@ -71,7 +76,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Runtime DSL Foundation | 0/TBD | Not started | - |
+| 1. Runtime DSL Foundation | 0/3 | Planning complete | - |
 | 2. Code Generation Engine | 0/TBD | Not started | - |
 | 3. Gradle Plugin | 0/TBD | Not started | - |
 | 4. Edge Cases and Integration | 0/TBD | Not started | - |
