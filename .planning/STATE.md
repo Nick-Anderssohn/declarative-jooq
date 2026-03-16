@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-gradle-plugin 03-01-PLAN.md
-last_updated: "2026-03-16T22:21:17.867Z"
+stopped_at: Completed 03-gradle-plugin 03-02-PLAN.md
+last_updated: "2026-03-16T22:24:22.191Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-code-generation-engine P02 | 5min | 2 tasks | 5 files |
 | Phase 02-code-generation-engine P03 | 25 | 1 tasks | 3 files |
 | Phase 03-gradle-plugin P01 | 8min | 2 tasks | 4 files |
+| Phase 03-gradle-plugin P02 | 1min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 02-03]: CodeGenerator.addFkChildTableImports: FK child table class references in raw KotlinPoet addStatement strings require explicit FileSpec imports
 - [Phase 03-gradle-plugin]: abstract class with Gradle managed properties (DirectoryProperty, Property<String>) for Extension and Task — no @Inject ObjectFactory needed, configuration cache safe
 - [Phase 03-gradle-plugin]: afterEvaluate for test source set wiring + generateTask.flatMap { it.outputDir } for lazy Provider with implicit task dependency
+- [Phase 03-gradle-plugin]: Used JUnit5 Assertions instead of kotlin.test — kotlin-test not on test classpath, JUnit Jupiter 5.11.4 sufficient
+- [Phase 03-gradle-plugin]: Config cache test deletes output dir between runs to force TaskAction execution (avoids UP_TO_DATE masking cache reuse)
 
 ### Pending Todos
 
@@ -101,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:21:17.866Z
-Stopped at: Completed 03-gradle-plugin 03-01-PLAN.md
+Last session: 2026-03-16T22:24:22.189Z
+Stopped at: Completed 03-gradle-plugin 03-02-PLAN.md
 Resume file: None
