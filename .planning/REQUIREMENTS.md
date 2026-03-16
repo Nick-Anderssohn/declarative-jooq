@@ -10,7 +10,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Code Generation
 
 - [ ] **CODEGEN-01**: Gradle plugin with `apply plugin:` syntax and extension configuration for specifying jOOQ source directory and output package
-- [ ] **CODEGEN-02**: Recursive scan of a configured directory for jOOQ-generated record classes (classes extending UpdatableRecordImpl)
+- [x] **CODEGEN-02**: Recursive scan of a configured directory for jOOQ-generated record classes (classes extending UpdatableRecordImpl)
 - [ ] **CODEGEN-03**: Generate a DSL builder class per table with typed property setters matching jOOQ record fields
 - [ ] **CODEGEN-04**: Generate a result class per table with typed property accessors and the underlying jOOQ record
 - [ ] **CODEGEN-05**: Generate a top-level `DslResult` class containing ordered lists of result objects per root table
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CODEGEN-01 | Phase 3 | Pending |
-| CODEGEN-02 | Phase 2 | Pending |
+| CODEGEN-02 | Phase 2 | Complete |
 | CODEGEN-03 | Phase 2 | Pending |
 | CODEGEN-04 | Phase 2 | Pending |
 | CODEGEN-05 | Phase 2 | Pending |

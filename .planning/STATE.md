@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-16T02:38:52.038Z"
+stopped_at: Completed 02-code-generation-engine/02-01-PLAN.md
+last_updated: "2026-03-16T06:22:09.206Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-runtime-dsl-foundation P01 | 3min | 2 tasks | 12 files |
 | Phase 01-runtime-dsl-foundation P02 | 2min | 2 tasks | 5 files |
 | Phase 01-runtime-dsl-foundation P03 | 4min | 2 tasks | 3 files |
+| Phase 02-code-generation-engine P01 | 2min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 01-03]: No-arg constructor on UpdatableRecordImpl subclasses: jOOQ's reflective record factory requires no-arg constructor; record class declared after table class to avoid forward-reference
 - [Phase 01-03]: DATABASE_TO_UPPER=FALSE in H2 JDBC URL: H2 uppercases identifiers by default; jOOQ generates quoted lowercase SQL; this flag preserves declared case
 - [Phase 01-03]: Deferred child block pattern in builders: child lambdas stored as List<(RecordNode)->Unit> and executed after parent node is built, ensuring parent RecordNode exists before children reference it
+- [Phase 02-01]: Static field reflection for table singleton discovery (not INSTANCE): Kotlin companion object fields use the property name (e.g., ORGANIZATION), not a fixed 'INSTANCE' name
+- [Phase 02-01]: URLClassLoader parent is Thread.currentThread().contextClassLoader: ensures jOOQ API types from running test classpath resolve when loading user-compiled classes
+- [Phase 02-01]: Two-pass IR extraction: build all TableIR objects first, then cross-link inboundFKs in second pass to avoid ordering dependency
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:38:52.033Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-code-generation-engine/02-CONTEXT.md
+Last session: 2026-03-16T06:22:09.205Z
+Stopped at: Completed 02-code-generation-engine/02-01-PLAN.md
+Resume file: None
