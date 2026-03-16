@@ -76,7 +76,7 @@ Plans:
   1. A table with a self-referential FK (e.g., `category.parent_id -> category.id`) can be declared in the DSL with children nested under parents, and the database reflects the correct parent-child relationships after insert.
   2. When two FKs from the same table point to the same target table (e.g., `created_by` and `updated_by` both reference `user.id`), the DSL exposes two named builder functions and each correctly populates the intended FK column.
   3. End-to-end integration tests using a real Postgres database (via Testcontainers) pass for the core scenarios: root records, nested records, multiple records of the same type in one block, and FK resolution.
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 04-01-PLAN.md — Self-referential FK support, multi-FK disambiguation, and codegen compile-and-run tests
@@ -92,4 +92,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Runtime DSL Foundation | 2/3 | In Progress|  |
 | 2. Code Generation Engine | 3/3 | Complete   | 2026-03-16 |
 | 3. Gradle Plugin | 0/2 | Not started | - |
-| 4. Edge Cases and Integration | 0/2 | Not started | - |
+| 4. Edge Cases and Integration | 1/2 | In Progress|  |

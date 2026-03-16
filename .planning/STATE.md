@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-16T23:02:36.195Z"
+stopped_at: Completed 04-edge-cases-and-integration-01-PLAN.md
+last_updated: "2026-03-16T23:25:49.862Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
   percent: 0
 ---
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-code-generation-engine P03 | 25 | 1 tasks | 3 files |
 | Phase 03-gradle-plugin P01 | 8min | 2 tasks | 4 files |
 | Phase 03-gradle-plugin P02 | 1min | 2 tasks | 1 files |
+| Phase 04-edge-cases-and-integration P01 | 22min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 03-gradle-plugin]: afterEvaluate for test source set wiring + generateTask.flatMap { it.outputDir } for lazy Provider with implicit task dependency
 - [Phase 03-gradle-plugin]: Used JUnit5 Assertions instead of kotlin.test — kotlin-test not on test classpath, JUnit Jupiter 5.11.4 sufficient
 - [Phase 03-gradle-plugin]: Config cache test deletes output dir between runs to force TaskAction execution (avoids UP_TO_DATE masking cache reuse)
+- [Phase 04-edge-cases-and-integration]: Self-ref root tables use child-style constructor (nullable parentNode/parentFkField) to serve as both top-level DSL entry point and self-ref child builder
+- [Phase 04-edge-cases-and-integration]: buildWithChildren() generated on ALL builders unconditionally — fixes latent bug where intermediate builders called build() when they should call buildWithChildren()
+- [Phase 04-edge-cases-and-integration]: FK-column-based naming: strip _id suffix from FK column name for builder function name (organization_id -> organization, created_by -> createdBy)
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T23:02:36.189Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-edge-cases-and-integration/04-CONTEXT.md
+Last session: 2026-03-16T23:25:49.860Z
+Stopped at: Completed 04-edge-cases-and-integration-01-PLAN.md
+Resume file: None

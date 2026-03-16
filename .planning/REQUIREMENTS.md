@@ -15,8 +15,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **CODEGEN-04**: Generate a result class per table with typed property accessors and the underlying jOOQ record
 - [x] **CODEGEN-05**: Generate a top-level `DslResult` class containing ordered lists of result objects per root table
 - [x] **CODEGEN-06**: Generate nested builder functions for single-column FK relationships (child builders inside parent builders)
-- [ ] **CODEGEN-07**: Generate builder support for self-referential FKs (e.g., category.parent_id → category.id)
-- [ ] **CODEGEN-08**: Generate disambiguated builder functions when multiple FKs from one table point to the same target table (e.g., created_by/updated_by → user)
+- [x] **CODEGEN-07**: Generate builder support for self-referential FKs (e.g., category.parent_id → category.id)
+- [x] **CODEGEN-08**: Generate disambiguated builder functions when multiple FKs from one table point to the same target table (e.g., created_by/updated_by → user)
 
 ### Runtime DSL
 
@@ -28,8 +28,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DSL-06**: Batch insert per table for efficiency (all records of a table type in one batch)
 - [x] **DSL-07**: Record refresh after insert to capture DB-generated values (IDs, timestamps, defaults)
 - [x] **DSL-08**: Result object ordering matches declaration order in the DSL
-- [ ] **DSL-09**: Self-referential FK two-pass insert (insert with null FK, then update after ID is generated)
-- [ ] **DSL-10**: Multiple-FK-to-same-table runtime resolution (correct FK column populated based on which named builder was used)
+- [x] **DSL-09**: Self-referential FK two-pass insert (insert with null FK, then update after ID is generated)
+- [x] **DSL-10**: Multiple-FK-to-same-table runtime resolution (correct FK column populated based on which named builder was used)
 
 ### Project Structure
 
@@ -77,8 +77,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CODEGEN-04 | Phase 2 | Complete |
 | CODEGEN-05 | Phase 2 | Complete |
 | CODEGEN-06 | Phase 2 | Complete |
-| CODEGEN-07 | Phase 4 | Pending |
-| CODEGEN-08 | Phase 4 | Pending |
+| CODEGEN-07 | Phase 4 | Complete |
+| CODEGEN-08 | Phase 4 | Complete |
 | DSL-01 | Phase 1 | Complete |
 | DSL-02 | Phase 1 | Complete |
 | DSL-03 | Phase 1 | Complete |
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSL-06 | Phase 1 | Complete |
 | DSL-07 | Phase 1 | Complete |
 | DSL-08 | Phase 1 | Complete |
-| DSL-09 | Phase 4 | Pending |
-| DSL-10 | Phase 4 | Pending |
+| DSL-09 | Phase 4 | Complete |
+| DSL-10 | Phase 4 | Complete |
 | PROJ-01 | Phase 1 | Complete |
 | PROJ-02 | Phase 1 | Complete |
 | PROJ-03 | Phase 1 | Complete |
