@@ -62,7 +62,11 @@ Plans:
   2. The generated source directory is automatically wired into the test compile classpath — no manual `srcDir` configuration needed in the consuming project.
   3. Gradle TestKit integration tests pass, including a test with `--configuration-cache` enabled.
   4. The plugin is publishable to and consumable from `mavenLocal`.
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Plugin production code: build config, extension, task, plugin apply with source set wiring
+- [ ] 03-02-PLAN.md — Gradle TestKit functional tests and publishToMavenLocal verification
 
 ### Phase 4: Edge Cases and Integration
 **Goal**: The full pipeline handles self-referential FK tables (two-pass insert), disambiguates multiple FKs from one table to the same target table (named builder functions), and passes end-to-end integration tests against a real Postgres database.
@@ -83,5 +87,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Runtime DSL Foundation | 2/3 | In Progress|  |
 | 2. Code Generation Engine | 3/3 | Complete   | 2026-03-16 |
-| 3. Gradle Plugin | 0/TBD | Not started | - |
+| 3. Gradle Plugin | 0/2 | Not started | - |
 | 4. Edge Cases and Integration | 0/TBD | Not started | - |
