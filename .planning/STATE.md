@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-16T02:10:39.188Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-03-16T02:17:05.499Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-runtime-dsl-foundation P01 | 3min | 2 tasks | 12 files |
 | Phase 01-runtime-dsl-foundation P02 | 2min | 2 tasks | 5 files |
+| Phase 01-runtime-dsl-foundation P03 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [Phase 01-01]: RecordNode stores UpdatableRecord<*> reference (not field values map) — closer to generated code, avoids parallel copy step
 - [Phase 01-02]: Used individual store() calls per record rather than batchInsert() — batchInsert does not return generated keys via JDBC, breaking FK chain resolution
 - [Phase 01-02]: FK resolution happens immediately before each child's store() call (not in a separate second pass after all inserts)
+- [Phase 01-03]: No-arg constructor on UpdatableRecordImpl subclasses: jOOQ's reflective record factory requires no-arg constructor; record class declared after table class to avoid forward-reference
+- [Phase 01-03]: DATABASE_TO_UPPER=FALSE in H2 JDBC URL: H2 uppercases identifiers by default; jOOQ generates quoted lowercase SQL; this flag preserves declared case
+- [Phase 01-03]: Deferred child block pattern in builders: child lambdas stored as List<(RecordNode)->Unit> and executed after parent node is built, ensuring parent RecordNode exists before children reference it
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:10:39.187Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-16T02:17:05.498Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None

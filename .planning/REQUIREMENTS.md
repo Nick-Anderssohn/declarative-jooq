@@ -21,9 +21,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Runtime DSL
 
 - [x] **DSL-01**: `execute(dslContext) { ... }` entry point that creates all declared records and returns a typed `DslResult`
-- [ ] **DSL-02**: Root table builder functions at the top level of the execute block (tables with no required FKs)
-- [ ] **DSL-03**: Child table builder functions nested under their FK parent with automatic FK value resolution from parent context
-- [ ] **DSL-04**: Support multiple records of the same type within a single block (e.g., multiple users under one organization)
+- [x] **DSL-02**: Root table builder functions at the top level of the execute block (tables with no required FKs)
+- [x] **DSL-03**: Child table builder functions nested under their FK parent with automatic FK value resolution from parent context
+- [x] **DSL-04**: Support multiple records of the same type within a single block (e.g., multiple users under one organization)
 - [x] **DSL-05**: Topological insert order — parent tables inserted before child tables based on FK dependency graph
 - [x] **DSL-06**: Batch insert per table for efficiency (all records of a table type in one batch)
 - [x] **DSL-07**: Record refresh after insert to capture DB-generated values (IDs, timestamps, defaults)
@@ -80,9 +80,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CODEGEN-07 | Phase 4 | Pending |
 | CODEGEN-08 | Phase 4 | Pending |
 | DSL-01 | Phase 1 | Complete |
-| DSL-02 | Phase 1 | Pending |
-| DSL-03 | Phase 1 | Pending |
-| DSL-04 | Phase 1 | Pending |
+| DSL-02 | Phase 1 | Complete |
+| DSL-03 | Phase 1 | Complete |
+| DSL-04 | Phase 1 | Complete |
 | DSL-05 | Phase 1 | Complete |
 | DSL-06 | Phase 1 | Complete |
 | DSL-07 | Phase 1 | Complete |
