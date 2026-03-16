@@ -12,23 +12,23 @@ Eliminate boilerplate and manual FK wiring when creating test data — declare w
 
 ### Validated
 
-- ✓ Code generator that scans jOOQ record classes and generates DSL builder code — v1.0
-- ✓ Gradle plugin that integrates code generation into the build process — v1.0
-- ✓ DSL with `execute(dslContext) { ... }` entry point for declarative record creation — v1.0
-- ✓ Nested builder blocks that automatically resolve single-column foreign keys from parent context — v1.0
-- ✓ Support for root nodes (tables with no required FKs) at the top level of execute block — v1.0
-- ✓ Support for child nodes nested under their FK parent — v1.0
-- ✓ Topological insert order per table with individual `store()` calls for FK chain resolution — v1.0
-- ✓ Records refreshed after insert to capture DB-generated defaults (IDs, timestamps) — v1.0
-- ✓ Result objects wrapping each record with typed property accessors — v1.0
-- ✓ Top-level result object (DslResult) containing ordered lists of result objects per root table — v1.0
-- ✓ Support for self-referential foreign keys (two-pass insert) — v1.0
-- ✓ Support for multiple FKs from one table to the same target table (disambiguated builder names) — v1.0
-- ✓ Multiple records of the same type within a block — v1.0
-- ✓ Ordering of result objects matches declaration order in the DSL — v1.0
-- ✓ Compile-and-run codegen tests via kotlin-compile-testing — v1.0
-- ✓ Gradle TestKit integration tests — v1.0
-- ✓ End-to-end Postgres integration tests via Testcontainers — v1.0
+- ✓ Code generator that scans jOOQ record classes and generates DSL builder code — v0.1
+- ✓ Gradle plugin that integrates code generation into the build process — v0.1
+- ✓ DSL with `execute(dslContext) { ... }` entry point for declarative record creation — v0.1
+- ✓ Nested builder blocks that automatically resolve single-column foreign keys from parent context — v0.1
+- ✓ Support for root nodes (tables with no required FKs) at the top level of execute block — v0.1
+- ✓ Support for child nodes nested under their FK parent — v0.1
+- ✓ Topological insert order per table with individual `store()` calls for FK chain resolution — v0.1
+- ✓ Records refreshed after insert to capture DB-generated defaults (IDs, timestamps) — v0.1
+- ✓ Result objects wrapping each record with typed property accessors — v0.1
+- ✓ Top-level result object (DslResult) containing ordered lists of result objects per root table — v0.1
+- ✓ Support for self-referential foreign keys (two-pass insert) — v0.1
+- ✓ Support for multiple FKs from one table to the same target table (disambiguated builder names) — v0.1
+- ✓ Multiple records of the same type within a block — v0.1
+- ✓ Ordering of result objects matches declaration order in the DSL — v0.1
+- ✓ Compile-and-run codegen tests via kotlin-compile-testing — v0.1
+- ✓ Gradle TestKit integration tests — v0.1
+- ✓ End-to-end Postgres integration tests via Testcontainers — v0.1
 
 ### Active
 
@@ -46,7 +46,7 @@ Eliminate boilerplate and manual FK wiring when creating test data — declare w
 
 ## Context
 
-Shipped v1.0 with 2,791 LOC Kotlin across 31 files in 4 modules.
+Shipped v0.1 with 2,791 LOC Kotlin across 31 files in 4 modules.
 Tech stack: Kotlin 2.1.20, jOOQ 3.19.16, KotlinPoet 2.1.0, ClassGraph 4.8.179, Gradle 8.12.
 Tested against H2 (unit tests) and Postgres 16 (Testcontainers integration tests).
 
@@ -80,4 +80,4 @@ Known tech debt:
 | Reuse TestSchema classes for integration tests | Proves Postgres dialect without javac complexity | ✓ Good — simpler test setup |
 
 ---
-*Last updated: 2026-03-16 after v1.0 milestone*
+*Last updated: 2026-03-16 after v0.1 milestone*

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: null
 milestone_name: null
 status: milestone_complete
-stopped_at: v1.0 milestone complete
+stopped_at: v0.1 milestone complete
 last_updated: "2026-03-16"
-last_activity: 2026-03-16 — v1.0 milestone completed and archived
+last_activity: 2026-03-16 — v0.1 milestone completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Milestone: v1.0 complete (shipped 2026-03-16)
+Milestone: v0.1 complete (shipped 2026-03-16)
 Status: Ready for next milestone
-Last activity: 2026-03-16 — v1.0 milestone completed and archived
+Last activity: 2026-03-16 — v0.1 milestone completed and archived
 
 Progress: ██████████ 100%
 
@@ -35,7 +35,7 @@ Progress: ██████████ 100%
 
 ### Decisions
 
-All v1.0 decisions archived in PROJECT.md Key Decisions table.
+All v0.1 decisions archived in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -43,10 +43,10 @@ None.
 
 ### Blockers/Concerns
 
-None — all research flags resolved during v1.0.
+None — all research flags resolved during v0.1.
 
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: v1.0 milestone complete
+Stopped at: v0.1 milestone complete
 Resume file: None

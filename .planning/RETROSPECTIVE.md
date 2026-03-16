@@ -2,7 +2,7 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
-## Milestone: v1.0 — Initial Release
+## Milestone: v0.1 — Initial Release
 
 **Shipped:** 2026-03-16
 **Phases:** 4 | **Plans:** 10 | **Tasks:** 19
@@ -49,13 +49,13 @@
 
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
-| v1.0 | 4 | 10 | Initial project — established module-dependency-order phasing |
+| v0.1 | 4 | 10 | Initial project — established module-dependency-order phasing |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Verification Score | Tech Debt Items |
 |-----------|-------|-------------------|-----------------|
-| v1.0 | 30+ (H2 + Postgres) | 45/45 truths | 4 items |
+| v0.1 | 30+ (H2 + Postgres) | 45/45 truths | 4 items |
 
 ### Top Lessons (Verified Across Milestones)
 

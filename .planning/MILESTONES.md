@@ -1,6 +1,6 @@
 # Milestones
 
-## v1.0 (Shipped: 2026-03-16)
+## v0.1 (Shipped: 2026-03-16)
 
 **Phases:** 4 | **Plans:** 10 | **Tasks:** 19
 **Commits:** 60 | **Kotlin LOC:** 2,791 across 31 files
@@ -20,7 +20,7 @@
 - Build-order fragility: codegen and integration-tests hardcode relative paths to dsl-runtime test classes without Gradle `dependsOn`
 - `kotlin-compile-testing:1.6.0` bundles older Kotlin compiler (1.9.x vs project's 2.1.20)
 
-**Archive:** `.planning/milestones/v1.0-ROADMAP.md`, `v1.0-REQUIREMENTS.md`, `v1.0-MILESTONE-AUDIT.md`
+**Archive:** `.planning/milestones/v0.1-ROADMAP.md`, `v0.1-REQUIREMENTS.md`, `v0.1-MILESTONE-AUDIT.md`
 
 ---
 
