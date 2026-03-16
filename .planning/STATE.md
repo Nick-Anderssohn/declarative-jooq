@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-16T01:35:46.980Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-16T02:06:44.230Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-runtime-dsl-foundation P01 | 3min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - Gradle plugin not just a task (better UX, cleaner integration)
 - Skip composite FKs (rare, disproportionate complexity)
 - Test data focus only (keeps scope tight, allows opinionated defaults)
+- [Phase 01-01]: JVM target 11 via compilerOptions.jvmTarget (not jvmToolchain) to use available JDK 21 without toolchain download
+- [Phase 01-01]: RecordNode stores UpdatableRecord<*> reference (not field values map) — closer to generated code, avoids parallel copy step
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:35:46.973Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-runtime-dsl-foundation/01-CONTEXT.md
+Last session: 2026-03-16T02:06:44.228Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None

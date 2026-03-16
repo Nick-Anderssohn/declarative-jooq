@@ -33,10 +33,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Project Structure
 
-- [ ] **PROJ-01**: Three-module Gradle project: `dsl-runtime`, `codegen`, `gradle-plugin`
-- [ ] **PROJ-02**: `dsl-runtime` has no compile dependency on KotlinPoet or Gradle APIs
-- [ ] **PROJ-03**: `codegen` module independently testable without Gradle
-- [ ] **PROJ-04**: Generated code depends only on `dsl-runtime` and user's jOOQ version
+- [x] **PROJ-01**: Three-module Gradle project: `dsl-runtime`, `codegen`, `gradle-plugin`
+- [x] **PROJ-02**: `dsl-runtime` has no compile dependency on KotlinPoet or Gradle APIs
+- [x] **PROJ-03**: `codegen` module independently testable without Gradle
+- [x] **PROJ-04**: Generated code depends only on `dsl-runtime` and user's jOOQ version
 
 ### Testing
 
@@ -89,10 +89,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSL-08 | Phase 1 | Pending |
 | DSL-09 | Phase 4 | Pending |
 | DSL-10 | Phase 4 | Pending |
-| PROJ-01 | Phase 1 | Pending |
-| PROJ-02 | Phase 1 | Pending |
-| PROJ-03 | Phase 1 | Pending |
-| PROJ-04 | Phase 1 | Pending |
+| PROJ-01 | Phase 1 | Complete |
+| PROJ-02 | Phase 1 | Complete |
+| PROJ-03 | Phase 1 | Complete |
+| PROJ-04 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 3 | Pending |
 | TEST-03 | Phase 4 | Pending |
