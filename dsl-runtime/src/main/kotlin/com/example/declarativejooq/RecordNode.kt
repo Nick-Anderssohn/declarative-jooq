@@ -9,7 +9,8 @@ class RecordNode(
     val record: UpdatableRecord<*>,
     val parentNode: RecordNode?,
     val parentFkField: TableField<*, *>?,
-    val declarationIndex: Int
+    val declarationIndex: Int,
+    val isSelfReferential: Boolean = false
 ) {
     val children: MutableList<RecordNode> = mutableListOf()
 }

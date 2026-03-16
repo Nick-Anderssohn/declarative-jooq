@@ -67,14 +67,21 @@ class MetadataExtractor {
                         ?: "$tableClassName.$tableConstantName.${fkColumnName.uppercase()}"
                     val parentTableName = fk.key.table.name
                     val parentBuilderClassName = toPascalCase(parentTableName) + "Builder"
-                    val builderFunctionName = toCamelCase(tableName)
+                    val isSelfRef = parentTableName == tableName
+                    val strippedFkCol = fkColumnName.removeSuffix("_id")
+                    val builderFunctionName = if (isSelfRef) {
+                        "child" + toPascalCase(tableName)
+                    } else {
+                        toCamelCase(strippedFkCol)
+                    }
                     ForeignKeyIR(
                         fkName = fk.name,
                         childTableName = tableName,
                         childFieldExpression = childFieldExpr,
                         parentTableName = parentTableName,
                         parentBuilderClassName = parentBuilderClassName,
-                        builderFunctionName = builderFunctionName
+                        builderFunctionName = builderFunctionName,
+                        isSelfReferential = isSelfRef
                     )
                 }
 
@@ -90,7 +97,7 @@ class MetadataExtractor {
                 columns = columns,
                 outboundFKs = outboundFKs,
                 inboundFKs = mutableListOf(),
-                isRoot = outboundFKs.isEmpty()
+                isRoot = outboundFKs.none { !it.isSelfReferential }
             )
         }
 

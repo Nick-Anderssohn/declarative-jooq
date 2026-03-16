@@ -27,8 +27,8 @@ class TopologicalInserter(private val dslContext: DSLContext) {
         // Insert in topological order
         for ((_, nodes) in nodesByTable) {
             for (node in nodes) {
-                // Resolve FK from parent if applicable
-                if (node.parentNode != null && node.parentFkField != null) {
+                // Resolve FK from parent if applicable (skip self-referential on first pass)
+                if (node.parentNode != null && node.parentFkField != null && !node.isSelfReferential) {
                     val parentPk = node.parentNode.table.primaryKey
                         ?: throw IllegalStateException(
                             "Parent table ${node.parentNode.table.name} has no primary key"
@@ -49,6 +49,21 @@ class TopologicalInserter(private val dslContext: DSLContext) {
                 node.record.store()
                 // After store(), jOOQ auto-populates generated PK via getGeneratedKeys()
             }
+        }
+
+        // Second pass: update self-referential FK values now that all PKs are known
+        val selfRefNodes = allNodes.filter { it.isSelfReferential && it.parentNode != null }
+        for (node in selfRefNodes) {
+            val parentPk = node.parentNode!!.table.primaryKey
+                ?: throw IllegalStateException("Parent table ${node.parentNode.table.name} has no primary key")
+            val parentPkValue = node.parentNode.record.get(parentPk.fields[0])
+                ?: throw IllegalStateException("Parent record PK is null after insert")
+            @Suppress("UNCHECKED_CAST")
+            (node.record as org.jooq.Record).set(
+                node.parentFkField as org.jooq.Field<Any?>,
+                parentPkValue
+            )
+            node.record.store()  // UPDATE with the FK value
         }
 
         return ResultAssembler.assemble(allNodes)

@@ -6,5 +6,6 @@ data class ForeignKeyIR(
     val childFieldExpression: String,    // "AppUserTable.APP_USER.ORGANIZATION_ID"
     val parentTableName: String,         // "organization"
     val parentBuilderClassName: String,  // "OrganizationBuilder"
-    val builderFunctionName: String      // "user" — derived from child table name
+    val builderFunctionName: String,     // "user" — derived from FK column name
+    val isSelfReferential: Boolean = false
 )

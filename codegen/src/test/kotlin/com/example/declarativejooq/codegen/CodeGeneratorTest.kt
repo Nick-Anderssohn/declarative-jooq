@@ -137,12 +137,13 @@ class CodeGeneratorTest {
             /**
              * Inserts one organization + one app_user via generated builders.
              * Returns the raw DslResult (class loaded by parent CL — safe to cast in test).
+             * Note: builder function is named after FK column (organization_id -> organization)
              */
             fun run(ctx: DSLContext): DslResult {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        appUser {
+                        organization {
                             name = "Alice"
                             email = "alice@acme.com"
                         }

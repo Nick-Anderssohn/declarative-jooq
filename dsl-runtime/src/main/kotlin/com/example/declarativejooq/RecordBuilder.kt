@@ -9,7 +9,8 @@ abstract class RecordBuilder<R : UpdatableRecord<R>>(
     val table: Table<R>,
     val parentNode: RecordNode?,
     val parentFkField: TableField<*, *>?,
-    val recordGraph: RecordGraph
+    val recordGraph: RecordGraph,
+    val isSelfReferential: Boolean = false
 ) {
     abstract fun buildRecord(): R
 
@@ -20,7 +21,8 @@ abstract class RecordBuilder<R : UpdatableRecord<R>>(
             record = record,
             parentNode = parentNode,
             parentFkField = parentFkField,
-            declarationIndex = recordGraph.nextDeclarationIndex()
+            declarationIndex = recordGraph.nextDeclarationIndex(),
+            isSelfReferential = isSelfReferential
         )
         parentNode?.children?.add(node)
         return node
