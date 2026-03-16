@@ -29,7 +29,15 @@ class ScannerTest {
             names.contains("com.example.declarativejooq.AppUserTable"),
             "Expected AppUserTable but got: $names"
         )
-        assertEquals(2, names.size, "Expected exactly 2 table classes but got: $names")
+        assertTrue(
+            names.contains("com.example.declarativejooq.CategoryTable"),
+            "Expected CategoryTable but got: $names"
+        )
+        assertTrue(
+            names.contains("com.example.declarativejooq.TaskTable"),
+            "Expected TaskTable but got: $names"
+        )
+        assertEquals(4, names.size, "Expected exactly 4 table classes but got: $names")
     }
 
     @Test
@@ -52,7 +60,7 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.example.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        assertEquals(2, tables.size, "Expected 2 tables")
+        assertEquals(4, tables.size, "Expected 4 tables (organization, app_user, category, task)")
 
         val org = tables.find { it.tableName == "organization" }
             ?: fail("organization table not found")

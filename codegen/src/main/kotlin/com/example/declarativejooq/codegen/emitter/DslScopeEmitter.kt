@@ -13,10 +13,20 @@ class DslScopeEmitter {
         val builderClass = ClassName(outputPackage, tableIR.builderClassName)
         val blockType = LambdaTypeName.get(receiver = builderClass, returnType = UNIT)
 
+        val hasSelfRefInbound = tableIR.inboundFKs.any { it.isSelfReferential }
+
+        val builderConstruction = if (hasSelfRefInbound) {
+            // Self-ref root: uses child-style constructor with null parent
+            "val builder = %T(recordGraph = recordGraph, parentNode = null, parentFkField = null)"
+        } else {
+            // Regular root: uses graph-only constructor
+            "val builder = %T(recordGraph)"
+        }
+
         return FunSpec.builder(tableIR.dslFunctionName)
             .receiver(dslScopeType)
             .addParameter("block", blockType)
-            .addStatement("val builder = %T(recordGraph)", builderClass)
+            .addStatement(builderConstruction, builderClass)
             .addStatement("builder.block()")
             .addStatement("val node = builder.buildWithChildren()")
             .addStatement("recordGraph.addRootNode(node)")
