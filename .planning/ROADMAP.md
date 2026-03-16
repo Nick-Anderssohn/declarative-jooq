@@ -46,7 +46,12 @@ Plans:
   3. Nested FK builder functions are generated inside parent builders, with automatic FK resolution matching the declared relationship.
   4. A generated top-level `DslResult` class contains ordered lists of result objects per root table.
   5. The `codegen` module is independently testable — no Gradle daemon or plugin required to run codegen tests.
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Build setup, IR data classes, ClasspathScanner, MetadataExtractor
+- [ ] 02-02-PLAN.md — BuilderEmitter, ResultEmitter, DslScopeEmitter, DslResultEmitter, CodeGenerator
+- [ ] 02-03-PLAN.md — Compile-and-run integration tests via kotlin-compile-testing
 
 ### Phase 3: Gradle Plugin
 **Goal**: A Gradle plugin that wires the code generator into a user's build via `apply plugin: 'com.example.declarative-jooq'`, reads configuration from an extension block, runs generation as a registered task, and wires the output directory into the `testImplementation` source set.
@@ -77,6 +82,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Runtime DSL Foundation | 2/3 | In Progress|  |
-| 2. Code Generation Engine | 0/TBD | Not started | - |
+| 2. Code Generation Engine | 0/3 | Not started | - |
 | 3. Gradle Plugin | 0/TBD | Not started | - |
 | 4. Edge Cases and Integration | 0/TBD | Not started | - |
