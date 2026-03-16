@@ -4,8 +4,10 @@ import com.example.declarativejooq.codegen.emitter.BuilderEmitter
 import com.example.declarativejooq.codegen.emitter.DslResultEmitter
 import com.example.declarativejooq.codegen.emitter.DslScopeEmitter
 import com.example.declarativejooq.codegen.emitter.ResultEmitter
+import com.example.declarativejooq.codegen.ir.TableIR
 import com.example.declarativejooq.codegen.scanner.ClasspathScanner
 import com.example.declarativejooq.codegen.scanner.MetadataExtractor
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File
 
@@ -29,6 +31,7 @@ class CodeGenerator {
         val dslScopeEmitter = DslScopeEmitter()
         val dslResultEmitter = DslResultEmitter()
 
+        val tableByName = tables.associateBy { it.tableName }
         for (table in tables) {
             val fileSpec = FileSpec.builder(outputPackage, table.builderClassName)
             fileSpec.addType(builderEmitter.emit(table, outputPackage))
@@ -36,6 +39,7 @@ class CodeGenerator {
             if (table.isRoot) {
                 fileSpec.addFunction(dslScopeEmitter.emit(table, outputPackage))
             }
+            addFkChildTableImports(fileSpec, table, tableByName)
             fileSpec.build().writeTo(outputDir)
         }
 
@@ -62,6 +66,7 @@ class CodeGenerator {
         val dslResultEmitter = DslResultEmitter()
 
         val result = mutableListOf<Pair<String, String>>()
+        val tableByName = tables.associateBy { it.tableName }
 
         for (table in tables) {
             val fileSpec = FileSpec.builder(outputPackage, table.builderClassName)
@@ -70,6 +75,7 @@ class CodeGenerator {
             if (table.isRoot) {
                 fileSpec.addFunction(dslScopeEmitter.emit(table, outputPackage))
             }
+            addFkChildTableImports(fileSpec, table, tableByName)
             val built = fileSpec.build()
             result.add(Pair("${table.builderClassName}.kt", built.toString()))
         }
@@ -81,6 +87,20 @@ class CodeGenerator {
         result.add(Pair("GeneratedDslResult.kt", dslResultBuilt.toString()))
 
         return result
+    }
+
+    /**
+     * Adds explicit imports for any child table classes referenced in FK expressions.
+     * When a root/intermediate builder has inbound FKs, it references child table classes
+     * (e.g., AppUserTable.APP_USER.ORGANIZATION_ID) via raw string expressions in addStatement().
+     * KotlinPoet does not automatically import classes used in raw code strings, so we add
+     * them explicitly here.
+     */
+    private fun addFkChildTableImports(fileSpec: FileSpec.Builder, table: TableIR, tableByName: Map<String, TableIR>) {
+        for (fk in table.inboundFKs) {
+            val childTable = tableByName[fk.childTableName] ?: continue
+            fileSpec.addImport(childTable.sourcePackage, childTable.tableClassName)
+        }
     }
 
     private fun scanAndExtract(classDir: File, packageFilter: String?) =
