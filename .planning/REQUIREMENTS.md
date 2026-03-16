@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TEST-01**: Codegen tests use compile-and-run validation (not string matching) via kotlin-compile-testing
 - [x] **TEST-02**: Gradle plugin integration tests via Gradle TestKit (GradleRunner)
-- [ ] **TEST-03**: Runtime DSL integration tests against a real database (H2 Postgres mode or Testcontainers)
+- [x] **TEST-03**: Runtime DSL integration tests against a real database (H2 Postgres mode or Testcontainers)
 
 ## v2 Requirements
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROJ-04 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Complete |
 | TEST-02 | Phase 3 | Complete |
-| TEST-03 | Phase 4 | Pending |
+| TEST-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 25 total

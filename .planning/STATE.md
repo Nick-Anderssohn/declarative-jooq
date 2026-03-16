@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-edge-cases-and-integration-01-PLAN.md
-last_updated: "2026-03-16T23:25:49.862Z"
+stopped_at: Completed 04-edge-cases-and-integration-02-PLAN.md
+last_updated: "2026-03-16T23:37:21.713Z"
 last_activity: 2026-03-15 — Roadmap created
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-gradle-plugin P01 | 8min | 2 tasks | 4 files |
 | Phase 03-gradle-plugin P02 | 1min | 2 tasks | 1 files |
 | Phase 04-edge-cases-and-integration P01 | 22min | 2 tasks | 10 files |
+| Phase 04-edge-cases-and-integration P02 | 9 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,8 @@ Recent decisions affecting current work:
 - [Phase 04-edge-cases-and-integration]: Self-ref root tables use child-style constructor (nullable parentNode/parentFkField) to serve as both top-level DSL entry point and self-ref child builder
 - [Phase 04-edge-cases-and-integration]: buildWithChildren() generated on ALL builders unconditionally — fixes latent bug where intermediate builders called build() when they should call buildWithChildren()
 - [Phase 04-edge-cases-and-integration]: FK-column-based naming: strip _id suffix from FK column name for builder function name (organization_id -> organization, created_by -> createdBy)
+- [Phase 04-edge-cases-and-integration]: Reuse TestSchema jOOQ classes (dsl-runtime test classes) instead of programmatic jOOQ codegen for integration tests — proves Postgres dialect without javac complexity
+- [Phase 04-edge-cases-and-integration]: Docker Desktop macOS: use docker.raw.sock (real daemon), api.version=1.44, TESTCONTAINERS_RYUK_DISABLED=true to work around docker-cli proxy socket and API version mismatch
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T23:25:49.860Z
-Stopped at: Completed 04-edge-cases-and-integration-01-PLAN.md
+Last session: 2026-03-16T23:37:21.712Z
+Stopped at: Completed 04-edge-cases-and-integration-02-PLAN.md
 Resume file: None
