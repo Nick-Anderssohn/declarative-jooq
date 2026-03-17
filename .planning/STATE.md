@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
-status: Defining requirements
+status: Ready to plan
 stopped_at: ""
 last_updated: "2026-03-16"
-last_activity: 2026-03-16 — Milestone v0.2 started
+last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Eliminate boilerplate and manual FK wiring when creating test data — declare what records you want and how they relate, and the library handles insertion order, FK assignment, and result assembly.
-**Current focus:** Defining v0.2 requirements
+**Current focus:** Phase 5 — Child-Table-Named Builder Functions
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-16 — Milestone v0.2 started
+Phase: 5 of 6 (Child-Table-Named Builder Functions)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0 (this milestone)
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -36,13 +53,17 @@ Last activity: 2026-03-16 — Milestone v0.2 started
 
 All v0.1 decisions archived in PROJECT.md Key Decisions table.
 
+v0.2 open decisions to resolve before Phase 5 implementation:
+- Self-ref naming: use table name (`category { }`) — option A, aligns with child-table-named goal
+- Placeholder setter naming convention: TBD before Phase 6 emission code is written
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None — all research flags resolved during v0.1.
+None — research complete, architecture fully specified in .planning/research/ARCHITECTURE.md.
 
 ### Quick Tasks Completed
 
@@ -53,6 +74,6 @@ None — all research flags resolved during v0.1.
 
 ## Session Continuity
 
-Last session: 2026-03-17T00:53:51.503Z
-Stopped at: Completed quick task 260316-or6: Create README.md
+Last session: 2026-03-16
+Stopped at: Roadmap created — ready to plan Phase 5
 Resume file: None

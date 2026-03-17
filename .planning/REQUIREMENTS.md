@@ -45,21 +45,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAME-01 | — | Pending |
-| NAME-02 | — | Pending |
-| NAME-03 | — | Pending |
-| NAME-04 | — | Pending |
-| PLCH-01 | — | Pending |
-| PLCH-02 | — | Pending |
-| PLCH-03 | — | Pending |
-| PLCH-04 | — | Pending |
-| DOCS-01 | — | Pending |
+| NAME-01 | Phase 5 | Pending |
+| NAME-02 | Phase 5 | Pending |
+| NAME-03 | Phase 5 | Pending |
+| NAME-04 | Phase 5 | Pending |
+| PLCH-01 | Phase 6 | Pending |
+| PLCH-02 | Phase 6 | Pending |
+| PLCH-03 | Phase 6 | Pending |
+| PLCH-04 | Phase 6 | Pending |
+| DOCS-01 | Phase 6 | Pending |
 
 **Coverage:**
 - v0.2 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9 ⚠️
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation*
