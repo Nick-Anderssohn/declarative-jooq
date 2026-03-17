@@ -1,188 +1,159 @@
 # Project Research Summary
 
-**Project:** declarative-jooq
-**Domain:** Kotlin code-generated DSL library with Gradle plugin for jOOQ test data setup
-**Researched:** 2026-03-15
-**Confidence:** MEDIUM (no external tools available; findings from training knowledge through August 2025)
+**Project:** declarative-jooq — v0.2 Natural DSL Naming & Placeholders
+**Domain:** Kotlin code-generated jOOQ DSL library — builder naming and cross-tree FK references
+**Researched:** 2026-03-16
+**Confidence:** HIGH
 
 ## Executive Summary
 
-declarative-jooq is a Kotlin DSL library that eliminates manual test data setup in jOOQ-based projects. The library solves the FK wiring problem — the single biggest pain point in test data management — by introspecting jOOQ's own generated table metadata at build time, emitting a type-safe builder DSL, and resolving FK relationships automatically at runtime. The recommended approach is a three-module Gradle project: a `dsl-runtime` module (ships to users' test classpath), a `codegen` module (inspects jOOQ classes via reflection and emits Kotlin source via KotlinPoet), and a `gradle-plugin` module (thin wiring layer that invokes codegen as a build step). This strict module separation is non-negotiable: it prevents Gradle API leakage into testable code and keeps the runtime library free of code-generation dependencies.
+The v0.2 milestone consists of two features: (1) child-table-named builder functions — changing the generated DSL so `appUser { }` names a child builder by the child table name instead of the FK column name — and (2) placeholder objects — returning a typed handle from builder blocks so users can explicitly wire FK relationships that the library cannot infer from nesting context alone. Both features build on the v0.1 implementation without requiring new external dependencies. All research is grounded in direct inspection of the codebase, giving HIGH confidence across the board.
 
-The core architectural bet is code-generation over reflection. Unlike Instancio or EasyRandom, which use runtime reflection and lose type safety, this library generates a per-table DSL at build time, giving users compile-time errors for nonexistent columns, IDE autocomplete, and zero-surprise FK resolution. The codegen phase loads user-compiled jOOQ classes via an isolated `URLClassLoader`, extracts table/column/FK metadata from jOOQ's own API (`table.fields()`, `table.getReferences()`), builds a jOOQ-free internal IR, and feeds it to KotlinPoet for emission. The runtime phase executes a topological sort over the declared record graph, batches inserts by table, and refreshes records after insert to capture DB-generated defaults.
+The recommended implementation order is: dsl-runtime changes first (new `RecordPlaceholder<R>` class, `RecordNode.explicitDependencies` field, `TopologicalInserter` extension), then codegen changes (`MetadataExtractor` naming algorithm refactored to two-pass with collision detection, `BuilderEmitter` and `DslScopeEmitter` updated for placeholder return types), then tests updated atomically with each phase. The naming change and its test harness migration must be done atomically — partial renames produce confusing compile errors in inline Kotlin strings that are hard to diagnose.
 
-The two most critical risks are classloader isolation and the batch-insert-refresh problem. If user jOOQ classes are loaded into the Gradle daemon classloader rather than an isolated `URLClassLoader`, the result is classloader leaks, version conflicts, and corrupted daemon state — a rewrite-level mistake. If batch inserts are used naively, DB-generated primary keys are not returned, breaking FK resolution for child records. Both must be designed correctly before any code is written; retrofitting them is expensive. Self-referential FKs (tree structures) require a two-pass insert strategy (insert with null parent, then update) to avoid topological sort cycle detection failures.
+The primary risks are naming collision (two FKs from the same child table to the same parent table naively producing the same builder function name) and placeholder PK timing (reading a PK before the referenced record is inserted). Both risks are well-understood and have clear prevention strategies: two-pass naming with explicit collision detection, and deferred-reference placeholders that carry `RecordNode` handles resolved by `TopologicalInserter` at insertion time — the same mechanism already used for parent-context FK wiring.
+
+---
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack is well-defined with few controversial choices. Kotlin 2.0 with JVM 11 bytecode target is the right language choice for a library that must be consumable by Kotlin 1.9+ projects. KotlinPoet 1.17.x is the only viable code generation tool — string templates lack structural safety, JavaPoet generates Java not Kotlin, and KSP/KAPT are annotation-processor paradigms that don't apply here. The three-module Gradle multi-project structure mirrors what well-established Kotlin tooling projects (ktlint-gradle, detekt) use.
+No new dependencies are required for v0.2. The existing stack is sufficient: Kotlin 2.1.20, jOOQ 3.19.16 (compileOnly), KotlinPoet 2.2.0 for code emission, and the existing test infrastructure (H2, kotlin-compile-testing 1.6.0, Testcontainers/Postgres). Placeholders are implemented as plain Kotlin data classes in `dsl-runtime` — no proxy frameworks, reflection utilities, or async libraries are needed.
 
-For testing, the research identifies a three-layer strategy: `kotlin-compile-testing` for codegen correctness (generate code, compile it in-test, assert behavior), Gradle TestKit for plugin integration (real Gradle build in temp dir), and H2 in Postgres compatibility mode plus optional Testcontainers for runtime DSL validation. The key insight is that string-matching tests for generated code are unacceptably brittle — only compile-and-run tests prove semantic correctness.
+The one pre-existing tech debt item to leave alone: `kotlin-compile-testing` 1.6.0 bundles a Kotlin 1.9.x compiler. The `-Xskip-metadata-version-check` workaround is in place. Do not upgrade unless a 2.x-compatible release is confirmed and tests still pass — this is out of scope for v0.2.
 
-**Core technologies:**
-- **Kotlin 2.0 / JVM 11**: Implementation language — stable K2 compiler, JVM 11 bytecode for maximum toolchain compatibility
-- **KotlinPoet 1.17.x**: Code generation — only tool that handles Kotlin-specific syntax, nullable types, and import management correctly
-- **jOOQ 3.18+ (compileOnly in runtime)**: Metadata surface — `Table.fields()`, `Table.getReferences()`, `ForeignKey` API used at codegen time; user brings their own version at runtime
-- **Gradle 8.5+ with `java-gradle-plugin`**: Build integration — lazy task registration, `Property<T>` for configuration, `java-gradle-plugin` for plugin descriptor generation
-- **JUnit 5 + Kotest assertions**: Test runner and assertion DSL — Kotest's Kotlin-idiomatic assertions are significantly more readable than raw JUnit for verifying generated code structure
-- **kotlin-compile-testing 0.5.x**: Codegen test correctness — in-memory Kotlin compilation validates generated code semantics, not just string output
-- **Gradle TestKit**: Plugin integration testing — `GradleRunner` against real builds in temp directories
-- **H2 2.x (Postgres mode) + Testcontainers 1.19.x**: Runtime DSL integration tests — H2 for fast CI, Testcontainers for Postgres dialect edge cases
+**Core technologies (no changes from v0.1):**
+- Kotlin 2.1.20 — implementation language — no change
+- KotlinPoet 2.2.0 — source code emission for codegen — emitter logic changes only
+- jOOQ 3.19.16 — schema introspection + record API — no change
+- H2 + kotlin-compile-testing 1.6.0 — unit and compile tests — extend with new cases
+- Testcontainers (Postgres) — integration tests — extend with placeholder scenarios
 
 ### Expected Features
 
-The research is opinionated about MVP scope. Eight features constitute an unshippable product if absent; three are explicitly deferrable without blocking adoption; the remaining differentiators (self-referential FK, multiple-FK disambiguation) are high-value but not universally required.
+**Must have (table stakes for v0.2):**
+- Child-table-named builder functions (default case) — `appUser { }` instead of `organization { }` for the child `app_user` builder on `OrganizationBuilder`
+- FK-column fallback when the stripped column name does not match the parent table — `createdBy { }` and `updatedBy { }` preserved on `AppUserBuilder`
+- Collision detection for multiple FKs from the same child table to the same parent table — prevents two methods named `appUser` on the same class
+- Edge case handling for `table_name` and `table_name_id` columns both FK to the same table — must not generate duplicate function names
+- `RecordPlaceholder<R>` returned from builder blocks — users can capture `val alice = appUser { }` and use it as a FK source
+- Placeholder assignable to FK fields on generated builders — `createdBy = alice` wires Alice's future PK into the task's FK field
+- Placeholder override of parent-context auto-resolution — explicit placeholder wins when both context and placeholder target the same FK field
+- Cross-root-tree placeholder references — placeholder from one root tree assigned to a builder in a different root tree
+- Compilation correctness for all generated DSL changes — verified via existing compile-testing infrastructure
 
-**Must have (table stakes):**
-- Code generator + Gradle plugin — without this, the entire library is inaccessible
-- Generated DSL builders with typed field setters — the core value proposition
-- Sensible column defaults (deterministic, not random) — tests should only specify what they care about
-- Automatic single-column FK resolution from parent context — eliminates the primary pain point
-- Nested child builder blocks — the natural mental model for declaring relational data
-- Topological batch insert — parents before children, fewer DB round trips
-- Record refresh after insert — captures DB-generated PKs and defaults
-- Typed `DslResult` with ordered result lists per table — structured, typed access to inserted records
+**Should have (differentiators for v0.2):**
+- Natural language-first naming — nesting reads as entity relationships, not FK column names
+- Explicit FK override without escaping to raw jOOQ — users can wire FKs the library cannot infer, without `record.set(FIELD, id)`
+- Disambiguation that is self-documenting — when FK-column fallback triggers, names like `createdBy { }` describe the relationship
 
-**Should have (competitive differentiators):**
-- Self-referential FK support (hierarchical data) — common enough to be a meaningful gap if absent
-- Multiple-FK-to-same-table disambiguation (`created_by`/`updated_by` patterns) — named setters rather than implicit resolution
-- Multiple records of same type in one block — currently requires calling `execute {}` twice as workaround
-
-**Defer (v2+):**
-- Composite FK support — rare (~2-5% of schemas), disproportionate complexity
-- Maven Central / Gradle Plugin Portal publishing — mavenLocal is sufficient for initial adoption
-- Query/read DSL — intentionally out of scope per PROJECT.md
-- Framework-specific integrations (Spring, Micronaut) — `DSLContext` parameter keeps the library framework-agnostic
-
-**Anti-features (do not build):**
-- Random/fake data generation — datafaker exists; randomness makes tests non-deterministic
-- Trait/factory inheritance — Kotlin functions serve the same purpose without library complexity
-- Annotation-based configuration — conflicts with the code-generation architecture
+**Defer (confirmed out of scope per PROJECT.md):**
+- Composite FK placeholders
+- Lazy/deferred insertion model
+- Placeholder escaping the `execute { }` scope
 
 ### Architecture Approach
 
-The three-module architecture cleanly separates concerns along deployment boundaries. `dsl-runtime` ships to users and knows nothing about code generation. `codegen` is the intelligence layer — it contains the `ClasspathScanner` (URLClassLoader-based discovery), `MetadataExtractor` (jOOQ reflection), an internal IR (`TableModel`, `ColumnModel`, `ForeignKeyModel` — all pure Kotlin data classes with no jOOQ types), and `KotlinEmitter` (KotlinPoet-based). `gradle-plugin` is a thin wiring layer that reads extension config via lazy `Property<T>` and delegates to `codegen`. The IR decoupling is particularly important: it makes the emitter testable with hand-crafted models independent of jOOQ, and it isolates the codegen module from jOOQ API changes.
+The existing v0.1 architecture is a clean pipeline: at build time, `ClasspathScanner` -> `MetadataExtractor` -> IR models -> emitters (KotlinPoet) -> `.kt` source files. At runtime, `DslScope` -> builder lambdas -> `RecordGraph` -> `TopologicalInserter` (Kahn's algorithm) -> insert + PK resolution. Both v0.2 features extend this pipeline at well-defined points without changing module boundaries or adding new modules.
 
-**Major components:**
-1. **`dsl-runtime`** — runtime DSL engine: `DslScope` (builder execution), `RecordGraph` (DAG construction, FK resolution), `TopologicalInserter` (sort + batch insert + refresh), `ResultAssembler` (typed result construction)
-2. **`codegen`** — build-time generator: `ClasspathScanner`, `MetadataExtractor`, IR models, `KotlinEmitter`
-3. **`gradle-plugin`** — Gradle integration: `DeclarativeJooqExtension` (lazy config), `GenerateDeclarativeJooqDsl` task, source set wiring into `testImplementation`
+**Major components and v0.2 changes:**
+1. `MetadataExtractor` (codegen) — naming algorithm refactored from single-pass inline to two-pass: first derive candidate names, then detect collisions and apply fallback
+2. `BuilderEmitter` (codegen) — emits placeholder setter properties per FK column; emits `collectPlaceholderDependencies()` override; child functions return `RecordPlaceholder<ChildRecord>`
+3. `DslScopeEmitter` (codegen) — root extension functions return `RecordPlaceholder<Record>` instead of `Unit`
+4. `RecordPlaceholder<R>` (dsl-runtime, new) — thin wrapper with a deferred `RecordNode` reference, resolved by `resolve(node)` when the child block executes
+5. `RecordNode` (dsl-runtime) — gains `explicitDependencies: MutableList<Pair<TableField<*,*>, RecordPlaceholder<*>>>`
+6. `TopologicalInserter` (dsl-runtime) — `buildTableGraph` includes placeholder edges; FK resolution loop applies explicit dependencies after parent-context resolution (last write wins, so explicit overrides parent)
+
+**Key deferred-placeholder pattern:** child builder functions create the `RecordPlaceholder` before the deferred lambda runs, pass it into the lambda, and the lambda calls `placeholder.resolve(node)` when it executes. This ensures the placeholder is resolved before `TopologicalInserter` runs, maintaining the existing synchronous execution contract.
 
 ### Critical Pitfalls
 
-1. **Classloader isolation in Gradle plugin** — Always use an isolated `URLClassLoader` for scanning user jOOQ classes. Loading them into the Gradle daemon classloader causes classloader leaks, version conflicts, and `ClassCastException`. This is a rewrite-level mistake if not addressed upfront. Consider Worker API or `JavaExec` subprocess as the isolation boundary.
+1. **Builder function name collision (multiple FKs to same table)** — two FKs from `task` to `app_user` would both naively produce `appUser()`; prevent by computing names in two passes: assign candidates, then detect collisions and switch both to FK-column-based fallback. The existing `CodeGeneratorTest.multipleFkNaming()` test guards this invariant.
 
-2. **Batch insert does not refresh records** — `DSLContext.batchInsert()` follows JDBC batch semantics and does not populate DB-generated values back into record objects. Design the refresh strategy before implementing insert logic: use `RETURNING` clause for PostgreSQL, or fall back to individual `record.store()` calls. This must be paired with the insert design, not retrofitted.
+2. **Placeholder PK read before insert (stale null)** — placeholders must store a `RecordNode` reference, not a PK value; `TopologicalInserter` reads `placeholder.node.record.get(pk)` at insert time after the dependency is stored. Reading the PK at graph construction time will always return null.
 
-3. **Self-referential FK causes topological sort cycle** — Strip self-edges from the FK graph before sorting. Handle self-referential FKs via a two-pass strategy: insert with `null` parent first, then issue UPDATEs. This must be designed before the insert logic is written.
+3. **Topological sort missing cross-tree placeholder edges** — `buildTableGraph()` currently only walks `node.parentNode` links; it must also iterate `node.explicitDependencies` to add edges for placeholder-based FK dependencies, otherwise cross-tree records may insert in wrong order causing constraint violations.
 
-4. **KotlinPoet `%T` vs `%L` confusion** — All type references in KotlinPoet format strings must use `%T` with `ClassName`/`TypeName`, never `%L`. Using `%L` for class names bypasses import management, producing generated code with unresolved references. Enforce with compile-test from day one.
+4. **Placeholder override silently ignored** — the parent-context auto-resolution writes the FK at insert time; the explicit dependency must be applied after (not before) the parent-context write so the override takes effect. A dedicated test verifying the inserted FK matches the placeholder record (not the parent context record) is required.
 
-5. **Generated output directory not wired into source set** — The Gradle plugin must call `sourceSets["test"].kotlin.srcDir(generationTask.flatMap { it.outputDir })` in `apply()`. Generating files into `build/` is not sufficient; Kotlin compiler must be told about the directory.
+5. **Test harness strings not updated atomically with naming change** — `CodeGeneratorTest` and `FullPipelineTest` contain inline Kotlin strings with hardcoded builder method names. Compile errors in these strings appear as `KotlinCompilation.ExitCode.COMPILATION_ERROR` pointing inside dynamic source, which is harder to diagnose. The naming change and all harness string updates must be committed together.
+
+---
 
 ## Implications for Roadmap
 
-Based on research, the architecture's module dependency graph and the feature dependency chain both point to the same natural phase structure. The `dsl-runtime` module has no dependencies on `codegen`, so it can be built and tested independently. The `codegen` module can be validated with `kotlin-compile-testing` before a Gradle plugin exists. Only after both are proven should the Gradle plugin wire them together. A final integration phase validates the full chain end-to-end.
+Based on the dependency structure and pitfall analysis, two phases are appropriate. The naming change must ship atomically (naming logic + test harness migration). The placeholder feature has an internal dependency on `dsl-runtime` changes before `codegen` changes, but is otherwise independent from the naming change.
 
-### Phase 1: DSL Runtime Foundation
+### Phase 1: Child-Table-Named Builder Functions
 
-**Rationale:** `dsl-runtime` has no external module dependencies and is testable with manually constructed jOOQ records. Building it first establishes the data structures that generated code will depend on, and the topological sort algorithm that `codegen` needs to understand to generate correct DSL structure.
+**Rationale:** The naming change is a pure codegen modification with no runtime impact. It is self-contained, validates immediately via existing tests, and should be done before the placeholder phase because the placeholder emitter will generate code using the new function names. Doing them together would conflate two sources of test failures.
 
-**Delivers:** Working runtime engine — `DslScope`, `RecordGraph`, topological sort, `TopologicalInserter` (with batch insert + refresh strategy), `ResultAssembler`, typed `DslResult`. Validated against H2 with hand-written test builders.
+**Delivers:** Updated `MetadataExtractor` naming algorithm (two-pass, collision-detecting); updated generated DSL with child-table-named builder functions and preserved FK-column fallback; updated test harnesses using new names; new edge-case tests for `table_name`/`table_name_id` collision.
 
-**Addresses features:** Record refresh after insert, topological batch insert, typed DslResult with ordered result lists, FK resolution logic, nested child builder execution.
+**Addresses:** Child-table-named builders (table stakes), FK-column fallback preservation, collision detection, `table_name`/`table_name_id` edge case, natural language-first naming (differentiator).
 
-**Avoids pitfalls:** Batch insert refresh problem (Pitfall 4) must be solved here; `LinkedHashMap` for declaration order (Pitfall 12); self-referential FK two-pass strategy (Pitfall 2); no-PK table handling (Pitfall 11).
+**Avoids:** Pitfall 1 (collision — two-pass naming), Pitfall 2 (`table_name`/`table_name_id` — dedicated test schema), Pitfall 3 (self-ref rename — explicit decision and atomic harness update), Pitfall 7 (API churn — grep all harness strings before starting), Pitfall 11 (naming logic in one place — `MetadataExtractor` only).
 
-### Phase 2: Code Generation Engine
+### Phase 2: Placeholder Objects
 
-**Rationale:** With the runtime established, codegen can generate code that actually works. The IR design is validated against the runtime's interface. `kotlin-compile-testing` makes codegen correctness verifiable without Gradle.
+**Rationale:** Placeholders require `dsl-runtime` changes (`RecordPlaceholder`, `RecordNode` update, `TopologicalInserter` extension) before `codegen` changes (emitter updates). The runtime changes have no codegen dependencies and can be developed and unit-tested in isolation. The codegen changes depend on the runtime type being defined. Integration tests come last and exercise cross-tree scenarios.
 
-**Delivers:** `ClasspathScanner`, `MetadataExtractor`, IR models (`TableModel`, `ColumnModel`, `ForeignKeyModel`), `KotlinEmitter` producing compilable and correct Kotlin DSL source.
+**Delivers:** `RecordPlaceholder<R>` class; `RecordNode.explicitDependencies`; extended `TopologicalInserter` with placeholder edge inclusion and deferred PK resolution; updated `BuilderEmitter` and `DslScopeEmitter` for placeholder return types; integration tests for cross-tree and override scenarios.
 
-**Uses stack:** KotlinPoet 1.17.x, Java reflection over jOOQ classes, `URLClassLoader` isolation.
+**Addresses:** Placeholder object (table stakes), placeholder FK assignment, placeholder override, cross-tree references, explicit FK override without escaping to raw jOOQ (differentiator).
 
-**Implements architecture:** `codegen` module entirely. Internal IR as the decoupling boundary. KotlinEmitter consuming only IR (no jOOQ types).
-
-**Avoids pitfalls:** Classloader isolation (Pitfall 1) — design URLClassLoader boundary first; KotlinPoet `%T` discipline (Pitfalls 3 and 13); nullable type mapping via `dataType.nullable()` (Pitfall 6); multiple-FK disambiguation via named setters (Pitfall 7).
-
-### Phase 3: Gradle Plugin
-
-**Rationale:** The Gradle plugin is a thin wiring layer; it is the last piece to build. Its value depends entirely on the codegen engine working correctly. Build it last so integration tests validate the real pipeline.
-
-**Delivers:** `DeclarativeJooqExtension` (lazy `Property<T>` config), `GenerateDeclarativeJooqDsl` task, source set wiring, `mavenLocal` publishing. Full Gradle TestKit integration tests.
-
-**Uses stack:** Gradle 8.5+ `java-gradle-plugin`, Gradle TestKit, lazy task registration.
-
-**Avoids pitfalls:** Eager extension reads (Pitfall 5) — use `Property<T>` throughout; source set registration (Pitfall 9) — wire in `apply()`; configuration cache (Pitfall 8) — test with `--configuration-cache` from first run.
-
-### Phase 4: End-to-End Integration and Edge Cases
-
-**Rationale:** With all three modules working individually, validate the full pipeline against real databases. Also implements the deferrable differentiators that require cross-cutting changes (self-referential FK, multiple-FK disambiguation).
-
-**Delivers:** Full integration test against Postgres via Testcontainers, self-referential FK support, multiple-FK-to-same-table named setters, documentation and usage examples.
-
-**Addresses features:** Self-referential FK support (ARCHITECTURE.md anti-pattern 5 plus PITFALLS.md Pitfall 2), multiple-FK disambiguation (FEATURES.md differentiator, PITFALLS.md Pitfall 7), multiple records of same type in one block.
+**Avoids:** Pitfall 4 (deferred PK — `RecordNode` reference, not PK value), Pitfall 5 (override semantics — explicit deps applied after parent-context), Pitfall 6 (topological sort extended), Pitfall 8 (lambda return type — function returns placeholder, lambda stays `Unit`), Pitfall 9 (direct `RecordNode` reference, never index-based), Pitfall 10 (coordinate `BuilderEmitter` + `DslScopeEmitter` in same task).
 
 ### Phase Ordering Rationale
 
-- **Runtime before codegen:** Generated code imports from `dsl-runtime`; the runtime interface must be stable before codegen emits code that depends on it. Building runtime first also means codegen tests can compile and execute generated code against a real runtime.
-- **Codegen before plugin:** The plugin is a thin wrapper; there is no value in building the wrapper before the thing being wrapped works.
-- **Edge cases last:** Self-referential FKs and multiple-FK disambiguation require the full pipeline to be working before they can be tested meaningfully.
-- **Classloader isolation is Phase 2 day-one:** The URLClassLoader design (Pitfall 1) must be the first thing resolved in the codegen phase — it is the architectural cornerstone of the scanner.
+- Phase 1 before Phase 2 because the placeholder emitter generates code using the new child-table-named function names; mixing both changes increases diagnostic complexity when tests fail.
+- Within Phase 2, `dsl-runtime` before `codegen` because `BuilderEmitter` references `RecordPlaceholder` by type name; the type must exist before the emitter can reference it.
+- Tests are included within each phase (not a separate test phase) because compile-testing harnesses for both features require incremental verification — harness strings are fragile and must be validated immediately.
+- Both phases are free of external dependency changes, reducing risk.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 2 (codegen):** URLClassLoader isolation boundary with Gradle Worker API vs `JavaExec` subprocess — the right approach depends on Gradle version compatibility and configuration cache interaction. Needs validation against current Gradle 8.x docs before implementation.
-- **Phase 3 (Gradle plugin):** Configuration cache compatibility details for Gradle 8.x vs 9.x differ; specific serializable/non-serializable boundaries need verification against the version in use.
-- **Phase 4:** Postgres `RETURNING` clause via jOOQ — confirm exact API for batch-with-returning in jOOQ 3.18+; H2 Postgres mode support for this needs verification.
+Phases with standard, well-understood patterns (skip additional research-phase):
+- **Phase 1 (naming):** Single-file logic change in a well-tested extraction pipeline. The algorithm is fully specified in research. No ambiguity.
+- **Phase 2 (dsl-runtime):** Deferred-reference pattern is standard Kotlin. The exact API shape for `RecordPlaceholder` is fully specified in ARCHITECTURE.md.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (DSL runtime):** Topological sort, builder pattern, and jOOQ record insert/refresh are well-documented patterns with stable APIs. No research phase needed.
-- **Phase 3 (Gradle plugin scaffolding):** `java-gradle-plugin` + `Property<T>` lazy configuration is official Gradle documentation with stable patterns since Gradle 7.
+Phases that may benefit from a quick design review before implementation:
+- **Phase 2 (codegen emitter changes):** The exact KotlinPoet emission for placeholder setter properties (`var organization: RecordPlaceholder<OrganizationRecord>? = null`) and `collectPlaceholderDependencies()` override requires verifying KotlinPoet 2.2.0 API for generating override functions and nullable typed properties. Low risk — existing `BuilderEmitter` already generates typed properties and the API is stable.
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | MEDIUM | Core tools (KotlinPoet, jOOQ FK API, Gradle `java-gradle-plugin`) are HIGH confidence. Specific library versions (KotlinPoet 1.17, kotlin-compile-testing 0.5) should be verified on Maven Central before pinning — no external tools were available during research. |
-| Features | MEDIUM-HIGH | jOOQ-specific constraints are HIGH confidence. Ecosystem comparison (Instancio, FactoryBot) is MEDIUM — stable libraries, well-documented feature sets. |
-| Architecture | MEDIUM | Three-module structure and URLClassLoader pattern are HIGH confidence (established JVM tooling patterns). jOOQ static singleton field naming convention (`TABLE_NAME.uppercase()`) for reflection is MEDIUM — verify against generated output in the actual jOOQ version used. |
-| Pitfalls | HIGH | All pitfalls are grounded in documented API behaviors: jOOQ batch insert semantics, Gradle classloader model, KotlinPoet format specifiers, JDBC `executeBatch()` behavior. These are stable, long-standing characteristics. |
+| Stack | HIGH | Direct build file inspection; no new dependencies confirmed by reading all affected source files |
+| Features | HIGH | Direct codebase analysis for naming algorithm; MEDIUM for placeholder DSL patterns (ecosystem conventions, multiple sources agree) |
+| Architecture | HIGH | All findings based on direct v0.1 source inspection; exact code patterns documented in ARCHITECTURE.md |
+| Pitfalls | HIGH | Every pitfall grounded in actual code — specific files, line numbers, and test names cited |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **jOOQ static instance field naming:** The reflection approach assumes `tableClass.getField(tableName.uppercase())` to get the table singleton. Verify the exact field name pattern in jOOQ 3.18/3.19 generated output before implementing `MetadataExtractor`. Different jOOQ versions or configurations may use different naming conventions.
-- **kotlin-compile-testing current version:** Version 0.5.x is approximate (training data). Verify the latest stable release on GitHub before pinning. This library is actively maintained and versions may have moved.
-- **H2 Postgres mode + jOOQ `RETURNING`:** H2 2.x in Postgres compatibility mode may not fully support `RETURNING` in all cases jOOQ uses it. Validate during Phase 1 integration tests before committing to the refresh strategy.
-- **Gradle Worker API vs URLClassLoader:** The research notes two approaches for classloader isolation (Worker API subprocess vs. isolated `URLClassLoader`). The Worker API is safer for configuration cache compatibility but more complex. This decision should be made at the start of Phase 2, not deferred.
-- **KotlinPoet version compatibility with Kotlin 2.0:** KotlinPoet 1.17.x should support Kotlin 2.0 generated code, but verify there are no known issues with K2 compiler and KotlinPoet output before starting codegen work.
+- **Self-ref naming decision:** The research documents options A (`category()` same-name, receiver disambiguation), B (`childCategory()` preserved), and C (configurable). The algorithm change is specified for the non-self-ref case; the self-ref case needs an explicit decision before implementation. Recommendation: option A (`category()`) aligns with the child-table-named goal and Kotlin resolves correctly by receiver type.
+- **Placeholder setter naming convention:** The generated setter for a FK placeholder could be `var organization: RecordPlaceholder<OrganizationRecord>?` or `var organizationRef` or `var organizationPlaceholder` to distinguish it from a direct-value `var organizationId: Long?`. The naming convention should be decided before emission code is written so it is consistent across all generated builders.
+
+---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- jOOQ 3.x API documentation (training knowledge): `Table.fields()`, `Table.getReferences()`, `ForeignKey`, `UpdatableRecord.refresh()`, `DSLContext.batchInsert()`, `Table.getPrimaryKey()`, `TableField.dataType.nullable()`
-- KotlinPoet documentation: `FileSpec`, `TypeSpec`, `FunSpec`, `CodeBlock` format specifiers (`%T`, `%N`, `%L`, `%S`), `ClassName`, `TypeName`, import management
-- Gradle Plugin Development Guide: `java-gradle-plugin`, `Property<T>`, `DirectoryProperty`, lazy task registration (`tasks.register`), `@InputFiles`/`@OutputDirectory` annotations, configuration cache constraints
-- Gradle TestKit guide: `GradleRunner` integration testing
-- Test Data Builder pattern (Nat Pryce, Steve Freeman): well-established literature
+- Direct code inspection: `MetadataExtractor.kt`, `ForeignKeyIR.kt`, `BuilderEmitter.kt`, `DslScopeEmitter.kt`, `RecordBuilder.kt`, `RecordNode.kt`, `RecordGraph.kt`, `TopologicalInserter.kt`, `TopologicalSorter.kt` — all affected source files read directly
+- Direct test inspection: `CodeGeneratorTest.kt`, `FullPipelineTest.kt`, `TestBuilders.kt` — existing naming assertions and harness patterns documented
+- Build file inspection: `codegen/build.gradle.kts`, `dsl-runtime/build.gradle.kts`, `integration-tests/build.gradle.kts` — dependency versions confirmed
+- Project requirements: `.planning/PROJECT.md` — milestone scope and named edge cases confirmed
+- Kotlin official docs: type-safe builders — builder lambda convention (`() -> Unit`); wrapping function returns the builder object
 
 ### Secondary (MEDIUM confidence)
-- jOOQ generated code structure (static singleton fields, `TableImpl` subclasses, FK metadata fields): training knowledge of jOOQ 3.18 codegen output — stable but unverified against specific version
-- URLClassLoader isolation pattern: standard JVM tooling pattern used by build tools universally
-- kotlin-compile-testing: GitHub repo behavior and version range — approximate, verify current release
-- Instancio, EasyRandom, FactoryBot feature sets: stable libraries, training knowledge through Aug 2025
-
-### Tertiary (LOW confidence)
-- kotlin-compile-testing 0.5.x version: verify on GitHub before pinning
-- KotlinPoet 1.17.x version: verify on Maven Central before pinning
-- H2 Postgres mode `RETURNING` support: validate empirically during Phase 1 integration tests
+- Web search: Kotlin DSL builder return value patterns (Gradle `Provider<T>`, kotlinx.html, Ktor) — ecosystem consensus on placeholder/handle pattern; no single authoritative source
+- Test data DSL patterns article — general pattern reference; content confirmed via research, source access limited
 
 ---
-*Research completed: 2026-03-15*
+*Research completed: 2026-03-16*
 *Ready for roadmap: yes*

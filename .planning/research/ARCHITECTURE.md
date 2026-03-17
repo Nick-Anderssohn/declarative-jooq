@@ -1,406 +1,546 @@
 # Architecture Patterns
 
-**Domain:** Kotlin DSL library with Gradle code-generation plugin
-**Researched:** 2026-03-15
-**Confidence:** MEDIUM — external tools unavailable; based on training knowledge of Gradle plugin architecture, jOOQ internals, and comparable Kotlin codegen libraries (Arrow Meta, KSP, jOOQ's own generator). Core structural patterns are stable and well-established.
+**Domain:** Kotlin DSL library — v0.2 child-table-named builders and placeholder objects
+**Researched:** 2026-03-16
+**Confidence:** HIGH — based on direct code inspection of existing v0.1 implementation
 
 ---
 
-## Recommended Architecture
+## Existing Architecture (v0.1 Baseline)
 
-Three-module Gradle project. Each module has a single, clear responsibility with no circular dependencies.
+This document is written against the actual shipped code, not the pre-build plan. The v0.1
+implementation is in 4 modules with the following structure.
+
+### Module Map
 
 ```
 declarative-jooq/
-├── settings.gradle.kts
-├── build.gradle.kts             (root, version catalog, shared config)
-├── dsl-runtime/                 (MODULE 1: runtime library)
-│   ├── build.gradle.kts
-│   └── src/main/kotlin/
-├── codegen/                     (MODULE 2: code generation engine)
-│   ├── build.gradle.kts
-│   └── src/main/kotlin/
-└── gradle-plugin/               (MODULE 3: Gradle plugin)
-    ├── build.gradle.kts
-    └── src/main/kotlin/
+├── dsl-runtime/          Runtime library: DslScope, RecordBuilder, RecordGraph,
+│                         RecordNode, TopologicalInserter, TopologicalSorter,
+│                         ResultAssembler, DslResult
+├── codegen/              Code generator: ClasspathScanner, MetadataExtractor,
+│                         IR models (TableIR, ColumnIR, ForeignKeyIR),
+│                         emitters (BuilderEmitter, DslScopeEmitter,
+│                         ResultEmitter, DslResultEmitter), CodeGenerator
+├── gradle-plugin/        Gradle integration: DeclarativeJooqPlugin,
+│                         DeclarativeJooqExtension, GenerateDeclarativeJooqDslTask
+└── integration-tests/    End-to-end Postgres tests via Testcontainers
 ```
 
-### Why Three Modules, Not Two
+### Current Data Pipeline
 
-Separating `codegen` from `gradle-plugin` is the critical structural decision:
-
-- **`gradle-plugin`** depends on Gradle API, which must not leak into `codegen`
-- **`codegen`** can be invoked standalone (CLI, tests, IDEA plugin later) without Gradle
-- **`dsl-runtime`** has zero knowledge of codegen — it ships to the user's test classpath
-- Test isolation: `codegen` is unit-testable without standing up a Gradle build
-
----
-
-## Component Boundaries
-
-| Module | Responsibility | Depends On | Consumed By |
-|--------|---------------|------------|-------------|
-| `dsl-runtime` | Runtime DSL engine — `execute {}` block, FK resolution, topological sort, batch insert, result assembly | jOOQ 3.18+ (compileOnly ok for DSL types, required at runtime) | User's test code |
-| `codegen` | Inspects jOOQ-generated classes, builds an internal model (tables, columns, FKs), emits Kotlin source | jOOQ 3.18+, KotlinPoet or string templates | `gradle-plugin` |
-| `gradle-plugin` | Wires `codegen` into the Gradle build lifecycle, provides extension DSL for configuration, sets up task inputs/outputs | `codegen`, Gradle API | User's `build.gradle.kts` |
-
-### What Does NOT Communicate With What
-
-- `dsl-runtime` never imports from `codegen` or `gradle-plugin`
-- `codegen` never imports from `gradle-plugin`
-- `gradle-plugin` may import from `codegen` but calls it as a library (not the other way)
-
----
-
-## Data Flow
-
-### Build-Time Flow (code generation)
+**Build time:**
 
 ```
-User's jOOQ classes (compiled .class files on disk)
-    |
-    v
-Gradle Plugin
-  - reads extension config (source dir, output dir, base package)
-  - creates GenerateJooqDslTask with classpath inputs
-    |
-    v
-codegen module: ClasspathScanner
-  - URLClassLoader over user's jOOQ output directory + jOOQ jars
-  - reflectively loads all classes extending TableImpl<R>
-    |
-    v
-codegen module: MetadataExtractor
-  - for each TableImpl subclass:
-      - calls table.fields() → Field<*>[] for columns
-      - calls table.getReferences() → List<ForeignKey<R,O>> for FKs
-      - inspects ForeignKey.getKey().getTable() for referenced table
-      - inspects ForeignKey.getFields() for FK columns
-  - produces: List<TableModel> (internal IR, no jOOQ types)
-    |
-    v
-codegen module: TopologicalAnalyzer
-  - builds dependency graph from TableModel FK relationships
-  - detects self-referential FKs (category.parent_id → category.id)
-  - detects multiple FKs to same target table
-    |
-    v
-codegen module: KotlinEmitter
-  - for each TableModel, generates:
-      - Builder class (the DSL block)
-      - Result class (typed wrapper returned after insert)
-      - Extension function hanging off DslContext scope
-  - writes .kt files to configured output directory
-    |
-    v
-Generated .kt source files
-  - wired by plugin into user's sourceSet (testImplementation)
-  - compiled by Kotlin compiler in subsequent build phase
+jOOQ .class files
+    → ClasspathScanner (finds TableImpl subclasses)
+    → MetadataExtractor (reflects over table instances → produces TableIR list)
+        [Two-pass: first build all TableIR, then cross-link inboundFKs]
+    → BuilderEmitter / DslScopeEmitter / ResultEmitter / DslResultEmitter
+        (KotlinPoet → .kt source)
 ```
 
-### Runtime Flow (test execution)
+**Runtime:**
 
 ```
-Test calls: execute(dslContext) { org { user { } } }
-    |
-    v
-dsl-runtime: DslScope
-  - builder blocks called in declaration order
-  - each builder records: table ref, field values, FK context from parent
-    |
-    v
-dsl-runtime: RecordGraph
-  - builds directed acyclic graph of record nodes
-  - resolves FK values: parent result record → child FK field
-  - handles self-refs by deferring self-referential FK to update after insert
-    |
-    v
-dsl-runtime: TopologicalInserter
-  - sorts record nodes topologically by table FK dependencies
-  - groups records by table (batch per table)
-  - executes batch inserts in order
-  - refreshes each record after insert (store() then refresh()) to capture DB defaults
-    |
-    v
-dsl-runtime: ResultAssembler
-  - wraps each inserted record in its typed Result wrapper
-  - assembles DslResult: ordered lists per root table, children nested under parents
-    |
-    v
-DslResult returned to test
-  - test accesses: result.organizations[0].users[0].id
+execute(dslContext) { ... }
+    → DslScope holds RecordGraph
+    → Builder extension functions (generated) add RecordNode entries to RecordGraph
+    → TopologicalInserter.insertAll(graph):
+        1. buildTableGraph from RecordNode.parentNode links
+        2. TopologicalSorter.sort (Kahn's algorithm, self-edges stripped)
+        3. Insert each node in order; resolve parentNode PK → child FK field
+        4. Second pass for self-referential nodes (UPDATE after all inserts)
+    → ResultAssembler.assemble → DslResult
 ```
 
----
+### Current Naming Logic (the thing being changed)
 
-## How codegen Inspects jOOQ Classes
-
-### Approach: Reflection via URLClassLoader (MEDIUM confidence)
-
-jOOQ generated classes carry full FK metadata as static fields at the class level. The recommended approach for a Gradle plugin codegen is **classpath reflection**, not source parsing or jOOQ's generator SPI.
-
-**Why reflection, not source parsing:**
-- Parsing Kotlin/Java source is fragile (whitespace, formatting, comments)
-- jOOQ already compiled the metadata into the class — use it
-- jOOQ generator SPI requires hooking into jOOQ's own codegen lifecycle, which this tool runs after
-
-**The reflection approach:**
+`MetadataExtractor` computes `builderFunctionName` in `ForeignKeyIR` at extraction time:
 
 ```kotlin
-// In codegen module — MetadataExtractor
-val loader = URLClassLoader(
-    classpathEntries.map { it.toURI().toURL() }.toTypedArray(),
-    javaClass.classLoader  // parent: has jOOQ itself
-)
-
-// Find all TableImpl subclasses
-val tableClasses: List<Class<*>> = classpathEntries
-    .flatMap { scanClassFiles(it) }
-    .mapNotNull { className ->
-        runCatching { loader.loadClass(className) }.getOrNull()
-    }
-    .filter { TableImpl::class.java.isAssignableFrom(it) }
-    .filter { !it.isInterface && !Modifier.isAbstract(it.modifiers) }
-```
-
-**Extracting metadata from jOOQ table instances:**
-
-jOOQ table classes have a static `$INSTANCE` or singleton field (the `TABLE_NAME` constant in generated code). The table object exposes:
-
-```kotlin
-// Get the singleton table instance (generated classes have a companion or static field)
-val tableInstance = tableClass.getField(tableName.uppercase()).get(null) as TableImpl<*>
-
-// Columns
-val fields: Array<Field<*>> = tableInstance.fields()
-// field.name → column name
-// field.dataType → jOOQ DataType (maps to Kotlin type)
-// field.type → java.lang.Class
-
-// Foreign keys (outbound: this table → other)
-val outboundFKs: List<ForeignKey<*, *>> = tableInstance.references
-// fk.key.table → the referenced table
-// fk.fields → columns in THIS table that are FK columns
-// fk.key.fields → columns in the referenced table (usually PK)
-
-// Primary key
-val pk: UniqueKey<*>? = tableInstance.primaryKey
-// pk.fields → PK columns
-```
-
-**Self-referential FK detection:**
-```kotlin
-val isSelfRef = fk.key.table == tableInstance
-```
-
-**Multiple FKs to same target:**
-```kotlin
-val fksByTarget = tableInstance.references
-    .groupBy { it.key.table.name }
-// entries with size > 1 are the "multiple FKs to same table" case
-```
-
-### Class Discovery Strategy
-
-Two viable approaches:
-
-1. **Directory walk** (simpler, recommended): Walk the user's jOOQ output directory, convert `.class` file paths to class names, attempt to load each. Filter by `TableImpl` supertype.
-
-2. **Package scan**: User provides the package name in the plugin extension; scan only classes in that package. More targeted but requires the user to specify it.
-
-Recommendation: Walk the directory (approach 1) as the default, with optional package filter. The user already tells the plugin where jOOQ output lives.
-
----
-
-## Patterns to Follow
-
-### Pattern 1: Plugin Extension + Task Separation
-
-The Gradle plugin registers an extension for configuration and a `Task` subclass for execution. Configuration is read lazily (Gradle `Property<T>` / `DirectoryProperty`) so it participates in configuration cache.
-
-```kotlin
-// Extension
-abstract class DeclarativeJooqExtension {
-    abstract val jooqClassesDir: DirectoryProperty
-    abstract val outputDir: DirectoryProperty
-    abstract val basePackage: Property<String>
+// Current logic (MetadataExtractor.kt lines 72-76)
+val strippedFkCol = fkColumnName.removeSuffix("_id")
+val builderFunctionName = if (isSelfRef) {
+    "child" + toPascalCase(tableName)
+} else {
+    toCamelCase(strippedFkCol)   // "organization_id" → "organization"
 }
+```
 
-// Task
-abstract class GenerateDeclarativeJooqDsl : DefaultTask() {
-    @get:InputDirectory abstract val jooqClassesDir: DirectoryProperty
-    @get:OutputDirectory abstract val outputDir: DirectoryProperty
-    @get:Input abstract val basePackage: Property<String>
+`BuilderEmitter` uses `fk.builderFunctionName` verbatim when generating child functions on
+parent builders (line 165). `ForeignKeyIR.builderFunctionName` is the single source of truth
+for the generated function name — change the naming logic here and every emitter follows.
 
-    @TaskAction
-    fun generate() {
-        // delegates to codegen module — no Gradle API here
-        CodeGenerator.run(
-            jooqClassesDir.get().asFile,
-            outputDir.get().asFile,
-            basePackage.get()
-        )
+---
+
+## New Feature 1: Child-Table-Named Builder Functions
+
+### What Changes
+
+**Goal:** Builder functions on parent builders should default to the child table name, falling
+back to FK column name only when the FK column name doesn't map back to the parent table.
+
+Concrete example: `app_user` has FK `organization_id → organization`. The current name is
+`organization` (stripped FK column). The new name should also be `appUser` (child table name).
+Both produce the same ergonomics here, but the rule becomes clearer when they differ:
+
+- `task.created_by → app_user`: current = `createdBy`, new = `createdBy` (unchanged — falls
+  back because `created_by` stripped of `_by` is `created`, which does NOT match `app_user`)
+- `task.updated_by → app_user`: current = `updatedBy`, new = `updatedBy` (unchanged — same
+  fallback reasoning)
+- `order_item.order_id → order`: current = `order`, new = `orderItem` (child table name wins)
+
+**Disambiguation rule for multiple FKs from same child to same parent:** when two FKs from the
+same child table point to the same parent table, the child-table-name would collide; fall back
+to FK column name for both. Example: `task.created_by` and `task.updated_by` both point to
+`app_user` — `AppUserBuilder` gets `createdBy` and `updatedBy`, not two `task` functions.
+
+### Where to Make the Change
+
+**Single location: `MetadataExtractor.builderFunctionName` computation.**
+
+The function name lives in `ForeignKeyIR.builderFunctionName`. This field is populated in
+`MetadataExtractor.extract()` during the outbound FK loop (lines 61-86). The naming logic
+is already isolated in that block.
+
+The new algorithm needs to run after the full FK list for a child table is known, because
+disambiguation requires knowing whether multiple FKs point to the same parent. The current
+code computes names inline inside the single-FK loop. The fix is to compute the list of FKs
+first, then apply naming in a separate pass over that list.
+
+**Algorithm:**
+
+```
+For each child table T:
+    fks = all outbound FKs of T
+    For each fk in fks:
+        candidateName = childTableCamelCase(T.tableName)  // "app_user" → "appUser"
+        colBasedName = toCamelCase(fkColumnName.removeSuffix("_id"))
+
+        if fk.isSelfReferential:
+            name = "child" + toPascalCase(T.tableName)    // unchanged
+        else if multipleTargetsToSameParent(fks, fk.parentTableName):
+            name = colBasedName                            // disambiguate via FK column
+        else:
+            name = candidateName                           // child table name wins
+```
+
+`multipleTargetsToSameParent(fks, parentName)` = `fks.count { it.parentTableName == parentName } > 1`
+
+**Edge case: FK column is `tableName` or `tableName_id` pointing to same table.**
+
+Example: `employee.manager_id → employee` (self-ref) vs. a hypothetical case where
+`report.user_id` and `report.author_id` both point to `user`. The disambiguation rule
+(multiple FKs to same parent → use column name) correctly handles both directions. For
+self-ref the existing `child` prefix rule still applies. No new logic is needed beyond
+the disambiguation check.
+
+### IR Changes Required
+
+`ForeignKeyIR` does not need new fields. The `builderFunctionName` field already stores
+the final computed name. Only the computation logic in `MetadataExtractor` changes.
+
+`TableIR` does not change.
+
+### Emitter Changes Required
+
+`BuilderEmitter` and `DslScopeEmitter` are unchanged — they consume
+`fk.builderFunctionName` as a black box.
+
+### Test Impact
+
+`CodeGeneratorTest.multipleFkNaming()` currently asserts:
+
+```kotlin
+assertTrue("createdBy" in methodNames)
+assertTrue("updatedBy" in methodNames)
+assertTrue("task" !in methodNames)
+```
+
+With the new logic, `createdBy` and `updatedBy` still win (disambiguation applies because
+two FKs from `task` both point to `app_user`). The test passes unchanged.
+
+New tests needed:
+- Single FK where child table name replaces stripped column name (e.g., `order_item.order_id → order` → builder function is `orderItem`)
+- Edge case where `tableName` and `tableName_id` both exist for the same parent table
+
+---
+
+## New Feature 2: Placeholder Objects
+
+### What They Are
+
+A placeholder is a value returned from a builder block that represents a "not-yet-inserted"
+record. It allows a DSL user to wire FKs explicitly rather than relying on parent-context
+auto-resolution, and to wire FKs across independent root trees.
+
+```kotlin
+// Desired DSL usage
+val alice = execute(dslContext) {
+    val alicePlaceholder = appUser {
+        name = "Alice"
+        email = "alice@example.com"
+    }
+    task {
+        title = "Fix bug"
+        createdBy = alicePlaceholder   // explicit FK assignment
     }
 }
 ```
 
-### Pattern 2: Internal Representation (IR) Decouples Emitter from Extractor
+### Design Constraints
 
-The `MetadataExtractor` produces an IR (`TableModel`, `ColumnModel`, `ForeignKeyModel`) that contains no jOOQ types. The `KotlinEmitter` consumes only the IR.
+1. `execute {}` is synchronous. Record nodes are built during the block, inserted after.
+2. FK field values (Long IDs) are not known until after insert. A placeholder cannot carry
+   a concrete ID at assignment time.
+3. The topological sort must still determine correct insert order. If task's `createdBy`
+   field references Alice's placeholder, task must insert after Alice.
+4. The placeholder must be resolvable at insert time — after Alice's node is stored,
+   `node.record.get(pk)` provides the ID.
 
-This means:
-- Emitter is testable with hand-crafted IR
-- Emitter can be swapped (e.g., emit Java instead of Kotlin) without touching extraction
-- IR serializable to JSON for debugging/caching
+### New Runtime Component: `RecordPlaceholder<R>`
+
+Add to `dsl-runtime`:
 
 ```kotlin
-data class TableModel(
-    val className: String,       // e.g. "UserRecord"
-    val tableName: String,       // e.g. "USER"
-    val schemaName: String?,
-    val columns: List<ColumnModel>,
-    val primaryKey: List<String>,
-    val foreignKeys: List<ForeignKeyModel>
-)
-
-data class ForeignKeyModel(
-    val constraintName: String,
-    val localColumns: List<String>,
-    val referencedTable: String,
-    val referencedColumns: List<String>,
-    val isSelfReferential: Boolean
+class RecordPlaceholder<R : UpdatableRecord<R>>(
+    internal val node: RecordNode
 )
 ```
 
-### Pattern 3: Topological Sort in Both codegen and Runtime
+This is a thin wrapper around a `RecordNode` that was already registered into the
+`RecordGraph`. Its only job is to be a typed handle the DSL user can assign to a FK field
+on another builder.
 
-Both modules need topological ordering:
+The `RecordNode` is created during the builder's `build()` call — the same moment as today.
+The placeholder is just a reference to that node, returned from the builder extension
+function.
 
-- **codegen**: Determines nesting structure in generated DSL (which tables can be roots vs. must be children)
-- **runtime**: Determines actual insert order (records must insert before records that FK-reference them)
+### Generated Code Changes: Builder Extension Functions Return Placeholder
 
-Extract the sort algorithm to `dsl-runtime` (since it ships anyway) and have `codegen` either duplicate a simpler version or depend on `dsl-runtime`. Since `codegen` is build-time and `dsl-runtime` is test-runtime, a clean option is to have both contain their own minimal topo sort rather than creating a shared dependency.
+Currently `DslScopeEmitter` emits:
 
-### Pattern 4: Generated Code Depends on Runtime, Not codegen
+```kotlin
+fun DslScope.appUser(block: AppUserBuilder.() -> Unit) {
+    val builder = AppUserBuilder(recordGraph)
+    builder.block()
+    val node = builder.buildWithChildren()
+    recordGraph.addRootNode(node)
+    // returns Unit
+}
+```
 
-The generated `.kt` files import from `dsl-runtime` only. The user adds `dsl-runtime` to `testImplementation`. `codegen` and `gradle-plugin` are `buildSrc` or plugin dependencies — not on the user's test classpath.
+New version returns `RecordPlaceholder<AppUserRecord>`:
+
+```kotlin
+fun DslScope.appUser(block: AppUserBuilder.() -> Unit): RecordPlaceholder<AppUserRecord> {
+    val builder = AppUserBuilder(recordGraph)
+    builder.block()
+    val node = builder.buildWithChildren()
+    recordGraph.addRootNode(node)
+    return RecordPlaceholder(node)
+}
+```
+
+Child builder functions inside parent builders also return placeholders:
+
+```kotlin
+// Inside OrganizationBuilder
+fun appUser(block: AppUserBuilder.() -> Unit): RecordPlaceholder<AppUserRecord> {
+    var resultNode: RecordNode? = null
+    childBlocks.add { parentNode ->
+        val builder = AppUserBuilder(recordGraph = graph, parentNode = parentNode, parentFkField = ...)
+        builder.block()
+        resultNode = builder.buildWithChildren()
+    }
+    return RecordPlaceholder(resultNode!!)   // <-- problem: node doesn't exist yet
+}
+```
+
+**The deferred execution problem.** Child builder blocks (`childBlocks`) are lambdas that
+run after the parent's `build()` call. At the time the `appUser { }` call returns, the
+child block hasn't run yet and `resultNode` is null.
+
+**Solution: Deferred placeholder.** The placeholder wraps a `Lazy<RecordNode>` or a
+`lateinit`-style container that is filled in when the child block executes:
+
+```kotlin
+class RecordPlaceholder<R : UpdatableRecord<R>> {
+    private var _node: RecordNode? = null
+
+    internal fun resolve(node: RecordNode) { _node = node }
+
+    internal val node: RecordNode
+        get() = _node ?: error("Placeholder not yet resolved — builder block has not executed")
+}
+```
+
+The child builder function creates a placeholder, passes it into the lambda that runs later,
+and the lambda calls `placeholder.resolve(node)` when it executes:
+
+```kotlin
+fun appUser(block: AppUserBuilder.() -> Unit): RecordPlaceholder<AppUserRecord> {
+    val placeholder = RecordPlaceholder<AppUserRecord>()
+    childBlocks.add { parentNode ->
+        val builder = AppUserBuilder(recordGraph = graph, parentNode = parentNode, parentFkField = ...)
+        builder.block()
+        val node = builder.buildWithChildren()
+        placeholder.resolve(node)
+    }
+    return placeholder
+}
+```
+
+This is safe because: the DSL user uses the placeholder only inside the outer execute block
+(to assign to another builder's field), and by the time `execute {}` returns control to
+`insertAll`, all builder blocks have run (the block is synchronous). The placeholder is
+resolved before it is ever read.
+
+### Explicit FK Assignment on Builders
+
+Builder classes gain a new setter that accepts a `RecordPlaceholder`:
+
+```kotlin
+// In generated AppUserBuilder
+var organizationId: Long? = null  // existing direct-value setter
+var organization: RecordPlaceholder<OrganizationRecord>? = null  // new placeholder setter
+```
+
+At insert time, `TopologicalInserter` must check: if a node has an explicit placeholder
+assignment (not via parent-context parentNode), it reads the PK from that placeholder's node
+and sets the FK field.
+
+**Alternatively** (and more cleanly): the placeholder FK assignment is applied during
+`buildRecord()`. When the builder's `buildRecord()` is called, if a placeholder field is set,
+the builder sets the corresponding FK column to the placeholder's node's PK value.
+
+But `buildRecord()` is called before insert — the PK isn't available yet at that time.
+
+**Correct approach: RecordNode gets an additional explicit dependency list.**
+
+`RecordNode` gains a new field:
+
+```kotlin
+class RecordNode(
+    // ... existing fields ...
+    val explicitDependencies: MutableList<Pair<TableField<*, *>, RecordPlaceholder<*>>> = mutableListOf()
+)
+```
+
+`TopologicalInserter` already iterates nodes for FK resolution. It adds a step:
+
+```kotlin
+// After existing parentNode FK resolution:
+for ((fkField, placeholder) in node.explicitDependencies) {
+    val depPk = placeholder.node.table.primaryKey!!.fields[0]
+    val depPkValue = placeholder.node.record.get(depPk)
+        ?: error("Placeholder node PK is null — dependency must insert before this node")
+    @Suppress("UNCHECKED_CAST")
+    (node.record as Record).set(fkField as Field<Any?>, depPkValue)
+}
+```
+
+**Topological sort must include explicit dependencies.** `buildTableGraph` currently only
+looks at `node.parentNode`. It must also include `node.explicitDependencies`:
+
+```kotlin
+// In TopologicalInserter.buildTableGraph:
+for (node in nodes) {
+    graph.getOrPut(node.table.name) { mutableSetOf() }
+    if (node.parentNode != null) {
+        graph[node.table.name]!!.add(node.parentNode.table.name)
+    }
+    for ((_, placeholder) in node.explicitDependencies) {
+        graph[node.table.name]!!.add(placeholder.node.table.name)
+    }
+}
+```
+
+### How Builders Register Explicit Dependencies
+
+The generated builder class gets typed placeholder setter properties for each FK. When the
+setter is called, it adds an entry to a deferred list. During `build()`, the deferred list
+is passed into the new `RecordNode`:
+
+```kotlin
+// In RecordBuilder (base class change):
+val explicitPlaceholderDeps: MutableList<Pair<String, RecordPlaceholder<*>>> = mutableListOf()
+```
+
+Or the generated builder overrides `build()` to inject them. The cleanest option is to
+add placeholder registration to `RecordBuilder.build()` via a hook:
+
+```kotlin
+// Generated code registers deps before build():
+fun build(): RecordNode {
+    val record = buildRecord()
+    val deps = collectPlaceholderDependencies()  // generated override
+    val node = RecordNode(
+        table = table, record = record, parentNode = parentNode,
+        parentFkField = parentFkField, declarationIndex = recordGraph.nextDeclarationIndex(),
+        isSelfReferential = isSelfReferential,
+        explicitDependencies = deps
+    )
+    parentNode?.children?.add(node)
+    return node
+}
+```
+
+`collectPlaceholderDependencies()` is generated in each builder class and returns the list
+of `(TableField, RecordPlaceholder)` pairs corresponding to any placeholder-typed setter
+that was assigned.
+
+### Placeholder Override of Parent-Context FK
+
+When a user sets `organization = somePlaceholder` on an `AppUserBuilder` that is already
+a child of an organization block, the explicit placeholder should win. This means: if
+`explicitDependencies` contains an entry for the same FK field that `parentFkField` targets,
+the explicit dependency takes precedence at insert time.
+
+`TopologicalInserter` applies explicit dependencies after the parentNode resolution step —
+the last write wins, which is the explicit one.
+
+---
+
+## Component Boundary Changes Summary
+
+| Component | v0.1 Status | v0.2 Change |
+|-----------|-------------|-------------|
+| `ForeignKeyIR` | Existing | No new fields; `builderFunctionName` computation logic changes |
+| `MetadataExtractor` | Existing | Naming algorithm refactored to two-pass; new disambiguation logic |
+| `BuilderEmitter` | Existing | New: generate placeholder setter properties; generate `collectPlaceholderDependencies()` override; child functions return `RecordPlaceholder` |
+| `DslScopeEmitter` | Existing | Return type changes from `Unit` to `RecordPlaceholder<RecordType>` |
+| `RecordNode` | Existing | New field: `explicitDependencies: MutableList<Pair<TableField<*,*>, RecordPlaceholder<*>>>` |
+| `RecordBuilder` | Existing | `build()` passes `explicitDependencies` to `RecordNode` constructor |
+| `TopologicalInserter` | Existing | `buildTableGraph` includes explicit dependencies; FK resolution loop applies explicit deps after parentNode resolution |
+| `RecordPlaceholder` | New | New class in `dsl-runtime` |
+
+---
+
+## Data Flow with Both Features
 
 ```
-User's test classpath:
-  - jOOQ (already there for their schema)
-  - dsl-runtime (new dependency)
-  - generated .kt files (compiled from codegen output)
+execute(dslContext) {
+    val userPlaceholder = appUser {         // DslScopeEmitter now returns RecordPlaceholder
+        name = "Alice"
+        email = "alice@acme.com"
+        organization = orgPlaceholder       // explicit FK setter (BuilderEmitter generates this)
+    }
+    task {
+        title = "Fix bug"
+        createdBy = userPlaceholder         // explicit FK setter with placeholder
+    }
+}
 
-User's buildscript classpath:
-  - gradle-plugin
-  - codegen (transitive via gradle-plugin)
+-- During execute {} block execution: --
+AppUserBuilder.build() called:
+    → RecordNode created with explicitDependencies = [(ORGANIZATION_ID, orgPlaceholder)]
+    → RecordPlaceholder(node) returned as userPlaceholder
+
+TaskBuilder.build() called:
+    → RecordNode created with explicitDependencies = [(CREATED_BY, userPlaceholder)]
+
+-- TopologicalInserter.insertAll: --
+buildTableGraph:
+    organization: {}
+    app_user: {organization}               // from explicit dep via orgPlaceholder.node
+    task: {app_user}                       // from explicit dep via userPlaceholder.node
+
+TopologicalSorter.sort: [organization, app_user, task]
+
+Insert organization → PK = 1
+Insert app_user:
+    explicit dep ORGANIZATION_ID → orgPlaceholder.node.record.get(pk) = 1
+    store()
+Insert task:
+    explicit dep CREATED_BY → userPlaceholder.node.record.get(pk) = 5
+    store()
 ```
 
 ---
 
-## Anti-Patterns to Avoid
+## Build Order for v0.2
 
-### Anti-Pattern 1: Plugin Module Containing Business Logic
+Dependencies govern order. Both features touch `codegen` and `dsl-runtime`. Neither requires
+changes to `gradle-plugin` or `integration-tests` module structure.
 
-**What goes wrong:** `gradle-plugin` imports Gradle API throughout and its logic is only testable via `GradleRunner` (slow integration tests).
+**Step 1: `dsl-runtime` — Add `RecordPlaceholder` and update `RecordNode`**
 
-**Why bad:** Every test of FK extraction or code emission requires standing up a Gradle build. Tests take 5-30 seconds each instead of milliseconds.
+No dependencies on other new code. Self-contained new type plus a field addition to an
+existing data class. `TopologicalInserter` change depends on `RecordNode` change.
 
-**Instead:** `gradle-plugin` is a thin wiring layer. All logic in `codegen`. `codegen` tests are pure unit tests with no Gradle dependency.
+Tasks:
+- Add `RecordPlaceholder<R>` class with deferred `resolve()` mechanism
+- Add `explicitDependencies` to `RecordNode`
+- Update `RecordBuilder.build()` to pass explicit dependencies through
+- Update `TopologicalInserter.buildTableGraph` to include explicit dependencies
+- Update `TopologicalInserter` FK resolution loop to apply explicit dependencies
 
-### Anti-Pattern 2: Loading jOOQ Classes Into the Build Classloader
+**Step 2: `codegen` — Naming logic and placeholder emission**
 
-**What goes wrong:** Loading user's jOOQ classes directly into the Gradle daemon classloader causes classloader leaks, version conflicts, and makes the daemon dirty for subsequent builds.
+Depends on Step 1 because the emitters reference `RecordPlaceholder` type by name.
 
-**Why bad:** The Gradle daemon is long-lived. Leaking user classes causes OOM on repeated builds and obscure `ClassCastException` errors.
+Tasks:
+- Refactor `MetadataExtractor` FK naming to two-pass with disambiguation
+- Update `BuilderEmitter` to emit placeholder setter properties per FK
+- Update `BuilderEmitter` to emit `collectPlaceholderDependencies()` override
+- Update `BuilderEmitter` child functions to return `RecordPlaceholder<ChildRecord>`
+- Update `DslScopeEmitter` to return `RecordPlaceholder<Record>` from root functions
+- Update `BuilderEmitter` child functions (deferred lambda path) to call `placeholder.resolve(node)`
 
-**Instead:** Always create a `URLClassLoader` with the Gradle daemon classloader (or `ClassLoader.getSystemClassLoader()`) as parent, load user classes into it, use the extracted metadata (primitive types, strings), then let the URLClassLoader go out of scope.
+**Step 3: Tests**
 
-### Anti-Pattern 3: Parsing jOOQ Source Instead of Compiled Classes
-
-**What goes wrong:** String/regex parsing of jOOQ-generated `.kt` or `.java` source to find table and FK info.
-
-**Why bad:** Brittle against jOOQ version changes, formatting changes, comment changes. The compiled classes already have all this data via reflection — use it.
-
-**Instead:** Require jOOQ codegen to run first (it already does in the user's build), then reflect over compiled classes.
-
-### Anti-Pattern 4: Hardcoding Insert Order in Generated Code
-
-**What goes wrong:** Topological order baked into the generated DSL itself, so changing the schema requires regenerating AND the order is wrong for dynamic record graphs.
-
-**Why bad:** The actual insertion order depends on which records are declared in a given `execute {}` block — it's data-dependent, not schema-dependent. A block with 3 orgs and 5 users needs different ordering than one with just 1 user.
-
-**Instead:** Runtime topological sort in `dsl-runtime` over the actual record graph built during the `execute {}` block. Generated code provides the schema structure; runtime provides the execution order.
-
-### Anti-Pattern 5: Self-Referential FK as Blocking Dependency
-
-**What goes wrong:** Treating `category.parent_id → category.id` as a normal FK causes the topological sort to find a cycle and fail.
-
-**Why bad:** Self-referential FKs are valid and common (tree structures, self-joins).
-
-**Instead:** During runtime graph construction, detect self-referential FKs. Insert all records in the self-referential table first (with `parent_id = null`), then issue UPDATE statements to set the parent pointers. The generated DSL for self-ref tables accepts an optional parent reference.
+Tasks:
+- Add `MetadataExtractor` unit tests for new naming cases
+- Update `CodeGeneratorTest.multipleFkNaming()` assertions for any changed names
+- Add compile-testing harness for placeholder assignment (explicit FK wiring)
+- Add integration test: cross-root-tree placeholder reference
+- Add integration test: placeholder overrides parent-context FK
 
 ---
 
-## Build Order (Module Dependencies and Suggested Phase Sequence)
+## Risks and Constraints
 
-```
-Phase 1: dsl-runtime foundation
-  - No external module dependencies
-  - Core data structures: RecordNode, RecordGraph
-  - Topological sort algorithm
-  - Can be tested with manually-created jOOQ records
+### Deferred Placeholder Resolution Ordering
 
-Phase 2: codegen engine
-  - Depends on: jOOQ (for reflection), dsl-runtime IR (for understanding output shape)
-  - ClasspathScanner, MetadataExtractor, IR models
-  - KotlinEmitter (generates code that imports dsl-runtime)
-  - Fully unit-testable: create test jOOQ classes in test resources, assert emitted code
+The deferred-lambda mechanism in child builder functions means the placeholder returned from
+`organizationBuilder.appUser { }` is not resolved at call-return time. It is resolved when
+`buildWithChildren()` runs on the organization builder. That happens before `insertAll` is
+called (it happens inside the `execute {}` block). So by the time `TopologicalInserter`
+runs, all placeholders are resolved. This ordering invariant must be preserved — do not
+change the execution model.
 
-Phase 3: gradle-plugin
-  - Depends on: codegen, Gradle API
-  - Extension, Task, plugin apply() wiring
-  - Integration tested via GradleRunner with a test project in src/test/resources
-  - Wires generated source into user's testImplementation sourceSet
+### Cross-Root-Tree Placeholder
 
-Phase 4: dsl-runtime completion
-  - FK resolution logic (uses codegen output shape knowledge)
-  - Batch insert + record refresh
-  - Result assembly
-  - Tested against a real DB (TestContainers) with generated DSL from Phase 2
-```
+A placeholder returned from one root-level call (e.g., `val alice = appUser { }`) and
+assigned inside another root-level call (e.g., `task { createdBy = alice }`) works naturally
+because both calls are inside the same `execute {}` block. The `RecordGraph` contains both
+nodes. The `explicitDependencies` link is in `RecordNode` which is in the same graph. No
+special handling required — it's the same mechanism.
 
-### Dependency Graph
+The topological sort treats all nodes from all root trees together (`graph.allNodes()` returns
+everything), so cross-tree ordering is already handled.
 
-```
-gradle-plugin
-    └── codegen
-            └── (jOOQ - reflection only, not shipped to users)
+### Single-Column FK Only
 
-dsl-runtime
-    └── (jOOQ - compile/runtime, shipped to users)
+The existing architecture only handles single-column FKs. Placeholders inherit this
+constraint. A placeholder wraps one `RecordNode` and resolves one PK value. Multi-column
+FK support is out of scope.
 
-Generated .kt files (output of codegen)
-    └── dsl-runtime
-```
+### RecordNode is Already Public
 
----
-
-## Scalability Considerations
-
-| Concern | Small schema (10 tables) | Medium schema (100 tables) | Large schema (500+ tables) |
-|---------|--------------------------|----------------------------|----------------------------|
-| Codegen performance | Instant | < 1s, negligible | May hit URLClassLoader overhead; consider caching IR to JSON |
-| Generated code size | Small, manageable | Large but fine | Very large; consider splitting into multiple files per schema |
-| Runtime topo sort | O(V+E), trivially fast | Fast | Fast — graph is bounded by tables declared in block, not total schema size |
-| Build incremental | Gradle input tracking handles this | Same | Same — only regenerates if jOOQ output changes |
+`RecordNode` fields are `val` and the class is in `dsl-runtime` main sources. Adding
+`explicitDependencies` as a `MutableList` constructor parameter with a default empty list
+is a backward-compatible change for code that instantiates `RecordNode` directly (the
+generated `RecordBuilder` subclasses). The change is internal to `dsl-runtime` — nothing
+in user code constructs `RecordNode` directly.
 
 ---
 
 ## Sources
 
-- jOOQ `TableImpl` and `ForeignKey` API: training knowledge, jOOQ 3.18+ API — MEDIUM confidence (stable API, no external verification available during research)
-- Gradle plugin authoring patterns: training knowledge of Gradle 8.x best practices — MEDIUM confidence
-- URLClassLoader isolation pattern: well-established JVM pattern used by build tools universally — HIGH confidence
-- Multi-module separation of plugin vs. engine: pattern followed by ktlint-gradle, detekt, and similar Kotlin tooling — MEDIUM confidence (no external verification available)
-- Self-referential FK handling via deferred UPDATE: standard pattern in ORM insert-order problems — MEDIUM confidence
+All findings are HIGH confidence — based on direct inspection of the v0.1 source code at:
+- `/Users/nick/Projects/declarative-jooq/codegen/src/main/kotlin/` (MetadataExtractor, BuilderEmitter, DslScopeEmitter, IR models)
+- `/Users/nick/Projects/declarative-jooq/dsl-runtime/src/main/kotlin/` (RecordBuilder, RecordNode, RecordGraph, TopologicalInserter, TopologicalSorter)
+- `/Users/nick/Projects/declarative-jooq/codegen/src/test/kotlin/` (CodeGeneratorTest — existing naming assertions)

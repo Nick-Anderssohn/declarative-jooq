@@ -1,228 +1,184 @@
 # Technology Stack
 
-**Project:** declarative-jooq
-**Researched:** 2026-03-15
-**Confidence note:** WebSearch and WebFetch were unavailable during this research session. Versions and rationale are drawn from training data (cutoff August 2025). Items flagged LOW confidence should be verified against Maven Central / official docs before pinning in build files.
+**Project:** declarative-jooq — v0.2 Natural DSL Naming & Placeholders
+**Researched:** 2026-03-16
+**Scope:** Stack additions and changes required for child-table-named builders and placeholder objects ONLY. Pre-existing validated stack is not re-researched.
 
 ---
 
-## Recommended Stack
+## Verdict: No New Dependencies Required
 
-### Core Language
+Both v0.2 features (child-table-named builders and placeholder objects) are implementable as pure logic and data-modeling changes within the existing four modules. The existing dependency set is sufficient.
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Kotlin | 2.0.x (target 1.9+ compat) | Implementation language | 2.0 is stable as of mid-2024, K2 compiler is production-ready. Project already constrains to 1.9+ compatibility; 2.0 is a strict superset for library authors targeting 1.9 consumers. |
-| JVM target | 11 | Bytecode target | Java 11 is the practical floor for Gradle plugin hosts. Gradle 8.x runs on JVM 17+ but compiled plugin code needs JVM 11+ bytecode to stay compatible with older toolchains. |
+**Confidence:** HIGH — based on direct code inspection of all affected source files.
 
-### Code Generation
+---
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| KotlinPoet | 1.17.x | Generate Kotlin DSL source files | Square's official Kotlin code generation library. Purpose-built for generating `.kt` files — handles imports, type names, nullable/non-nullable markers, lambda parameters, and operator functions correctly. Direct alternative (string templates) produces unmaintainable codegen and is error-prone on edge cases (escaping, imports). KSP codegen libraries (like `ksp-codegen`) are for annotation-processor-style generation at compile time; KotlinPoet is appropriate for our offline/Gradle-task generation pattern. |
+## Validated Existing Stack (Do Not Change)
 
-**What NOT to use for code generation:**
-- **String templates / `buildString`** — zero structural safety, import management is manual, produces unmaintainable codegen code
-- **JavaPoet** — generates Java, not Kotlin; produces `.java` files that can't use Kotlin-specific syntax (`data class`, extension functions, `@DslMarker`)
-- **KSP (Kotlin Symbol Processing)** — designed for annotation processors that run during the user's own compilation; not appropriate here since we are generating from already-compiled jOOQ classes, not source annotations
-- **KAPT** — deprecated path for annotation processing; slow and requires source annotations; wrong tool
+| Technology | Pinned Version | Module | Role |
+|------------|---------------|--------|------|
+| Kotlin | 2.1.20 | all | Implementation language |
+| jOOQ | 3.19.16 | codegen, dsl-runtime | Schema introspection + record API |
+| KotlinPoet | 2.2.0 | codegen | Source code emission |
+| ClassGraph | 4.8.181 | codegen | Classpath scanning |
+| Gradle | 8.12 | gradle-plugin | Build integration |
+| JUnit Jupiter | 5.11.4 | all | Test runner |
+| H2 | 2.3.232 | codegen, dsl-runtime | In-memory DB for unit tests |
+| kotlin-compile-testing | 1.6.0 | codegen, integration-tests | Compile-and-run codegen tests |
+| Testcontainers (postgres) | 1.20.6 | integration-tests | Postgres dialect validation |
+| PostgreSQL JDBC | 42.7.4 | integration-tests | Postgres driver |
+| SLF4J simple | 2.0.16 | integration-tests | Testcontainers log routing |
 
-### jOOQ Integration
+Note: The old STACK.md (v0.1, written before implementation) listed KotlinPoet 1.17.x. The actual build uses **2.2.0** — the installed version wins.
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| jOOQ | 3.18.x (open-source) | Metadata introspection at codegen time | Project constraint is 3.18+. The codegen phase loads user's jOOQ-generated classes via reflection and inspects `Table<R>` implementations. jOOQ's own `org.jooq.Table`, `org.jooq.TableField`, `org.jooq.ForeignKey`, and `org.jooq.UniqueKey` interfaces are the introspection surface. These are stable across 3.x. We depend on jOOQ as `compileOnly` in the runtime library (user brings their own) and as a concrete dependency in the codegen/Gradle plugin module. |
+---
 
-**jOOQ metadata introspection approach:**
+## What Each v0.2 Feature Touches
 
-jOOQ generated table classes (e.g., `public class User extends TableImpl<UserRecord>`) expose:
-- `Table.fields()` — all `TableField<R, T>` instances with name and type
-- `Table.getReferences()` — list of `ForeignKey<R, O>` objects
-- `ForeignKey.getKey()` — the referenced `UniqueKey`
-- `ForeignKey.getKey().getTable()` — the referenced table
-- `ForeignKey.getFields()` — the FK columns (single-column FKs for our scope)
+### Feature 1: Child-Table-Named Builders
 
-These are accessed via reflection by loading compiled jOOQ classes from the user-configured source directory on the Gradle plugin classpath. This is the correct approach — jOOQ's generator already produces rich metadata objects; we do not need to re-parse SQL or read `information_schema`.
+**Where the change lives:** `codegen` module only — specifically `MetadataExtractor.kt` and `ForeignKeyIR.kt`.
 
-**What NOT to use for introspection:**
-- **Kotlin reflection (`KClass`)** — jOOQ classes are Java, use Java reflection directly; Kotlin reflection adds overhead with no benefit here
-- **jOOQ's `Meta` / `DSLContext.meta()`** — that's for live database connection metadata; we're working from compiled classes, not a database
-- **Re-reading the database schema** — requires a live DB connection at codegen time; defeats the purpose of working from generated classes
+**What changes:**
 
-### Gradle Plugin
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Gradle | 8.5+ (plugin API target) | Build integration | Gradle 8.x is current. The `java-gradle-plugin` plugin provides the `gradlePlugin { }` DSL for declaring plugin IDs and implementation classes. Use `gradle-plugin` as the plugin type (not a plain `jar`). |
-| Gradle Plugin Dev (java-gradle-plugin) | built-in | Plugin scaffolding | The `java-gradle-plugin` Gradle plugin auto-wires `GradlePluginDevelopmentExtension`, generates plugin descriptor JARs, and adds `gradleApi()` to compile classpath automatically — no manual dependency declaration needed. |
-| Kotlin Gradle Plugin (for build scripts) | 2.0.x | Kotlin DSL in build scripts | Use `kotlin("jvm")` for the plugin module's own `build.gradle.kts`. |
-
-**Gradle plugin architecture for this project:**
-
-Structure the plugin as a `DefaultTask` subclass with `@TaskAction`. Register it lazily using `project.tasks.register("generateDeclarativeJooq", GenerateDeclarativeDslTask::class.java)`. Expose configuration via a `project.extensions.create("declarativeJooq", DeclarativeJooqExtension::class.java)` extension block so users write:
+Currently `MetadataExtractor` derives `builderFunctionName` from the FK column name:
 
 ```kotlin
-declarativeJooq {
-    sourceDirectory = file("build/generated-sources/jooq")
-    outputDirectory = file("build/generated-sources/declarative-jooq")
-    packageName = "com.example.testdata"
+val strippedFkCol = fkColumnName.removeSuffix("_id")
+val builderFunctionName = if (isSelfRef) {
+    "child" + toPascalCase(tableName)
+} else {
+    toCamelCase(strippedFkCol)   // e.g., "organization_id" -> "organization"
 }
 ```
 
-Wire the task to run after the user's jOOQ codegen task by hooking `dependsOn` or `mustRunAfter` in the plugin's `apply` block.
+The new rule: use `toCamelCase(childTableName)` as the default, fall back to the FK-column-derived name only when the FK column name does not match the parent table name pattern (i.e., when there are multiple FKs to the same parent, or when `table_name` and `table_name_id` both exist pointing to the same table).
 
-**What NOT to do for the Gradle plugin:**
-- **`buildSrc` only** — `buildSrc` is fine for local use but the goal is a publishable plugin; use a proper multi-module project with a `:gradle-plugin` subproject
-- **Using `project.afterEvaluate` broadly** — defers configuration unnecessarily; prefer lazy task registration with `tasks.register` and use `Provider<T>` for all inputs
-- **Eager task creation (`tasks.create`)** — deprecated pattern in Gradle 8; always use `tasks.register` for lazy configuration
-- **Putting business logic in the plugin's `apply` method** — `apply` wires tasks and extensions; codegen logic belongs in the `Task` class
+The disambiguation logic already exists conceptually — the multi-FK case (`created_by`, `updated_by` both to `app_user`) already uses FK-column names. The only change is the default for the unambiguous single-FK case.
 
-### Testing
+`ForeignKeyIR.builderFunctionName` is already the right shape — it just gets a different value computed at scan time. No structural changes to IR are needed.
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| JUnit 5 (Jupiter) | 5.10.x | Unit and integration test runner | Standard for JVM. Gradle 8.x has first-class JUnit 5 support via `useJUnitPlatform()`. |
-| Kotest | 5.9.x | Assertion library and test DSL | Kotest assertions (`shouldBe`, `shouldContain`, `shouldHaveSize`) are more readable than raw JUnit assertions for verifying generated code structure. Kotest can run on JUnit 5 engine, so no separate test runner needed. Alternative: Strikt — also good, lighter weight. |
-| kotlin-compile-testing (KCT) | 0.4.x or 0.5.x (Jimfs-backed) | Compile and execute generated code in tests | KCT (by Tschuchort) provides `KotlinCompilation` that compiles in-memory Kotlin source. Critical for codegen tests: generate code, compile it in the test, then assert the compiled class behavior — not just string matching. String-matching tests are brittle; compile-and-run tests prove correctness. |
-| Gradle TestKit | built-in with Gradle | Integration testing of the Gradle plugin | `GradleRunner` from `gradle-testkit` runs the plugin against a real project in a temp directory. Tests write a minimal `build.gradle.kts` + sample jOOQ classes, invoke the plugin task, and assert on generated output files. This is the standard approach for plugin integration tests. |
-| H2 (in-memory DB) | 2.x | Integration tests for the runtime DSL library | Run end-to-end insert tests against H2 without requiring a real Postgres instance. H2's Postgres compatibility mode handles most jOOQ Postgres dialect queries. |
-| Testcontainers (optional) | 1.19.x | Full integration tests with real Postgres | Use Testcontainers for a Postgres container in CI to validate behavior against a real dialect. Optional — H2 covers most cases; Testcontainers for FK enforcement and Postgres-specific behavior. |
+`BuilderEmitter` consumes `fk.builderFunctionName` verbatim. No changes needed to the emitter.
 
-**What NOT to use for testing:**
-- **MockK for jOOQ objects** — jOOQ classes are complex with many interdependencies; use real jOOQ table instances (construct minimal `TableImpl` subclasses) rather than mocks; mocks for jOOQ objects are extremely brittle
-- **String comparison for generated code** — use `kotlin-compile-testing` to compile and run; string tests break on formatting changes and don't catch semantic errors
-- **Spek** — effectively unmaintained as of 2024; use Kotest if you want a behavior-style DSL
-
-### Build Structure
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Gradle multi-project build | 8.5+ | Separate runtime lib, codegen engine, Gradle plugin | Three concerns, three modules: `:lib` (runtime DSL), `:codegen` (KotlinPoet-based generator), `:gradle-plugin` (Gradle task/extension wrapper around `:codegen`). This separation means the runtime library does not pull in KotlinPoet as a transitive dependency, and the codegen engine can be tested independently of Gradle. |
-| gradle-plugin-publish plugin | 1.2.x | Plugin Portal publishing (future) | Not needed yet (mavenLocal only), but design with it in mind. Using `java-gradle-plugin` + `gradle-plugin-publish` is the standard path to Gradle Plugin Portal. |
-| `maven-publish` | built-in | mavenLocal publishing | `publishToMavenLocal` task for local consumption. |
+**New libraries needed:** None.
 
 ---
 
-## Alternatives Considered
+### Feature 2: Placeholder Objects
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Code generation | KotlinPoet | String templates | No structural safety, manual import management, brittle on edge cases |
-| Code generation | KotlinPoet | JavaPoet | Generates Java, can't produce idiomatic Kotlin DSL syntax |
-| Code generation | KotlinPoet | KSP / KAPT | Wrong paradigm — those run during the user's compilation pass; we generate from compiled classes |
-| Assertion library | Kotest | AssertJ | AssertJ is Java-first, lacks Kotlin idioms; Kotest assertions are idiomatic |
-| Assertion library | Kotest | Strikt | Both are fine; Kotest has broader ecosystem and test DSL support |
-| Compile-test | kotlin-compile-testing | String matching | String matching doesn't validate that generated code is valid Kotlin or that it behaves correctly |
-| DB for integration tests | H2 (primary) + Testcontainers (optional) | Always real Postgres | H2 is faster for CI; Testcontainers is heavier but needed for dialect-specific edge cases |
-| Plugin testing | Gradle TestKit | Unit testing plugin class directly | Plugin logic is inherently coupled to Gradle's project model; TestKit's `GradleRunner` tests the full lifecycle |
-| Kotlin reflection | Java reflection (`Class<*>`, `getDeclaredFields`) | `KClass`, `memberProperties` | jOOQ classes are compiled Java; Java reflection is direct, no overhead, and the jOOQ API surface we need (table fields, FK metadata) is Java-typed |
+**Where the change lives:** `dsl-runtime` module (new class) and `codegen` module (updated emitter return types).
 
----
+**What a placeholder must do:**
+1. Be returned from a child builder function call (e.g., `val aliceRef = organization { ... }`)
+2. Hold a reference to the `RecordNode` that will exist after the DSL block is executed and the graph is built
+3. Be passable to other builders as an explicit FK source, overriding the auto-resolved parent context
+4. Support cross-root-tree references — a placeholder captured in one root tree's block assigned to an FK in a different root tree's block
 
-## Module Layout
+**Implementation approach — pure Kotlin data modeling in dsl-runtime:**
 
-```
-declarative-jooq/
-  settings.gradle.kts          # include(":lib", ":codegen", ":gradle-plugin")
-  build.gradle.kts             # root conventions
-  lib/                         # runtime DSL (depends on jOOQ as compileOnly)
-    build.gradle.kts
-    src/main/kotlin/...
-    src/test/kotlin/...        # H2 + Testcontainers tests
-  codegen/                     # KotlinPoet-based generator (depends on jOOQ + KotlinPoet)
-    build.gradle.kts
-    src/main/kotlin/...
-    src/test/kotlin/...        # kotlin-compile-testing tests
-  gradle-plugin/               # Gradle plugin wrapper (depends on :codegen, gradleApi())
-    build.gradle.kts
-    src/main/kotlin/...
-    src/test/kotlin/...        # Gradle TestKit integration tests
-```
-
----
-
-## Key Version Constraints
-
-| Library | Minimum | Recommended | Notes |
-|---------|---------|-------------|-------|
-| Kotlin | 1.9.0 | 2.0.21 | Project constraint; use 2.0 for development, publish with 1.9 API compatibility target |
-| jOOQ | 3.18.0 | 3.19.x | Project constraint; 3.19 adds some useful `Table` API improvements |
-| KotlinPoet | 1.14.0 | 1.17.x | 1.14+ required for stable `FileSpec.builder` context receivers; 1.17 is current stable |
-| Gradle API | 8.0 | 8.5+ | 8.0 is practical minimum for lazy configuration APIs used here |
-| JUnit 5 | 5.9.0 | 5.10.x | 5.10 adds `@EnabledInNativeImage` and other refinements |
-| Kotest | 5.8.0 | 5.9.x | 5.9 supports Kotlin 2.0 |
-| kotlin-compile-testing | 0.4.0 | 0.5.x | Check GitHub for latest; actively maintained |
-| H2 | 2.2.0 | 2.3.x | 2.x required for modern SQL compatibility |
-| Testcontainers | 1.18.0 | 1.19.x | 1.19 adds `@Testcontainers` JUnit 5 extension improvements |
-
----
-
-## Installation
+A `Placeholder<R : UpdatableRecord<R>>` class wraps a `RecordNode`. The builder functions on generated builders are changed from returning `Unit` to returning `Placeholder<R>`:
 
 ```kotlin
-// lib/build.gradle.kts
-dependencies {
-    compileOnly("org.jooq:jooq:3.19.x")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.x")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.x")
-    testImplementation("com.h2database:h2:2.3.x")
-    testImplementation("org.jooq:jooq:3.19.x")  // concrete in test scope
-}
+// Current generated output:
+fun appUser(block: AppUserBuilder.() -> Unit) { ... }  // returns Unit
 
-// codegen/build.gradle.kts
-dependencies {
-    implementation(project(":lib"))
-    implementation("com.squareup:kotlinpoet:1.17.x")
-    implementation("org.jooq:jooq:3.19.x")
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:0.5.x")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.x")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.x")
-}
+// New generated output:
+fun appUser(block: AppUserBuilder.() -> Unit): Placeholder<AppUserRecord> { ... }
+```
 
-// gradle-plugin/build.gradle.kts
-plugins {
-    `java-gradle-plugin`
-    `kotlin("jvm")`
-}
-dependencies {
-    implementation(project(":codegen"))
-    testImplementation(gradleTestKit())
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.x")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.x")
-}
-gradlePlugin {
-    plugins {
-        create("declarativeJooq") {
-            id = "io.github.yourname.declarative-jooq"
-            implementationClass = "com.example.DeclarativeJooqPlugin"
-        }
-    }
-}
+The placeholder is returned immediately after the deferred child block is registered. The actual `RecordNode` inside the placeholder is populated when `buildWithChildren()` executes the deferred block. This means the placeholder acts as a handle that is safe to pass around within the DSL block, resolved lazily when insertion runs.
+
+For explicit FK assignment (overriding parent context), the `RecordBuilder` receives an optional `explicitFkSource: Placeholder<*>?` and the `TopologicalInserter` resolves it at insert time — same mechanism as parent FK resolution, just sourced from the placeholder's node instead of `parentNode`.
+
+**New types needed in dsl-runtime:**
+- `Placeholder<R : UpdatableRecord<R>>` — wraps a lazy `RecordNode` reference; populated by `buildWithChildren()`
+- Possibly a `PlaceholderFkBinding` data class — pairs a `Placeholder<*>` with the `TableField<*, *>` it should populate — registered on the `RecordNode` or `RecordGraph`
+
+**New libraries needed:** None. These are straightforward Kotlin data classes. No proxy/reflection tricks are required — the placeholder is an eagerly-constructed wrapper whose internal node reference is set by the deferred block execution, which all happens within the same `execute { }` call before `TopologicalInserter` runs.
+
+---
+
+## What NOT to Add
+
+| Temptation | Why Not |
+|------------|---------|
+| Kotlin `kotlin-reflect` | Not needed — no runtime type inspection required for placeholder resolution |
+| Guava / Arrow / other utility libs | Overkill; the placeholder pattern is a simple wrapper class |
+| A proxy/delegation framework | Placeholders do not need to transparently intercept calls; they are explicit handles |
+| kotlinx.coroutines | No async required; DSL execution is synchronous |
+| A separate `:placeholder` module | Placeholder lives in `dsl-runtime` — it is a runtime concept, not a codegen concept |
+| Upgrading kotlin-compile-testing | Known issue: 1.6.0 bundles Kotlin 1.9.x compiler vs project's 2.1.20. The `-Xskip-metadata-version-check` workaround is in place and working. Do NOT upgrade without checking that a 2.x-compatible release exists and that tests still pass — this is pre-existing tech debt, not v0.2 work. |
+
+---
+
+## Integration Points Between Features and Existing Code
+
+### Child-Table-Named Builders — Integration Checklist
+
+| File | Change | Risk |
+|------|--------|------|
+| `MetadataExtractor.kt` | New `builderFunctionName` derivation logic | LOW — isolated, no runtime impact |
+| `ForeignKeyIR.kt` | No structural change; field value differs | LOW |
+| `BuilderEmitter.kt` | No change needed | None |
+| `CodeGeneratorTest.kt` | Test 7 (`multipleFkNaming`) asserts `createdBy` and `updatedBy` present, `task` absent — this test remains valid | None |
+| `CodeGeneratorTest.kt` (harnesses) | Harnesses use `organization { ... }` (child-table-named already) and `createdBy { ... }` (FK-column-named for multi-FK disambiguation) — both must continue working | LOW |
+| `FullPipelineTest.kt` | Same patterns — verify harness call sites after name change | LOW |
+
+The naming change will affect the generated function name for `AppUserBuilder.organization(...)` — currently generated as `organization` (FK column `organization_id` stripped to `organization`, which happens to equal the child table name `app_user`... wait, actually `app_user` has FK `organization_id` pointing to `organization`, so the builder function on `OrganizationBuilder` is for `app_user` records). Let me be precise:
+
+- `OrganizationBuilder` has an inbound FK from `app_user.organization_id`
+- Current name: `organization` (from `organization_id` stripped) — this is the builder function name on `OrganizationBuilder` for creating child `app_user` records
+- New name: `appUser` (from child table name `app_user` → camelCase `appUser`)
+
+The test harnesses currently call `organization { ... }` inside `organization { ... }`. After the rename, this becomes `appUser { ... }`. The harnesses must be updated to use the new name, and Test 7 must be updated to assert `appUser` is present instead of `organization`.
+
+The multi-FK case: `AppUserBuilder` has inbound FKs from `task.created_by` and `task.updated_by` (both to `app_user`). These both point to the same child table `task`, so disambiguation is required — FK column names are used: `createdBy` and `updatedBy`. This behavior stays unchanged.
+
+### Placeholder Objects — Integration Checklist
+
+| File | Change | Risk |
+|------|--------|------|
+| `dsl-runtime` | New `Placeholder<R>` class | LOW |
+| `RecordBuilder.kt` | `buildWithChildren()` populates placeholder; child builder functions return `Placeholder<R>` | MEDIUM — changes return type contract |
+| `BuilderEmitter.kt` | Child builder functions emit `Placeholder<R>` return type | MEDIUM |
+| `TopologicalInserter.kt` | Resolve `PlaceholderFkBinding`s after all nodes built but before insert | MEDIUM |
+| `RecordGraph.kt` | May need to collect `PlaceholderFkBinding`s registered during DSL block | LOW |
+| Test harnesses | New harness methods for placeholder usage; existing tests unaffected (they don't use placeholders) | LOW |
+
+---
+
+## Actual Versions to Use (v0.2)
+
+No version changes needed. Use exactly what is in the build files today:
+
+```kotlin
+// codegen/build.gradle.kts — unchanged
+implementation("com.squareup:kotlinpoet:2.2.0")
+implementation("io.github.classgraph:classgraph:4.8.181")
+compileOnly("org.jooq:jooq:3.19.16")
+
+// dsl-runtime/build.gradle.kts — unchanged
+compileOnly("org.jooq:jooq:3.19.16")
 ```
 
 ---
 
 ## Confidence Assessment
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| KotlinPoet as the right tool | HIGH | No viable alternative for generating idiomatic Kotlin; has been the standard since ~2019 |
-| KotlinPoet 1.17.x version | MEDIUM | Version is based on training data through Aug 2025; verify current release on Maven Central before pinning |
-| jOOQ metadata introspection via Table/TableField/ForeignKey APIs | HIGH | These interfaces are stable across all 3.x versions; documented and widely used |
-| Gradle java-gradle-plugin pattern | HIGH | Official Gradle recommended approach, stable for years |
-| kotlin-compile-testing version | LOW | Actively developed; version 0.4/0.5 range is approximate; check GitHub for latest stable tag |
-| Kotest version | MEDIUM | 5.9.x based on training data; verify on Maven Central |
-| H2 Postgres compat mode for tests | MEDIUM | H2 2.x Postgres mode covers most jOOQ dialect features but not all; some FK enforcement behaviors differ |
-| Multi-module layout | HIGH | Standard pattern for Gradle plugin projects with separate runtime/codegen concerns |
+| Area | Confidence | Reason |
+|------|------------|--------|
+| No new libraries needed | HIGH | Both features are data modeling changes; verified by reading all affected source files |
+| Naming logic change scope | HIGH | `MetadataExtractor.builderFunctionName` is the single derivation point; `BuilderEmitter` consumes it without transformation |
+| Placeholder implementation approach | MEDIUM | Design is clear; exact API shape (how callers assign placeholder to FK) needs design decision in the implementation plan, not a library question |
+| Test harness updates required | HIGH | Existing harnesses hardcode `organization { ... }` as child builder name, which will change to `appUser { ... }` after the naming fix |
+| kotlin-compile-testing compatibility | MEDIUM | The `-Xskip-metadata-version-check` workaround is in place; any new generated code patterns must continue to compile under the 1.9.x compiler that 1.6.0 bundles |
 
 ---
 
 ## Sources
 
-- Training knowledge through August 2025 (verification with Context7/WebSearch/WebFetch was unavailable during this session)
-- Official KotlinPoet documentation: https://square.github.io/kotlinpoet/
-- Gradle Plugin Development Guide: https://docs.gradle.org/current/userguide/java_gradle_plugin.html
-- jOOQ manual (Table API): https://www.jooq.org/doc/latest/manual/
-- kotlin-compile-testing GitHub: https://github.com/tschuchortdev/kotlin-compile-testing
-- Kotest documentation: https://kotest.io/docs/assertions/assertions.html
-- Gradle TestKit guide: https://docs.gradle.org/current/userguide/test_kit.html
+- Direct code inspection: `MetadataExtractor.kt`, `ForeignKeyIR.kt`, `BuilderEmitter.kt`, `RecordBuilder.kt`, `RecordNode.kt`, `RecordGraph.kt`, `TopologicalInserter.kt`, `DslScope.kt`
+- Build file inspection: `codegen/build.gradle.kts`, `dsl-runtime/build.gradle.kts`, `integration-tests/build.gradle.kts`
+- Test inspection: `CodeGeneratorTest.kt`, `FullPipelineTest.kt`, `TestBuilders.kt`
+- Project context: `.planning/PROJECT.md`
