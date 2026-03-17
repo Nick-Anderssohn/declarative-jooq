@@ -110,6 +110,7 @@ class FullPipelineTest {
 
         import com.nickanderssohn.declarativejooq.DslResult
         import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.TaskTable
         import org.jooq.DSLContext
 
         object IntegrationHarness {
@@ -144,7 +145,7 @@ class FullPipelineTest {
                 }
             }
 
-            /** Three-level chain: org -> user -> task (via createdBy) */
+            /** Three-level chain: org -> user -> task (via CREATED_BY FK field) */
             fun runMultiLevel(ctx: DSLContext): DslResult {
                 return execute(ctx) {
                     organization {
@@ -152,7 +153,7 @@ class FullPipelineTest {
                         appUser {
                             name = "Alice"
                             email = "alice@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Alice's Task"
                             }
                         }
@@ -175,7 +176,7 @@ class FullPipelineTest {
                 }
             }
 
-            /** Org + user + task via createdBy (multi-FK: created_by set, updated_by NULL) */
+            /** Org + user + task via CREATED_BY (multi-FK: created_by set, updated_by NULL) */
             fun runMultiFk(ctx: DSLContext): DslResult {
                 return execute(ctx) {
                     organization {
@@ -183,7 +184,7 @@ class FullPipelineTest {
                         appUser {
                             name = "Alice"
                             email = "alice@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Created Task"
                             }
                         }
@@ -199,7 +200,7 @@ class FullPipelineTest {
                         appUser {
                             name = "Alice"
                             email = "alice@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Alice's Task"
                             }
                         }
@@ -229,7 +230,7 @@ class FullPipelineTest {
                         appUser {
                             name = "Bob"
                             email = "bob@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Bob Task by Alice"
                                 createdBy = alice
                             }
@@ -254,7 +255,7 @@ class FullPipelineTest {
                         appUser {
                             name = "Bob"
                             email = "bob@beta.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Cross-tree task"
                                 createdBy = alice
                             }
@@ -290,11 +291,11 @@ class FullPipelineTest {
                         appUser {
                             name = "Worker"
                             email = "worker@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Task 1"
                                 createdBy = alice
                             }
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Task 2"
                                 createdBy = alice
                             }

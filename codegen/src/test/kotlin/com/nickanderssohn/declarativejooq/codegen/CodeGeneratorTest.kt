@@ -252,6 +252,7 @@ class CodeGeneratorTest {
 
         import com.nickanderssohn.declarativejooq.DslResult
         import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.TaskTable
         import org.jooq.DSLContext
 
         object EdgeCaseHarness {
@@ -273,7 +274,7 @@ class CodeGeneratorTest {
             }
 
             /**
-             * Multi-FK insert: AppUser nested under createdBy (FK from task.created_by -> app_user)
+             * Multi-FK insert: AppUser nested under task (FK from task.created_by -> app_user)
              */
             fun runMultiFk(ctx: DSLContext): DslResult {
                 return execute(ctx) {
@@ -282,7 +283,7 @@ class CodeGeneratorTest {
                         appUser {
                             name = "Alice"
                             email = "alice@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Created Task"
                             }
                         }
@@ -349,12 +350,20 @@ class CodeGeneratorTest {
         val result = compile()
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, "Compilation failed:\n${result.messages}")
 
-        // AppUserBuilder should have both createdBy and updatedBy methods (not generic 'task')
+        // AppUserBuilder should have a single 'task' method (table-named) with TableField parameter, not createdBy/updatedBy
         val appUserBuilderClass = result.classLoader.loadClass("$outputPackage.AppUserBuilder")
         val methodNames = appUserBuilderClass.methods.map { it.name }.toSet()
-        assertTrue("createdBy" in methodNames, "AppUserBuilder should have createdBy() method — FK-column-based naming")
-        assertTrue("updatedBy" in methodNames, "AppUserBuilder should have updatedBy() method — FK-column-based naming")
-        assertTrue("task" !in methodNames, "AppUserBuilder should NOT have generic 'task' method")
+        assertTrue("task" in methodNames, "AppUserBuilder should have task() method — table-named for multi-FK")
+        assertFalse("createdBy" in methodNames, "AppUserBuilder should NOT have createdBy() method with new table-named approach")
+        assertFalse("updatedBy" in methodNames, "AppUserBuilder should NOT have updatedBy() method with new table-named approach")
+
+        // The 'task' method should have a TableField parameter for disambiguation
+        val taskMethods = appUserBuilderClass.methods.filter { it.name == "task" }
+        assertTrue(taskMethods.isNotEmpty(), "Expected at least one 'task' method")
+        val taskMethod = taskMethods.first()
+        assertTrue(taskMethod.parameterCount >= 2, "task() method should have at least 2 parameters (fkField + block)")
+        val firstParamType = taskMethod.parameterTypes[0]
+        assertEquals("org.jooq.TableField", firstParamType.name, "First parameter should be TableField")
     }
 
     // -----------------------------------------------------------------------
@@ -401,6 +410,7 @@ class CodeGeneratorTest {
 
         import com.nickanderssohn.declarativejooq.DslResult
         import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.TaskTable
         import org.jooq.DSLContext
 
         object PlaceholderHarness {
@@ -417,7 +427,7 @@ class CodeGeneratorTest {
                         appUser {
                             name = "Bob"
                             email = "bob@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Bob Task by Alice"
                                 createdBy = alice
                             }
@@ -442,7 +452,7 @@ class CodeGeneratorTest {
                         appUser {
                             name = "Bob"
                             email = "bob@beta.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Cross-tree task"
                                 createdBy = alice
                             }
@@ -478,11 +488,11 @@ class CodeGeneratorTest {
                         appUser {
                             name = "Worker"
                             email = "worker@acme.com"
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Task 1"
                                 createdBy = alice
                             }
-                            createdBy {
+                            task(TaskTable.TASK.CREATED_BY) {
                                 title = "Task 2"
                                 createdBy = alice
                             }
