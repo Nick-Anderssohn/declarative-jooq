@@ -39,8 +39,8 @@
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 05-01-PLAN.md — Two-pass naming algorithm in MetadataExtractor + ScannerTest naming tests
-- [ ] 05-02-PLAN.md — Update test harness strings in CodeGeneratorTest + FullPipelineTest
+- [x] 05-01-PLAN.md — Two-pass naming algorithm in MetadataExtractor + ScannerTest naming tests
+- [x] 05-02-PLAN.md — Update test harness strings in CodeGeneratorTest + FullPipelineTest
 
 ### Phase 6: Placeholder Objects
 **Goal**: Builder blocks return typed placeholder objects that users can assign to FK properties on any builder, enabling explicit and cross-tree FK wiring without escaping to raw jOOQ
@@ -52,7 +52,12 @@ Plans:
   3. A placeholder captured from one root tree can be assigned to a builder in a different root tree within the same `execute` block, and the topological insert order is correct
   4. A placeholder assignment overrides the parent-context auto-resolved FK value for the same field — the inserted record reflects the placeholder's PK, not the context parent's PK
   5. README.md documents the new builder naming convention and placeholder pattern with working examples
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Runtime placeholder infrastructure (RecordNode refs, TopologicalInserter resolution, cross-tree edges)
+- [ ] 06-02-PLAN.md — Codegen emitter updates (return Result types, placeholder FK properties)
+- [ ] 06-03-PLAN.md — Placeholder tests (CodeGeneratorTest + FullPipelineTest) and README documentation
 
 ## Progress
 
@@ -62,5 +67,5 @@ Plans:
 | 2. Code Generation Engine | v0.1 | 3/3 | Complete | 2026-03-16 |
 | 3. Gradle Plugin | v0.1 | 2/2 | Complete | 2026-03-16 |
 | 4. Edge Cases and Integration | v0.1 | 2/2 | Complete | 2026-03-16 |
-| 5. Child-Table-Named Builder Functions | 2/2 | Complete   | 2026-03-17 | - |
-| 6. Placeholder Objects | v0.2 | 0/? | Not started | - |
+| 5. Child-Table-Named Builder Functions | v0.2 | 2/2 | Complete | 2026-03-17 |
+| 6. Placeholder Objects | v0.2 | 0/3 | Not started | - |
