@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
-status: Ready to plan
-stopped_at: ""
-last_updated: "2026-03-16"
+status: planning
+stopped_at: Phase 5 context gathered
+last_updated: "2026-03-17T04:01:19.666Z"
 last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
 progress:
   total_phases: 2
@@ -74,6 +74,6 @@ None — research complete, architecture fully specified in .planning/research/A
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Roadmap created — ready to plan Phase 5
-Resume file: None
+Last session: 2026-03-17T04:01:19.661Z
+Stopped at: Phase 5 context gathered
+Resume file: .planning/phases/05-child-table-named-builder-functions/05-CONTEXT.md
