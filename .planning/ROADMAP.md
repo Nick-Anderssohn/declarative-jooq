@@ -21,7 +21,7 @@
 
 **Milestone Goal:** Make the DSL read naturally by naming builder functions after child tables, and add placeholder objects for explicit FK wiring across any scope.
 
-- [ ] **Phase 5: Child-Table-Named Builder Functions** - Rename generated builder functions to use child table names by default, with FK-column fallback and collision detection
+- [x] **Phase 5: Child-Table-Named Builder Functions** - Rename generated builder functions to use child table names by default, with FK-column fallback and collision detection (completed 2026-03-17)
 - [ ] **Phase 6: Placeholder Objects** - Add typed placeholder objects returned from builder blocks enabling explicit and cross-tree FK assignment
 
 ## Phase Details
@@ -36,7 +36,7 @@
   3. Two FK columns from the same child table pointing to the same parent table do not produce duplicate builder function names — collision is detected and both use the FK-column-name fallback
   4. Self-referential FK builders use the table name (e.g., `category { }` not `childCategory { }`)
   5. All existing compile-testing and integration test harnesses pass with updated builder function names
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 05-01-PLAN.md — Two-pass naming algorithm in MetadataExtractor + ScannerTest naming tests
@@ -62,5 +62,5 @@ Plans:
 | 2. Code Generation Engine | v0.1 | 3/3 | Complete | 2026-03-16 |
 | 3. Gradle Plugin | v0.1 | 2/2 | Complete | 2026-03-16 |
 | 4. Edge Cases and Integration | v0.1 | 2/2 | Complete | 2026-03-16 |
-| 5. Child-Table-Named Builder Functions | 1/2 | In Progress|  | - |
+| 5. Child-Table-Named Builder Functions | 2/2 | Complete   | 2026-03-17 | - |
 | 6. Placeholder Objects | v0.2 | 0/? | Not started | - |
