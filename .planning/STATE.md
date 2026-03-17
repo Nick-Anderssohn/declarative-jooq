@@ -4,7 +4,7 @@ milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
 status: planning
 stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-03-17T04:22:24.512Z"
+last_updated: "2026-03-17T04:24:53.069Z"
 last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
 progress:
   total_phases: 2
