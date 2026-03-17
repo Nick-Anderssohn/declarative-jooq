@@ -88,6 +88,65 @@ class ScannerTest {
     }
 
     @Test
+    fun childTableNameWins() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val appUser = tables.find { it.tableName == "app_user" } ?: fail("app_user table not found")
+        // organization_id stripped = "organization" == parent "organization" => child table name "appUser"
+        val orgFk = appUser.outboundFKs.find { it.parentTableName == "organization" }
+            ?: fail("FK to organization not found")
+        assertEquals("appUser", orgFk.builderFunctionName,
+            "When FK col stripped matches parent table, builder should use child table name")
+    }
+
+    @Test
+    fun fkColumnFallback() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
+        // created_by stripped = "created_by" != parent "app_user" => FK col name "createdBy"
+        val createdByFk = task.outboundFKs.find { it.fkName.contains("created_by", ignoreCase = true)
+            || it.builderFunctionName == "createdBy" }
+            ?: fail("created_by FK not found on task")
+        assertEquals("createdBy", createdByFk.builderFunctionName,
+            "When FK col stripped does not match parent table, builder should use FK column name")
+    }
+
+    @Test
+    fun selfRefUsesTableName() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val category = tables.find { it.tableName == "category" } ?: fail("category table not found")
+        val selfRefFk = category.outboundFKs.find { it.isSelfReferential }
+            ?: fail("Self-referential FK not found on category")
+        assertEquals("category", selfRefFk.builderFunctionName,
+            "Self-referential FK builder should use table name, not 'childCategory'")
+    }
+
+    @Test
+    fun collisionFallsBackToFkColumnNames() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
+        // task has created_by -> app_user and updated_by -> app_user
+        // Both stripped ("created_by", "updated_by") != "app_user" => FK col fallback => "createdBy", "updatedBy"
+        // No collision here because they already have different names
+        val builderNames = task.outboundFKs.map { it.builderFunctionName }.toSet()
+        assertTrue("createdBy" in builderNames, "Expected createdBy builder on task")
+        assertTrue("updatedBy" in builderNames, "Expected updatedBy builder on task")
+        assertEquals(2, builderNames.size, "task should have exactly 2 distinct builder function names")
+        assertFalse("task" in builderNames, "task table should NOT appear as a builder name (NAME-03)")
+    }
+
+    @Test
     fun snakeToCamelConversion() {
         requireClassDir()
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
