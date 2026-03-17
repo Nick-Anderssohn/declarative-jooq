@@ -85,9 +85,17 @@ class BuilderEmitter {
             )
         }
 
-        // Mutable var properties for non-identity columns
+        // Collect placeholder property names — these claim the column property slot for outbound FKs
+        // where the placeholder name equals the column name (e.g., created_by -> createdBy).
+        // Such columns are excluded from the raw column property list and buildRecord() set calls.
+        val placeholderClaimedNames = tableIR.outboundFKs
+            .map { it.placeholderPropertyName }
+            .toSet()
+
+        // Mutable var properties for non-identity columns (skip any claimed by a placeholder property)
         val nonIdentityColumns = tableIR.columns.filter { !it.isIdentity }
-        for (col in nonIdentityColumns) {
+        val rawColumnProps = nonIdentityColumns.filter { it.propertyName !in placeholderClaimedNames }
+        for (col in rawColumnProps) {
             classBuilder.addProperty(
                 PropertySpec.builder(col.propertyName, col.kotlinTypeName.copy(nullable = true))
                     .mutable(true)
@@ -96,10 +104,43 @@ class BuilderEmitter {
             )
         }
 
+        // Placeholder-accepting properties for outbound FKs
+        for (fk in tableIR.outboundFKs) {
+            val parentResultClass = ClassName(outputPackage, fk.parentResultClassName)
+            val pendingPlaceholderRefClass = ClassName("com.nickanderssohn.declarativejooq", "PendingPlaceholderRef")
+            val tableFieldRawType = ClassName("org.jooq", "TableField")
+
+            val setterBody = CodeBlock.builder()
+                .addStatement("field = value")
+                .beginControlFlow("if (value != null)")
+                .addStatement(
+                    "pendingPlaceholderRefs.add(%T(%L as %T<*, *>, value.record))",
+                    pendingPlaceholderRefClass,
+                    fk.childFieldExpression,
+                    tableFieldRawType
+                )
+                .endControlFlow()
+                .build()
+
+            classBuilder.addProperty(
+                PropertySpec.builder(fk.placeholderPropertyName, parentResultClass.copy(nullable = true))
+                    .mutable(true)
+                    .initializer("null")
+                    .setter(
+                        FunSpec.setterBuilder()
+                            .addParameter("value", parentResultClass.copy(nullable = true))
+                            .addCode(setterBody)
+                            .build()
+                    )
+                    .build()
+            )
+        }
+
         // Override buildRecord()
         val buildRecordBody = CodeBlock.builder()
         buildRecordBody.addStatement("val record = %T()", recordType)
-        for (col in nonIdentityColumns) {
+        // Skip columns claimed by placeholder properties — their FK values are resolved by TopologicalInserter
+        for (col in rawColumnProps) {
             buildRecordBody.addStatement(
                 "record.set(%L, %L)",
                 col.tableFieldRefExpression,
@@ -116,7 +157,7 @@ class BuilderEmitter {
                 .build()
         )
 
-        // childBlocks property (always present so buildWithChildren() can reference it)
+        // childBlocks property — lambda receives parentNode, returns Unit
         val lambdaType = LambdaTypeName.get(
             parameters = arrayOf(recordNodeType),
             returnType = UNIT
@@ -129,46 +170,50 @@ class BuilderEmitter {
                 .build()
         )
 
-        // Child builder functions for each inbound FK (only if this table has children)
+        // Child builder functions for each inbound FK
         if (hasChildren) {
             for (fk in tableIR.inboundFKs) {
                 val childBuilderClass = ClassName(outputPackage, toPascalCase(fk.childTableName) + "Builder")
+                val childResultClass = ClassName(outputPackage, fk.childResultClassName)
+                val childRecordClass = ClassName(fk.childSourcePackage, fk.childRecordClassName)
                 val blockType = LambdaTypeName.get(
                     receiver = childBuilderClass,
                     returnType = UNIT
                 )
-                val childFunBody = CodeBlock.builder()
-                childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
-                // Determine which graph variable to use:
-                // - Regular root tables use "graph" (private val)
-                // - Self-ref root tables and child tables use "recordGraph" (constructor param)
+
+                // Determine which graph variable to use
                 val graphVar = if (tableIR.isRoot && !hasSelfRefInbound) "graph" else "recordGraph"
+
+                val childFunBody = CodeBlock.builder()
                 if (fk.isSelfReferential) {
                     childFunBody.addStatement(
-                        "val builder = %T(recordGraph = $graphVar, parentNode = parentNode, parentFkField = %L, isSelfReferential = true)",
+                        "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = %L, isSelfReferential = true)",
                         childBuilderClass,
                         fk.childFieldExpression
                     )
                 } else {
                     childFunBody.addStatement(
-                        "val builder = %T(recordGraph = $graphVar, parentNode = parentNode, parentFkField = %L)",
+                        "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = %L)",
                         childBuilderClass,
                         fk.childFieldExpression
                     )
                 }
                 childFunBody.addStatement("builder.block()")
-                // Always call buildWithChildren() so any nested children are processed
+                childFunBody.addStatement("val placeholderRecord = builder.getOrBuildRecord()")
+                childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
+                childFunBody.addStatement("builder.parentNode = parentNode")
                 childFunBody.addStatement("builder.buildWithChildren()")
                 childFunBody.endControlFlow()
+                childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
 
                 classBuilder.addFunction(
                     FunSpec.builder(fk.builderFunctionName)
                         .addParameter("block", blockType)
+                        .returns(childResultClass)
                         .addCode(childFunBody.build())
                         .build()
                 )
             }
-
         }
 
         // buildWithChildren() — always present on all builders

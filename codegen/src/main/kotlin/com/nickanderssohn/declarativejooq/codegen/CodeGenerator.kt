@@ -40,6 +40,10 @@ class CodeGenerator {
                 fileSpec.addFunction(dslScopeEmitter.emit(table, outputPackage))
             }
             addFkChildTableImports(fileSpec, table, tableByName)
+            if (table.outboundFKs.isNotEmpty()) {
+                fileSpec.addImport("com.nickanderssohn.declarativejooq", "PendingPlaceholderRef")
+                fileSpec.addImport("org.jooq", "TableField")
+            }
             fileSpec.build().writeTo(outputDir)
         }
 
@@ -76,6 +80,10 @@ class CodeGenerator {
                 fileSpec.addFunction(dslScopeEmitter.emit(table, outputPackage))
             }
             addFkChildTableImports(fileSpec, table, tableByName)
+            if (table.outboundFKs.isNotEmpty()) {
+                fileSpec.addImport("com.nickanderssohn.declarativejooq", "PendingPlaceholderRef")
+                fileSpec.addImport("org.jooq", "TableField")
+            }
             val built = fileSpec.build()
             result.add(Pair("${table.builderClassName}.kt", built.toString()))
         }

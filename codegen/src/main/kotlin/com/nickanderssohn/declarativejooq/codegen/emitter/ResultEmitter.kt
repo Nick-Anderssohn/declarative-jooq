@@ -26,7 +26,7 @@ class ResultEmitter {
                 .build()
         )
         classBuilder.addProperty(
-            PropertySpec.builder("record", recordType, KModifier.PRIVATE)
+            PropertySpec.builder("record", recordType, KModifier.INTERNAL)
                 .initializer("record")
                 .build()
         )
