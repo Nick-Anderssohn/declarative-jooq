@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
 status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-17T05:13:17.958Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-17T20:50:51.888Z"
 last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 05 P01 | 2 | 2 tasks | 2 files |
 | Phase 05 P02 | 2min | 2 tasks | 2 files |
+| Phase 06-placeholder-objects P01 | 8min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ v0.2 open decisions to resolve before Phase 5 implementation:
 - [Phase 05]: Two-pass FK naming: pass 1 computes candidates per NAME-01/02/04 using exact snake_case comparison, pass 2 detects collisions via groupingBy for NAME-03 fallback
 - [Phase 05]: Self-ref FKs use toCamelCase(tableName), removing the childCategory prefix entirely
 - [Phase 05]: Harness string replacements mechanical — no architectural decisions needed in plan 02
+- [Phase 06-01]: PlaceholderRef placed on referencing node (not placeholder node) — aligns with FK ownership
+- [Phase 06-01]: buildTableGraph accepts RecordGraph for cross-tree placeholder edges; RecordBuilder.kt intentionally unchanged for Plan 02
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None — research complete, architecture fully specified in .planning/research/A
 
 ## Session Continuity
 
-Last session: 2026-03-17T05:13:17.952Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-placeholder-objects/06-CONTEXT.md
+Last session: 2026-03-17T20:50:51.886Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None
