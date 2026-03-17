@@ -36,7 +36,11 @@
   3. Two FK columns from the same child table pointing to the same parent table do not produce duplicate builder function names — collision is detected and both use the FK-column-name fallback
   4. Self-referential FK builders use the table name (e.g., `category { }` not `childCategory { }`)
   5. All existing compile-testing and integration test harnesses pass with updated builder function names
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Two-pass naming algorithm in MetadataExtractor + ScannerTest naming tests
+- [ ] 05-02-PLAN.md — Update test harness strings in CodeGeneratorTest + FullPipelineTest
 
 ### Phase 6: Placeholder Objects
 **Goal**: Builder blocks return typed placeholder objects that users can assign to FK properties on any builder, enabling explicit and cross-tree FK wiring without escaping to raw jOOQ
@@ -58,5 +62,5 @@
 | 2. Code Generation Engine | v0.1 | 3/3 | Complete | 2026-03-16 |
 | 3. Gradle Plugin | v0.1 | 2/2 | Complete | 2026-03-16 |
 | 4. Edge Cases and Integration | v0.1 | 2/2 | Complete | 2026-03-16 |
-| 5. Child-Table-Named Builder Functions | v0.2 | 0/? | Not started | - |
+| 5. Child-Table-Named Builder Functions | v0.2 | 0/2 | Not started | - |
 | 6. Placeholder Objects | v0.2 | 0/? | Not started | - |
