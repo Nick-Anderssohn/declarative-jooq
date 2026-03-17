@@ -1,7 +1,7 @@
-package com.example.declarativejooq.codegen
+package com.nickanderssohn.declarativejooq.codegen
 
-import com.example.declarativejooq.codegen.scanner.ClasspathScanner
-import com.example.declarativejooq.codegen.scanner.MetadataExtractor
+import com.nickanderssohn.declarativejooq.codegen.scanner.ClasspathScanner
+import com.nickanderssohn.declarativejooq.codegen.scanner.MetadataExtractor
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
@@ -20,21 +20,21 @@ class ScannerTest {
     @Test
     fun scanFindsTableClasses() {
         requireClassDir()
-        val names = ClasspathScanner().findTableClassNames(classDir, "com.example.declarativejooq")
+        val names = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         assertTrue(
-            names.contains("com.example.declarativejooq.OrganizationTable"),
+            names.contains("com.nickanderssohn.declarativejooq.OrganizationTable"),
             "Expected OrganizationTable but got: $names"
         )
         assertTrue(
-            names.contains("com.example.declarativejooq.AppUserTable"),
+            names.contains("com.nickanderssohn.declarativejooq.AppUserTable"),
             "Expected AppUserTable but got: $names"
         )
         assertTrue(
-            names.contains("com.example.declarativejooq.CategoryTable"),
+            names.contains("com.nickanderssohn.declarativejooq.CategoryTable"),
             "Expected CategoryTable but got: $names"
         )
         assertTrue(
-            names.contains("com.example.declarativejooq.TaskTable"),
+            names.contains("com.nickanderssohn.declarativejooq.TaskTable"),
             "Expected TaskTable but got: $names"
         )
         assertEquals(4, names.size, "Expected exactly 4 table classes but got: $names")
@@ -43,13 +43,13 @@ class ScannerTest {
     @Test
     fun scanFindsRecordClasses() {
         requireClassDir()
-        val names = ClasspathScanner().findRecordClassNames(classDir, "com.example.declarativejooq")
+        val names = ClasspathScanner().findRecordClassNames(classDir, "com.nickanderssohn.declarativejooq")
         assertTrue(
-            names.contains("com.example.declarativejooq.OrganizationRecord"),
+            names.contains("com.nickanderssohn.declarativejooq.OrganizationRecord"),
             "Expected OrganizationRecord but got: $names"
         )
         assertTrue(
-            names.contains("com.example.declarativejooq.AppUserRecord"),
+            names.contains("com.nickanderssohn.declarativejooq.AppUserRecord"),
             "Expected AppUserRecord but got: $names"
         )
     }
@@ -57,7 +57,7 @@ class ScannerTest {
     @Test
     fun extractorProducesCorrectIR() {
         requireClassDir()
-        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.example.declarativejooq")
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         assertEquals(4, tables.size, "Expected 4 tables (organization, app_user, category, task)")
@@ -90,7 +90,7 @@ class ScannerTest {
     @Test
     fun snakeToCamelConversion() {
         requireClassDir()
-        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.example.declarativejooq")
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         val appUser = tables.find { it.tableName == "app_user" }

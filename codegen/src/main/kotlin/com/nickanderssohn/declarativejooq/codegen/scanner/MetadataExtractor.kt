@@ -1,8 +1,8 @@
-package com.example.declarativejooq.codegen.scanner
+package com.nickanderssohn.declarativejooq.codegen.scanner
 
-import com.example.declarativejooq.codegen.ir.ColumnIR
-import com.example.declarativejooq.codegen.ir.ForeignKeyIR
-import com.example.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.ir.ColumnIR
+import com.nickanderssohn.declarativejooq.codegen.ir.ForeignKeyIR
+import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
 import com.squareup.kotlinpoet.BOOLEAN
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.INT

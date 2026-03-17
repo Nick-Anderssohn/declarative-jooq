@@ -1,6 +1,6 @@
 @file:OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 
-package com.example.declarativejooq.codegen
+package com.nickanderssohn.declarativejooq.codegen
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
@@ -16,13 +16,13 @@ import java.io.File
 class CodeGeneratorTest {
 
     private val classDir = File("../dsl-runtime/build/classes/kotlin/test")
-    private val outputPackage = "com.example.generated"
+    private val outputPackage = "com.nickanderssohn.generated"
     private lateinit var generatedSources: List<Pair<String, String>>
 
     @BeforeEach
     fun setUp() {
         assertTrue(classDir.exists(), "Run ./gradlew :dsl-runtime:testClasses first — missing: ${classDir.absolutePath}")
-        generatedSources = CodeGenerator().generateSource(classDir, outputPackage, "com.example.declarativejooq")
+        generatedSources = CodeGenerator().generateSource(classDir, outputPackage, "com.nickanderssohn.declarativejooq")
         assertTrue(generatedSources.isNotEmpty(), "CodeGenerator produced no source files")
     }
 
@@ -146,10 +146,10 @@ class CodeGeneratorTest {
     private fun testHarnessSource(): SourceFile = SourceFile.kotlin(
         "TestHarness.kt",
         """
-        package com.example.generated
+        package com.nickanderssohn.generated
 
-        import com.example.declarativejooq.DslResult
-        import com.example.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DslResult
+        import com.nickanderssohn.declarativejooq.execute
         import org.jooq.DSLContext
 
         object TestHarness {
@@ -248,10 +248,10 @@ class CodeGeneratorTest {
     private fun edgeCaseHarnessSource(): SourceFile = SourceFile.kotlin(
         "EdgeCaseHarness.kt",
         """
-        package com.example.generated
+        package com.nickanderssohn.generated
 
-        import com.example.declarativejooq.DslResult
-        import com.example.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DslResult
+        import com.nickanderssohn.declarativejooq.execute
         import org.jooq.DSLContext
 
         object EdgeCaseHarness {

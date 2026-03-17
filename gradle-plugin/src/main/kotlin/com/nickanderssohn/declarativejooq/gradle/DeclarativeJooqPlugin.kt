@@ -1,4 +1,4 @@
-package com.example.declarativejooq.gradle
+package com.nickanderssohn.declarativejooq.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

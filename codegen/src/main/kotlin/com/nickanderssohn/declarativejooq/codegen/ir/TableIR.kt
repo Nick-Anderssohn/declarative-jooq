@@ -1,4 +1,4 @@
-package com.example.declarativejooq.codegen.ir
+package com.nickanderssohn.declarativejooq.codegen.ir
 
 data class TableIR(
     val tableName: String,               // "organization"
@@ -8,7 +8,7 @@ data class TableIR(
     val builderClassName: String,        // "OrganizationBuilder"
     val resultClassName: String,         // "OrganizationResult"
     val dslFunctionName: String,         // "organization"
-    val sourcePackage: String,           // "com.example.declarativejooq"
+    val sourcePackage: String,           // "com.nickanderssohn.declarativejooq"
     val columns: List<ColumnIR>,
     val outboundFKs: List<ForeignKeyIR>,
     val inboundFKs: MutableList<ForeignKeyIR> = mutableListOf(),

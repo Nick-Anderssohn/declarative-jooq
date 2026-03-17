@@ -1,6 +1,6 @@
-package com.example.declarativejooq.codegen.emitter
+package com.nickanderssohn.declarativejooq.codegen.emitter
 
-import com.example.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -12,7 +12,7 @@ import com.squareup.kotlinpoet.TypeSpec
 class DslResultEmitter {
 
     fun emit(tables: List<TableIR>, outputPackage: String): TypeSpec {
-        val dslResultType = ClassName("com.example.declarativejooq", "DslResult")
+        val dslResultType = ClassName("com.nickanderssohn.declarativejooq", "DslResult")
         val listType = ClassName("kotlin.collections", "List")
 
         val classBuilder = TypeSpec.classBuilder("GeneratedDslResult")

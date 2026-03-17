@@ -1,4 +1,4 @@
-package com.example.declarativejooq
+package com.nickanderssohn.declarativejooq
 
 /**
  * Hand-written DSL builders that simulate what Phase 2 codegen will produce.

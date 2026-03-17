@@ -1,4 +1,4 @@
-package com.example.declarativejooq
+package com.nickanderssohn.declarativejooq
 
 class RecordGraph {
     private val _rootNodes: MutableList<RecordNode> = mutableListOf()

@@ -1,4 +1,4 @@
-package com.example.declarativejooq.codegen.scanner
+package com.nickanderssohn.declarativejooq.codegen.scanner
 
 import io.github.classgraph.ClassGraph
 import java.io.File

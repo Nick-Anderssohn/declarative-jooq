@@ -1,8 +1,8 @@
 @file:OptIn(org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi::class)
 
-package com.example.declarativejooq.integration
+package com.nickanderssohn.declarativejooq.integration
 
-import com.example.declarativejooq.codegen.CodeGenerator
+import com.nickanderssohn.declarativejooq.codegen.CodeGenerator
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import org.jooq.DSLContext
@@ -28,7 +28,7 @@ class FullPipelineTest {
     }
 
     private val classDir = File("../dsl-runtime/build/classes/kotlin/test")
-    private val outputPackage = "com.example.generated"
+    private val outputPackage = "com.nickanderssohn.generated"
     private lateinit var compilationResult: KotlinCompilation.Result
     private lateinit var ctx: DSLContext
 
@@ -69,7 +69,7 @@ class FullPipelineTest {
         )
 
         // Generate DSL sources from the TestSchema jOOQ classes
-        val generatedSources = CodeGenerator().generateSource(classDir, outputPackage, "com.example.declarativejooq")
+        val generatedSources = CodeGenerator().generateSource(classDir, outputPackage, "com.nickanderssohn.declarativejooq")
         assertTrue(generatedSources.isNotEmpty(), "CodeGenerator produced no source files")
 
         // Compile generated DSL sources + harness together
@@ -106,10 +106,10 @@ class FullPipelineTest {
     private fun integrationHarnessSource(): SourceFile = SourceFile.kotlin(
         "IntegrationHarness.kt",
         """
-        package com.example.generated
+        package com.nickanderssohn.generated
 
-        import com.example.declarativejooq.DslResult
-        import com.example.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DslResult
+        import com.nickanderssohn.declarativejooq.execute
         import org.jooq.DSLContext
 
         object IntegrationHarness {

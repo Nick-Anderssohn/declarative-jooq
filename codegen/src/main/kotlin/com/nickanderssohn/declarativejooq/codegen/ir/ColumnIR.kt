@@ -1,4 +1,4 @@
-package com.example.declarativejooq.codegen.ir
+package com.nickanderssohn.declarativejooq.codegen.ir
 
 import com.squareup.kotlinpoet.TypeName
 

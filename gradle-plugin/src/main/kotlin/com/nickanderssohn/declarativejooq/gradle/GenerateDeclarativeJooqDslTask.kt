@@ -1,6 +1,6 @@
-package com.example.declarativejooq.gradle
+package com.nickanderssohn.declarativejooq.gradle
 
-import com.example.declarativejooq.codegen.CodeGenerator
+import com.nickanderssohn.declarativejooq.codegen.CodeGenerator
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property

@@ -1,4 +1,4 @@
-package com.example.declarativejooq
+package com.nickanderssohn.declarativejooq
 
 object TopologicalSorter {
     /**

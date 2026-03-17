@@ -1,4 +1,4 @@
-package com.example.declarativejooq
+package com.nickanderssohn.declarativejooq
 
 import org.h2.jdbcx.JdbcDataSource
 import org.jooq.DSLContext

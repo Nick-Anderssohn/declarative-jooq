@@ -1,4 +1,4 @@
-package com.example.declarativejooq.codegen.ir
+package com.nickanderssohn.declarativejooq.codegen.ir
 
 data class ForeignKeyIR(
     val fkName: String,                  // "fk_app_user_organization"

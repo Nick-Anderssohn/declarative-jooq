@@ -1,6 +1,6 @@
-package com.example.declarativejooq.codegen.emitter
+package com.nickanderssohn.declarativejooq.codegen.emitter
 
-import com.example.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
@@ -19,10 +19,10 @@ class BuilderEmitter {
     fun emit(tableIR: TableIR, outputPackage: String): TypeSpec {
         val recordType = ClassName(tableIR.sourcePackage, tableIR.recordClassName)
         val tableClass = ClassName(tableIR.sourcePackage, tableIR.tableClassName)
-        val recordBuilderType = ClassName("com.example.declarativejooq", "RecordBuilder")
+        val recordBuilderType = ClassName("com.nickanderssohn.declarativejooq", "RecordBuilder")
             .parameterizedBy(recordType)
-        val recordGraphType = ClassName("com.example.declarativejooq", "RecordGraph")
-        val recordNodeType = ClassName("com.example.declarativejooq", "RecordNode")
+        val recordGraphType = ClassName("com.nickanderssohn.declarativejooq", "RecordGraph")
+        val recordNodeType = ClassName("com.nickanderssohn.declarativejooq", "RecordNode")
 
         val hasChildren = tableIR.inboundFKs.isNotEmpty()
         val hasSelfRefInbound = tableIR.inboundFKs.any { it.isSelfReferential }

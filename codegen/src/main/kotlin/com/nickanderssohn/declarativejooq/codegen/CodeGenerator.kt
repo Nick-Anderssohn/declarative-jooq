@@ -1,12 +1,12 @@
-package com.example.declarativejooq.codegen
+package com.nickanderssohn.declarativejooq.codegen
 
-import com.example.declarativejooq.codegen.emitter.BuilderEmitter
-import com.example.declarativejooq.codegen.emitter.DslResultEmitter
-import com.example.declarativejooq.codegen.emitter.DslScopeEmitter
-import com.example.declarativejooq.codegen.emitter.ResultEmitter
-import com.example.declarativejooq.codegen.ir.TableIR
-import com.example.declarativejooq.codegen.scanner.ClasspathScanner
-import com.example.declarativejooq.codegen.scanner.MetadataExtractor
+import com.nickanderssohn.declarativejooq.codegen.emitter.BuilderEmitter
+import com.nickanderssohn.declarativejooq.codegen.emitter.DslResultEmitter
+import com.nickanderssohn.declarativejooq.codegen.emitter.DslScopeEmitter
+import com.nickanderssohn.declarativejooq.codegen.emitter.ResultEmitter
+import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.scanner.ClasspathScanner
+import com.nickanderssohn.declarativejooq.codegen.scanner.MetadataExtractor
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File

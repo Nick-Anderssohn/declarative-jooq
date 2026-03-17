@@ -1,4 +1,4 @@
-package com.example.declarativejooq
+package com.nickanderssohn.declarativejooq
 
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.assertEquals

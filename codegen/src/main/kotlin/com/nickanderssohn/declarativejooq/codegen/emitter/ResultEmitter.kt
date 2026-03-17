@@ -1,6 +1,6 @@
-package com.example.declarativejooq.codegen.emitter
+package com.nickanderssohn.declarativejooq.codegen.emitter
 
-import com.example.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec

@@ -1,4 +1,4 @@
-package com.example.declarativejooq.gradle
+package com.nickanderssohn.declarativejooq.gradle
 
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -32,11 +32,11 @@ class DeclarativeJooqPluginFunctionalTest {
         buildFile.writeText(
             """
             plugins {
-                id("com.example.declarative-jooq")
+                id("com.nickanderssohn.declarative-jooq")
             }
             declarativeJooq {
                 classesDir.set(file("jooq-classes"))
-                outputPackage.set("com.example.generated")
+                outputPackage.set("com.nickanderssohn.generated")
             }
             """.trimIndent()
         )
@@ -107,7 +107,7 @@ class DeclarativeJooqPluginFunctionalTest {
         buildFile.writeText(
             """
             plugins {
-                id("com.example.declarative-jooq")
+                id("com.nickanderssohn.declarative-jooq")
             }
             """.trimIndent()
         )
