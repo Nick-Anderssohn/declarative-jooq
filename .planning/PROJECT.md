@@ -12,6 +12,12 @@ Eliminate boilerplate and manual FK wiring when creating test data — declare w
 
 ### Validated
 
+- ✓ Child-table-named builder functions (default to child table name, fallback to FK column name) — v0.2
+- ✓ Edge case: FK column `table_name` and `table_name_id` collision detection — v0.2
+- ✓ Placeholder objects returned from builder blocks for explicit FK assignment — v0.2
+- ✓ Cross-root-tree placeholder references within same `execute` block — v0.2
+- ✓ Placeholder overrides parent-context auto-resolved FK values — v0.2
+- ✓ README documentation for naming convention and placeholder pattern — v0.2
 - ✓ Code generator that scans jOOQ record classes and generates DSL builder code — v0.1
 - ✓ Gradle plugin that integrates code generation into the build process — v0.1
 - ✓ DSL with `execute(dslContext) { ... }` entry point for declarative record creation — v0.1
@@ -32,11 +38,7 @@ Eliminate boilerplate and manual FK wiring when creating test data — declare w
 
 ### Active
 
-- [ ] Child-table-named builder functions (default to child table name, fall back to FK column name when it doesn't match parent table)
-- [ ] Edge case handling for FK columns `table_name` and `table_name_id` pointing to same table
-- [ ] Placeholder objects returned from builder blocks for explicit FK assignment
-- [ ] Cross-root-tree placeholder references
-- [ ] Placeholder override of parent-context auto-resolved FKs
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -50,7 +52,7 @@ Eliminate boilerplate and manual FK wiring when creating test data — declare w
 
 ## Context
 
-Shipped v0.1 with 2,791 LOC Kotlin across 31 files in 4 modules.
+Shipped v0.2 with 3,364 LOC Kotlin across 35+ files in 4 modules (+573 LOC from v0.1).
 Tech stack: Kotlin 2.1.20, jOOQ 3.19.16, KotlinPoet 2.1.0, ClassGraph 4.8.179, Gradle 8.12.
 Tested against H2 (unit tests) and Postgres 16 (Testcontainers integration tests).
 
@@ -82,16 +84,11 @@ Known tech debt:
 | `buildWithChildren()` on ALL builders unconditionally | Prevents bugs where intermediate builders skip children | ✓ Good — fixed latent bug |
 | FK-column-based naming for builder functions | `created_by` → `createdBy`, `updated_by` → `updatedBy` | ✓ Good — readable and disambiguated |
 | Reuse TestSchema classes for integration tests | Proves Postgres dialect without javac complexity | ✓ Good — simpler test setup |
+| Two-pass FK naming algorithm (v0.2) | Collect candidates first, detect collisions second — enables NAME-03 without lookahead | ✓ Good — clean separation of concerns |
+| PlaceholderRef on referencing node (v0.2) | FK ownership belongs to the node that has the FK field, not the placeholder | ✓ Good — aligns with FK semantics |
+| buildTableGraph accepts RecordGraph (v0.2) | Access global placeholder refs for cross-tree edges without a separate parameter | ✓ Good — single source of truth |
+| Placeholder FK overrides parent-context FK (v0.2) | Applied after parent FK so explicit wiring always wins (PLCH-04 override semantics) | ✓ Good — predictable behavior |
+| FK column property suppressed when placeholderPropertyName matches (v0.2) | Prevents conflicting Kotlin declarations when FK column name equals placeholder name | ✓ Good — compiler-safe generated code |
 
 ---
-## Current Milestone: v0.2 Natural DSL Naming & Placeholders
-
-**Goal:** Make the DSL read naturally by naming builder functions after child tables, and add placeholder objects for explicit FK wiring across any scope.
-
-**Target features:**
-- Child-table-named builder functions (with FK column fallback for disambiguation)
-- Placeholder objects returned from builder blocks
-- Cross-root-tree and override FK assignment via placeholders
-
----
-*Last updated: 2026-03-16 after v0.2 milestone start*
+*Last updated: 2026-03-17 after v0.2 milestone*

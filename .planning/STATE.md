@@ -2,33 +2,33 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
-status: planning
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-03-17T21:48:08.088Z"
-last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
+status: complete
+stopped_at: v0.2 milestone archived
+last_updated: "2026-03-17T00:00:00.000Z"
+last_activity: 2026-03-17 — v0.2 milestone complete (Phases 5-6)
 progress:
   total_phases: 2
   completed_phases: 2
   total_plans: 5
   completed_plans: 5
-  percent: 0
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-16)
+See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Eliminate boilerplate and manual FK wiring when creating test data — declare what records you want and how they relate, and the library handles insertion order, FK assignment, and result assembly.
-**Current focus:** Phase 5 — Child-Table-Named Builder Functions
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 5 of 6 (Child-Table-Named Builder Functions)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
+Phase: — (v0.2 complete)
+Plan: —
+Status: Milestone complete — ready for next milestone
+Last activity: 2026-03-17 — v0.2 milestone archived (Phases 5-6, 5 plans)
 
 Progress: [░░░░░░░░░░] 0%
 

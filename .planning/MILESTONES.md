@@ -1,5 +1,26 @@
 # Milestones
 
+## v0.2 Natural DSL Naming & Placeholders (Shipped: 2026-03-17)
+
+**Phases:** 2 (5-6) | **Plans:** 5 | **Tasks:** 11
+**Commits:** 24 | **Kotlin LOC:** 3,364 (+573 from v0.1) | **Files changed:** 31 (+3,588, -103)
+**Timeline:** 1 day (2026-03-16 → 2026-03-17)
+**Requirements:** 9/9 satisfied
+
+**Key accomplishments:**
+1. Two-pass FK naming algorithm: builder functions default to child table name (`appUser { }` instead of `userId { }`)
+2. FK-column fallback naming when column doesn't match parent table (`createdBy { }` for `created_by → app_user`)
+3. Collision detection for duplicate builder names — both fall back to FK-column names (NAME-03)
+4. Self-referential FK builders use table name (`category { }`, not `childCategory { }`)
+5. PlaceholderRef infrastructure: `val alice = appUser { }` captures a typed placeholder for future FK wiring
+6. Cross-tree placeholder references with correct topological insert order within `execute` block
+7. Codegen emitters updated to generate Result-returning builders and placeholder FK properties
+8. README documented with naming conventions and placeholder usage patterns
+
+**Archive:** `.planning/milestones/v0.2-ROADMAP.md`, `v0.2-REQUIREMENTS.md`
+
+---
+
 ## v0.1 (Shipped: 2026-03-16)
 
 **Phases:** 4 | **Plans:** 10 | **Tasks:** 19
