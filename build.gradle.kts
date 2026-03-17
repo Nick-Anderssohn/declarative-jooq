@@ -2,6 +2,10 @@ plugins {
     kotlin("jvm") version "2.1.20" apply false
 }
 
+allprojects {
+    version = "0.1.0-SNAPSHOT"
+}
+
 subprojects {
     group = "com.nickanderssohn"
     apply(plugin = "org.jetbrains.kotlin.jvm")
