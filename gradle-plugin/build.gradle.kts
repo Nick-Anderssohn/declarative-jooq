@@ -6,6 +6,9 @@ plugins {
 
 dependencies {
     implementation(project(":codegen"))
+    // jOOQ is needed at runtime so the codegen task can load user-compiled TableImpl subclasses
+    // via URLClassLoader with the Gradle worker's context classloader as parent
+    implementation("org.jooq:jooq:3.19.16")
     testImplementation(gradleTestKit())
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
 }

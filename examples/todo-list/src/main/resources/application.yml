@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/todolist
+    username: postgres
+    password: postgres
+  flyway:
+    enabled: true
+  jooq:
+    sql-dialect: POSTGRES

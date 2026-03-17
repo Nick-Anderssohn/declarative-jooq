@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: # overridden by @DynamicPropertySource
+  flyway:
+    enabled: true
+  jooq:
+    sql-dialect: POSTGRES
