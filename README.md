@@ -228,7 +228,7 @@ execute(ctx) {
 
 ### Multiple FKs to the same table
 
-When a child table has more than one FK column pointing to the same parent table, the builder is still named after the child table. Pass a `TableField` to specify which FK column to set:
+When a child table has more than one FK column pointing to the same parent table, you must pass a `TableField` object (e.g. `TaskTable.TASK.CREATED_BY`) to specify which FK column to set:
 
 ```kotlin
 // task has created_by and updated_by, both referencing "user"
