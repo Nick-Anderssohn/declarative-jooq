@@ -97,15 +97,23 @@ class MetadataExtractor {
                     )
                 }
 
+            // Detect multi-FK-to-same-parent groups: when multiple FKs from this table point to the same parent,
+            // all of them should use the child table name as builderFunctionName and be flagged as isMultiFk = true.
+            val parentGroupCounts = rawFks.groupingBy { it.parentTableName }.eachCount()
+            val multiFkParents = parentGroupCounts.filter { it.value > 1 }.keys
+
             // Pass 2: Collision detection per NAME-03 — if two FKs produce the same candidate, both fall back to FK col name
-            val nameCounts = rawFks.groupingBy { it.candidateName }.eachCount()
+            // (Only applies for non-multi-FK groups since multi-FK groups are handled above)
+            val nonMultiFkRaws = rawFks.filter { it.parentTableName !in multiFkParents }
+            val nameCounts = nonMultiFkRaws.groupingBy { it.candidateName }.eachCount()
             val collidingNames = nameCounts.filter { it.value > 1 }.keys
 
             val outboundFKs = rawFks.map { raw ->
-                val finalName = if (raw.candidateName in collidingNames) {
-                    toCamelCase(raw.fkColumnName.removeSuffix("_id"))
-                } else {
-                    raw.candidateName
+                val isMultiFk = raw.parentTableName in multiFkParents
+                val finalName = when {
+                    isMultiFk -> toCamelCase(tableName) // Always use child table name for multi-FK groups
+                    raw.candidateName in collidingNames -> toCamelCase(raw.fkColumnName.removeSuffix("_id"))
+                    else -> raw.candidateName
                 }
                 ForeignKeyIR(
                     fkName = raw.fkName,
@@ -119,7 +127,8 @@ class MetadataExtractor {
                     childResultClassName = resultClassName,
                     childRecordClassName = recordClassName,
                     childSourcePackage = sourcePackage,
-                    isSelfReferential = raw.isSelfRef
+                    isSelfReferential = raw.isSelfRef,
+                    isMultiFk = isMultiFk
                 )
             }
 

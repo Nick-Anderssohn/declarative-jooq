@@ -108,12 +108,13 @@ class ScannerTest {
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
-        // created_by stripped = "created_by" != parent "app_user" => FK col name "createdBy"
-        val createdByFk = task.outboundFKs.find { it.fkName.contains("created_by", ignoreCase = true)
-            || it.builderFunctionName == "createdBy" }
+        // task has two FKs to app_user (created_by, updated_by) — both are multi-FK, so both get "task" as builder name
+        val createdByFk = task.outboundFKs.find { it.fkName.contains("created_by", ignoreCase = true) }
             ?: fail("created_by FK not found on task")
-        assertEquals("createdBy", createdByFk.builderFunctionName,
-            "When FK col stripped does not match parent table, builder should use FK column name")
+        assertEquals("task", createdByFk.builderFunctionName,
+            "Multi-FK: builder function should use child table name 'task', not FK column name")
+        assertTrue(createdByFk.isMultiFk,
+            "created_by FK should be flagged as isMultiFk = true")
     }
 
     @Test
@@ -130,20 +131,37 @@ class ScannerTest {
     }
 
     @Test
-    fun collisionFallsBackToFkColumnNames() {
+    fun multiFkUsesChildTableName() {
         requireClassDir()
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
         // task has created_by -> app_user and updated_by -> app_user
-        // Both stripped ("created_by", "updated_by") != "app_user" => FK col fallback => "createdBy", "updatedBy"
-        // No collision here because they already have different names
-        val builderNames = task.outboundFKs.map { it.builderFunctionName }.toSet()
-        assertTrue("createdBy" in builderNames, "Expected createdBy builder on task")
-        assertTrue("updatedBy" in builderNames, "Expected updatedBy builder on task")
-        assertEquals(2, builderNames.size, "task should have exactly 2 distinct builder function names")
-        assertFalse("task" in builderNames, "task table should NOT appear as a builder name (NAME-03)")
+        // Both are multi-FK (same child table, same parent table) — both should use child table name "task"
+        val builderNames = task.outboundFKs.map { it.builderFunctionName }
+        assertTrue(builderNames.all { it == "task" }, "All multi-FK builders should be named 'task', got: $builderNames")
+        assertEquals(2, builderNames.size, "task should have exactly 2 outbound FKs")
+        assertTrue(task.outboundFKs.all { it.isMultiFk }, "Both task FKs should have isMultiFk = true")
+    }
+
+    @Test
+    fun multiFkFlagSetCorrectly() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
+        // task has two FKs to app_user => both should be isMultiFk = true
+        task.outboundFKs.forEach { fk ->
+            assertTrue(fk.isMultiFk, "task FK '${fk.fkName}' should have isMultiFk = true")
+        }
+
+        val appUser = tables.find { it.tableName == "app_user" } ?: fail("app_user table not found")
+        // app_user has one FK to organization => isMultiFk = false
+        val orgFk = appUser.outboundFKs.find { it.parentTableName == "organization" }
+            ?: fail("FK to organization not found")
+        assertFalse(orgFk.isMultiFk, "app_user -> organization FK should have isMultiFk = false (single FK)")
     }
 
     @Test
