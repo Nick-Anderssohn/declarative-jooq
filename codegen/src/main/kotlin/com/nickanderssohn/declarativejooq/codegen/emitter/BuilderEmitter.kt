@@ -171,8 +171,15 @@ class BuilderEmitter {
         )
 
         // Child builder functions for each inbound FK
+        // Multi-FK groups (sharing same builderFunctionName) produce one function with a required TableField parameter.
+        // Single-FK cases produce one function without a TableField parameter.
         if (hasChildren) {
-            for (fk in tableIR.inboundFKs) {
+            // Group inbound FKs by builderFunctionName
+            val fkGroups = tableIR.inboundFKs.groupBy { it.builderFunctionName }
+            val graphVar = if (tableIR.isRoot && !hasSelfRefInbound) "graph" else "recordGraph"
+
+            for ((_, fkGroup) in fkGroups) {
+                val fk = fkGroup.first() // Use first FK for type/class info (all share same child table)
                 val childBuilderClass = ClassName(outputPackage, toPascalCase(fk.childTableName) + "Builder")
                 val childResultClass = ClassName(outputPackage, fk.childResultClassName)
                 val childRecordClass = ClassName(fk.childSourcePackage, fk.childRecordClassName)
@@ -181,38 +188,67 @@ class BuilderEmitter {
                     returnType = UNIT
                 )
 
-                // Determine which graph variable to use
-                val graphVar = if (tableIR.isRoot && !hasSelfRefInbound) "graph" else "recordGraph"
+                val isMultiFkGroup = fkGroup.size > 1 || fk.isMultiFk
 
-                val childFunBody = CodeBlock.builder()
-                if (fk.isSelfReferential) {
+                if (isMultiFkGroup) {
+                    // Multi-FK: generate a single function with required TableField<ChildRecord, *> parameter
+                    // The caller passes the specific FK field (e.g., TaskTable.TASK.CREATED_BY) to disambiguate
+                    val tableFieldType = ClassName("org.jooq", "TableField")
+                        .parameterizedBy(childRecordClass, com.squareup.kotlinpoet.STAR)
+
+                    val childFunBody = CodeBlock.builder()
                     childFunBody.addStatement(
-                        "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = %L, isSelfReferential = true)",
-                        childBuilderClass,
-                        fk.childFieldExpression
+                        "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = fkField)",
+                        childBuilderClass
+                    )
+                    childFunBody.addStatement("builder.block()")
+                    childFunBody.addStatement("val placeholderRecord = builder.getOrBuildRecord()")
+                    childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
+                    childFunBody.addStatement("builder.parentNode = parentNode")
+                    childFunBody.addStatement("builder.buildWithChildren()")
+                    childFunBody.endControlFlow()
+                    childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
+
+                    classBuilder.addFunction(
+                        FunSpec.builder(fk.builderFunctionName)
+                            .addParameter(ParameterSpec.builder("fkField", tableFieldType).build())
+                            .addParameter("block", blockType)
+                            .returns(childResultClass)
+                            .addCode(childFunBody.build())
+                            .build()
                     )
                 } else {
-                    childFunBody.addStatement(
-                        "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = %L)",
-                        childBuilderClass,
-                        fk.childFieldExpression
+                    // Single-FK: generate function without TableField parameter (unchanged behavior)
+                    val childFunBody = CodeBlock.builder()
+                    if (fk.isSelfReferential) {
+                        childFunBody.addStatement(
+                            "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = %L, isSelfReferential = true)",
+                            childBuilderClass,
+                            fk.childFieldExpression
+                        )
+                    } else {
+                        childFunBody.addStatement(
+                            "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkField = %L)",
+                            childBuilderClass,
+                            fk.childFieldExpression
+                        )
+                    }
+                    childFunBody.addStatement("builder.block()")
+                    childFunBody.addStatement("val placeholderRecord = builder.getOrBuildRecord()")
+                    childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
+                    childFunBody.addStatement("builder.parentNode = parentNode")
+                    childFunBody.addStatement("builder.buildWithChildren()")
+                    childFunBody.endControlFlow()
+                    childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
+
+                    classBuilder.addFunction(
+                        FunSpec.builder(fk.builderFunctionName)
+                            .addParameter("block", blockType)
+                            .returns(childResultClass)
+                            .addCode(childFunBody.build())
+                            .build()
                     )
                 }
-                childFunBody.addStatement("builder.block()")
-                childFunBody.addStatement("val placeholderRecord = builder.getOrBuildRecord()")
-                childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
-                childFunBody.addStatement("builder.parentNode = parentNode")
-                childFunBody.addStatement("builder.buildWithChildren()")
-                childFunBody.endControlFlow()
-                childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
-
-                classBuilder.addFunction(
-                    FunSpec.builder(fk.builderFunctionName)
-                        .addParameter("block", blockType)
-                        .returns(childResultClass)
-                        .addCode(childFunBody.build())
-                        .build()
-                )
             }
         }
 
