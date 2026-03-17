@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
 status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-17T04:01:19.666Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-17T04:18:56.807Z"
 last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 *Updated after each plan completion*
+| Phase 05 P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -56,6 +57,8 @@ All v0.1 decisions archived in PROJECT.md Key Decisions table.
 v0.2 open decisions to resolve before Phase 5 implementation:
 - Self-ref naming: use table name (`category { }`) — option A, aligns with child-table-named goal
 - Placeholder setter naming convention: TBD before Phase 6 emission code is written
+- [Phase 05]: Two-pass FK naming: pass 1 computes candidates per NAME-01/02/04 using exact snake_case comparison, pass 2 detects collisions via groupingBy for NAME-03 fallback
+- [Phase 05]: Self-ref FKs use toCamelCase(tableName), removing the childCategory prefix entirely
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None — research complete, architecture fully specified in .planning/research/A
 
 ## Session Continuity
 
-Last session: 2026-03-17T04:01:19.661Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-child-table-named-builder-functions/05-CONTEXT.md
+Last session: 2026-03-17T04:18:56.806Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
