@@ -391,6 +391,200 @@ class CodeGeneratorTest {
     }
 
     // -----------------------------------------------------------------------
+    // Placeholder harness — tests placeholder capture, cross-tree, override, fan-out
+    // -----------------------------------------------------------------------
+
+    private fun placeholderHarnessSource(): SourceFile = SourceFile.kotlin(
+        "PlaceholderHarness.kt",
+        """
+        package com.nickanderssohn.generated
+
+        import com.nickanderssohn.declarativejooq.DslResult
+        import com.nickanderssohn.declarativejooq.execute
+        import org.jooq.DSLContext
+
+        object PlaceholderHarness {
+
+            /** PLCH-01 + PLCH-02: Capture placeholder, assign to FK property */
+            fun runPlaceholderCapture(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    organization {
+                        name = "Acme"
+                        val alice = appUser {
+                            name = "Alice"
+                            email = "alice@acme.com"
+                        }
+                        appUser {
+                            name = "Bob"
+                            email = "bob@acme.com"
+                            createdBy {
+                                title = "Bob Task by Alice"
+                                createdBy = alice
+                            }
+                        }
+                    }
+                }
+            }
+
+            /** PLCH-03: Cross-tree — alice from tree 1 used in tree 2 */
+            fun runCrossTree(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    lateinit var alice: AppUserResult
+                    organization {
+                        name = "Acme"
+                        alice = appUser {
+                            name = "Alice"
+                            email = "alice@acme.com"
+                        }
+                    }
+                    organization {
+                        name = "Beta"
+                        appUser {
+                            name = "Bob"
+                            email = "bob@beta.com"
+                            createdBy {
+                                title = "Cross-tree task"
+                                createdBy = alice
+                            }
+                        }
+                    }
+                }
+            }
+
+            /** PLCH-04: Placeholder overrides parent-context FK */
+            fun runOverride(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    val beta = organization { name = "Beta" }
+                    organization {
+                        name = "Acme"
+                        appUser {
+                            name = "Bob"
+                            email = "bob@beta.com"
+                            organization = beta
+                        }
+                    }
+                }
+            }
+
+            /** Fan-out: one placeholder assigned to multiple tasks */
+            fun runFanOut(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    organization {
+                        name = "Acme"
+                        val alice = appUser {
+                            name = "Alice"
+                            email = "alice@acme.com"
+                        }
+                        appUser {
+                            name = "Worker"
+                            email = "worker@acme.com"
+                            createdBy {
+                                title = "Task 1"
+                                createdBy = alice
+                            }
+                            createdBy {
+                                title = "Task 2"
+                                createdBy = alice
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        """.trimIndent()
+    )
+
+    // -----------------------------------------------------------------------
+    // Test 9: Placeholder capture and FK assignment
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun placeholderCapture() {
+        val result = compile(listOf(placeholderHarnessSource()))
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, "Compilation failed:\n${result.messages}")
+
+        val ctx = freshContext()
+        val harnessClass = result.classLoader.loadClass("$outputPackage.PlaceholderHarness")
+        val harnessInstance = harnessClass.getField("INSTANCE").get(null)
+        val runMethod = harnessClass.getMethod("runPlaceholderCapture", DSLContext::class.java)
+        runMethod.invoke(harnessInstance, ctx)
+
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
+        val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
+            .fetchOne()?.get(DSL.field("created_by"))
+        assertNotNull(aliceId, "Alice should be in the DB")
+        assertEquals(aliceId, taskCreatedBy, "task.created_by should equal Alice's id via placeholder")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 10: Cross-tree placeholder wiring
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun crossTreePlaceholder() {
+        val result = compile(listOf(placeholderHarnessSource()))
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, "Compilation failed:\n${result.messages}")
+
+        val ctx = freshContext()
+        val harnessClass = result.classLoader.loadClass("$outputPackage.PlaceholderHarness")
+        val harnessInstance = harnessClass.getField("INSTANCE").get(null)
+        val runMethod = harnessClass.getMethod("runCrossTree", DSLContext::class.java)
+        runMethod.invoke(harnessInstance, ctx)
+
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
+        val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
+            .fetchOne()?.get(DSL.field("created_by"))
+        assertEquals(aliceId, taskCreatedBy, "Cross-tree: task.created_by should equal Alice's id")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 11: Placeholder overrides parent-context FK
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun placeholderOverridesParentContext() {
+        val result = compile(listOf(placeholderHarnessSource()))
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, "Compilation failed:\n${result.messages}")
+
+        val ctx = freshContext()
+        val harnessClass = result.classLoader.loadClass("$outputPackage.PlaceholderHarness")
+        val harnessInstance = harnessClass.getField("INSTANCE").get(null)
+        val runMethod = harnessClass.getMethod("runOverride", DSLContext::class.java)
+        runMethod.invoke(harnessInstance, ctx)
+
+        val betaId = ctx.select(DSL.field("id")).from(DSL.table("organization"))
+            .where(DSL.field("name").eq("Beta")).fetchOne()?.get(DSL.field("id"))
+        val bobOrgId = ctx.select(DSL.field("organization_id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Bob")).fetchOne()?.get(DSL.field("organization_id"))
+        assertEquals(betaId, bobOrgId, "Bob's organization_id should be Beta (placeholder override)")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 12: Fan-out — one placeholder used by multiple tasks
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun placeholderFanOut() {
+        val result = compile(listOf(placeholderHarnessSource()))
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, "Compilation failed:\n${result.messages}")
+
+        val ctx = freshContext()
+        val harnessClass = result.classLoader.loadClass("$outputPackage.PlaceholderHarness")
+        val harnessInstance = harnessClass.getField("INSTANCE").get(null)
+        val runMethod = harnessClass.getMethod("runFanOut", DSLContext::class.java)
+        runMethod.invoke(harnessInstance, ctx)
+
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
+        val taskCreatedBys = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
+            .fetch().map { it.get(DSL.field("created_by")) }
+        assertEquals(2, taskCreatedBys.size, "Expected 2 tasks")
+        assertTrue(taskCreatedBys.all { it == aliceId }, "Both tasks should have created_by = Alice's id")
+    }
+
+    // -----------------------------------------------------------------------
     // Test 5: GeneratedDslResult has typed accessors
     // -----------------------------------------------------------------------
 

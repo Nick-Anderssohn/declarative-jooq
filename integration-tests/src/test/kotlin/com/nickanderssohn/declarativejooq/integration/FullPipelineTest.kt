@@ -216,6 +216,92 @@ class FullPipelineTest {
                     }
                 }
             }
+
+            /** PLCH-01+02: Placeholder capture and FK assignment */
+            fun runPlaceholderCapture(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    organization {
+                        name = "Acme"
+                        val alice = appUser {
+                            name = "Alice"
+                            email = "alice@acme.com"
+                        }
+                        appUser {
+                            name = "Bob"
+                            email = "bob@acme.com"
+                            createdBy {
+                                title = "Bob Task by Alice"
+                                createdBy = alice
+                            }
+                        }
+                    }
+                }
+            }
+
+            /** PLCH-03: Cross-tree placeholder wiring */
+            fun runCrossTree(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    lateinit var alice: AppUserResult
+                    organization {
+                        name = "Acme"
+                        alice = appUser {
+                            name = "Alice"
+                            email = "alice@acme.com"
+                        }
+                    }
+                    organization {
+                        name = "Beta"
+                        appUser {
+                            name = "Bob"
+                            email = "bob@beta.com"
+                            createdBy {
+                                title = "Cross-tree task"
+                                createdBy = alice
+                            }
+                        }
+                    }
+                }
+            }
+
+            /** PLCH-04: Placeholder overrides parent-context FK */
+            fun runOverride(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    val beta = organization { name = "Beta" }
+                    organization {
+                        name = "Acme"
+                        appUser {
+                            name = "Bob"
+                            email = "bob@beta.com"
+                            organization = beta
+                        }
+                    }
+                }
+            }
+
+            /** Fan-out: one placeholder assigned to multiple tasks */
+            fun runFanOut(ctx: DSLContext): DslResult {
+                return execute(ctx) {
+                    organization {
+                        name = "Acme"
+                        val alice = appUser {
+                            name = "Alice"
+                            email = "alice@acme.com"
+                        }
+                        appUser {
+                            name = "Worker"
+                            email = "worker@acme.com"
+                            createdBy {
+                                title = "Task 1"
+                                createdBy = alice
+                            }
+                            createdBy {
+                                title = "Task 2"
+                                createdBy = alice
+                            }
+                        }
+                    }
+                }
+            }
         }
         """.trimIndent()
     )
@@ -392,5 +478,67 @@ class FullPipelineTest {
         val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
             .fetchOne()?.get(DSL.field("created_by"))
         assertEquals(aliceId, taskCreatedBy, "task.created_by should equal Alice's id")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 7: Placeholder capture and FK assignment
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun placeholderCapture() {
+        invokeHarness("runPlaceholderCapture")
+
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
+        val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
+            .fetchOne()?.get(DSL.field("created_by"))
+        assertNotNull(aliceId)
+        assertEquals(aliceId, taskCreatedBy, "task.created_by should equal Alice's id via placeholder")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 8: Cross-tree placeholder wiring
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun crossTreePlaceholder() {
+        invokeHarness("runCrossTree")
+
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
+        val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
+            .fetchOne()?.get(DSL.field("created_by"))
+        assertEquals(aliceId, taskCreatedBy, "Cross-tree: task.created_by should equal Alice's id")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 9: Placeholder overrides parent-context FK
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun placeholderOverridesParentContext() {
+        invokeHarness("runOverride")
+
+        val betaId = ctx.select(DSL.field("id")).from(DSL.table("organization"))
+            .where(DSL.field("name").eq("Beta")).fetchOne()?.get(DSL.field("id"))
+        val bobOrgId = ctx.select(DSL.field("organization_id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Bob")).fetchOne()?.get(DSL.field("organization_id"))
+        assertEquals(betaId, bobOrgId, "Bob's org should be Beta via placeholder override")
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 10: Fan-out placeholder
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun placeholderFanOut() {
+        invokeHarness("runFanOut")
+
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+            .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
+        val taskCreatedBys = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
+            .fetch().map { it.get(DSL.field("created_by")) }
+        assertEquals(2, taskCreatedBys.size, "Expected 2 tasks")
+        assertTrue(taskCreatedBys.all { it == aliceId }, "Both tasks created_by should be Alice")
     }
 }
