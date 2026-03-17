@@ -299,7 +299,7 @@ Run integration tests (requires Docker):
 ./gradlew :dsl-runtime:testClasses
 
 # Then run integration tests
-./gradlew :integration-tests:test
+./gradlew :integration-tests:cleanTest :integration-tests:test
 ```
 
 Run all tests:

@@ -53,4 +53,7 @@ tasks.test {
     // Disable Ryuk (resource reaper) to avoid socket-mounting issue with Docker Desktop on macOS.
     // Resources are cleaned up naturally after the JVM process exits.
     environment("TESTCONTAINERS_RYUK_DISABLED", "true")
+    testLogging {
+        events("passed", "failed", "skipped")
+    }
 }
