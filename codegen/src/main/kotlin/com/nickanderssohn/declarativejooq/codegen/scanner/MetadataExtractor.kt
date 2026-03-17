@@ -57,8 +57,21 @@ class MetadataExtractor {
                 )
             }
 
-            // Extract outbound FKs (single-column only)
-            val outboundFKs = tableInstance.references
+            // Extract outbound FKs (single-column only) using two-pass naming algorithm
+
+            // Helper to hold raw FK data before final name resolution
+            data class RawFk(
+                val fkName: String,
+                val fkColumnName: String,
+                val childFieldExpr: String,
+                val parentTableName: String,
+                val parentBuilderClassName: String,
+                val isSelfRef: Boolean,
+                val candidateName: String
+            )
+
+            // Pass 1: Collect FK data and compute candidate names per NAME-01/02/04 rules
+            val rawFks = tableInstance.references
                 .filter { fk -> fk.fields.size == 1 }
                 .map { fk ->
                     val fkColumnName = fk.fields[0].name
@@ -69,21 +82,38 @@ class MetadataExtractor {
                     val parentBuilderClassName = toPascalCase(parentTableName) + "Builder"
                     val isSelfRef = parentTableName == tableName
                     val strippedFkCol = fkColumnName.removeSuffix("_id")
-                    val builderFunctionName = if (isSelfRef) {
-                        "child" + toPascalCase(tableName)
+
+                    val candidateName = if (isSelfRef) {
+                        toCamelCase(tableName)          // NAME-04: self-ref uses table name
+                    } else if (strippedFkCol == parentTableName) {
+                        toCamelCase(tableName)          // NAME-01: stripped col matches parent -> use child table name
                     } else {
-                        toCamelCase(strippedFkCol)
+                        toCamelCase(strippedFkCol)      // NAME-02: no match -> use FK column name
                     }
-                    ForeignKeyIR(
-                        fkName = fk.name,
-                        childTableName = tableName,
-                        childFieldExpression = childFieldExpr,
-                        parentTableName = parentTableName,
-                        parentBuilderClassName = parentBuilderClassName,
-                        builderFunctionName = builderFunctionName,
-                        isSelfReferential = isSelfRef
-                    )
+
+                    RawFk(fk.name, fkColumnName, childFieldExpr, parentTableName, parentBuilderClassName, isSelfRef, candidateName)
                 }
+
+            // Pass 2: Collision detection per NAME-03 — if two FKs produce the same candidate, both fall back to FK col name
+            val nameCounts = rawFks.groupingBy { it.candidateName }.eachCount()
+            val collidingNames = nameCounts.filter { it.value > 1 }.keys
+
+            val outboundFKs = rawFks.map { raw ->
+                val finalName = if (raw.candidateName in collidingNames) {
+                    toCamelCase(raw.fkColumnName.removeSuffix("_id"))
+                } else {
+                    raw.candidateName
+                }
+                ForeignKeyIR(
+                    fkName = raw.fkName,
+                    childTableName = tableName,
+                    childFieldExpression = raw.childFieldExpr,
+                    parentTableName = raw.parentTableName,
+                    parentBuilderClassName = raw.parentBuilderClassName,
+                    builderFunctionName = finalName,
+                    isSelfReferential = raw.isSelfRef
+                )
+            }
 
             TableIR(
                 tableName = tableName,
