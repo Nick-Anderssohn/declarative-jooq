@@ -119,7 +119,7 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        organization {
+                        appUser {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
@@ -132,11 +132,11 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        organization {
+                        appUser {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
-                        organization {
+                        appUser {
                             name = "Bob"
                             email = "bob@acme.com"
                         }
@@ -149,7 +149,7 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        organization {
+                        appUser {
                             name = "Alice"
                             email = "alice@acme.com"
                             createdBy {
@@ -165,9 +165,9 @@ class FullPipelineTest {
                 return execute(ctx) {
                     category {
                         name = "Electronics"
-                        childCategory {
+                        category {
                             name = "Phones"
-                            childCategory {
+                            category {
                                 name = "Smartphones"
                             }
                         }
@@ -180,7 +180,7 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        organization {
+                        appUser {
                             name = "Alice"
                             email = "alice@acme.com"
                             createdBy {
@@ -196,21 +196,21 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        organization {
+                        appUser {
                             name = "Alice"
                             email = "alice@acme.com"
                             createdBy {
                                 title = "Alice's Task"
                             }
                         }
-                        organization {
+                        appUser {
                             name = "Bob"
                             email = "bob@acme.com"
                         }
                     }
                     category {
                         name = "Tech"
-                        childCategory {
+                        category {
                             name = "Software"
                         }
                     }
