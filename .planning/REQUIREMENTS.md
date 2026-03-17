@@ -18,7 +18,7 @@ Requirements for v0.2 release. Each maps to roadmap phases.
 
 - [x] **PLCH-01**: Builder blocks return a typed placeholder object representing the future record
 - [x] **PLCH-02**: Placeholder objects can be assigned to FK column properties on other builders for explicit FK wiring
-- [ ] **PLCH-03**: Placeholder references work across different root trees within the same `execute` block
+- [x] **PLCH-03**: Placeholder references work across different root trees within the same `execute` block
 - [x] **PLCH-04**: Placeholder assignment overrides parent-context auto-resolved FK values
 
 ### Documentation
@@ -51,7 +51,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAME-04 | Phase 5 | Complete |
 | PLCH-01 | Phase 6 | Complete |
 | PLCH-02 | Phase 6 | Complete |
-| PLCH-03 | Phase 6 | Pending |
+| PLCH-03 | Phase 6 | Complete |
 | PLCH-04 | Phase 6 | Complete |
 | DOCS-01 | Phase 6 | Pending |
 
