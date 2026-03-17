@@ -3,6 +3,7 @@ plugins {
 }
 
 subprojects {
+    group = "com.nickanderssohn"
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     repositories {

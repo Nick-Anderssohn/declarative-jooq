@@ -13,8 +13,8 @@ dependencies {
 gradlePlugin {
     plugins {
         create("declarativeJooq") {
-            id = "com.example.declarative-jooq"
-            implementationClass = "com.example.declarativejooq.gradle.DeclarativeJooqPlugin"
+            id = "com.nickanderssohn.declarative-jooq"
+            implementationClass = "com.nickanderssohn.declarativejooq.gradle.DeclarativeJooqPlugin"
         }
     }
 }
