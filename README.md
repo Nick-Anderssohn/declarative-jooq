@@ -45,7 +45,7 @@ val result = execute(ctx) {
         appUser {           // app_user nested under org via organization_id FK
             name = "Alice"
             email = "alice@acme.com"
-            createdBy {     // task nested under user via created_by FK
+            task(TaskTable.TASK.CREATED_BY) {   // task nested under user via created_by FK
                 title = "Alice's Task"
             }
         }
@@ -60,8 +60,8 @@ The library inserts the organization first, then the user with the correct `orga
 - **Automatic FK resolution** — child records receive parent IDs without any manual wiring
 - **Topological insert ordering** — records are inserted in dependency order regardless of declaration order
 - **Self-referential FK support** — uses a two-pass insert strategy so parent_id can be set after child records are created
-- **Multiple FKs to the same table** — disambiguated builder names (e.g., `createdBy { }` vs `updatedBy { }`) when a child table has multiple FK columns pointing to the same parent table
-- **Natural builder names** — child builders named after the child table with FK-column fallback when disambiguation is needed
+- **Multiple FKs to the same table** — builder is always named after the child table; pass a `TableField` parameter to disambiguate (e.g., `task(TASK.CREATED_BY) { }` vs `task(TASK.UPDATED_BY) { }`)
+- **Natural builder names** — child builders always named after the child table in camelCase
 - **Placeholder objects** — capture builder results as typed references (`val alice = appUser { }`) for explicit FK wiring
 - **Cross-tree FK wiring** — use placeholders across separate root trees within the same `execute` block
 - **Typed result accessors** — retrieve inserted records by table name via `DslResult`
@@ -200,7 +200,7 @@ execute(ctx) {
         appUser {
             name = "Alice"
             email = "alice@acme.com"
-            createdBy {     // task with created_by FK wired to Alice
+            task(TaskTable.TASK.CREATED_BY) {   // task with created_by FK wired to Alice
                 title = "Alice's Task"
             }
         }
@@ -228,7 +228,7 @@ execute(ctx) {
 
 ### Multiple FKs to the same table
 
-When a child table has more than one FK column pointing to the same parent table, the code generator produces a separate builder for each FK column. Builder names are derived from the FK column name:
+When a child table has more than one FK column pointing to the same parent table, the builder is still named after the child table. Pass a `TableField` to specify which FK column to set:
 
 ```kotlin
 // task has created_by and updated_by, both referencing app_user
@@ -238,7 +238,7 @@ execute(ctx) {
         appUser {
             name = "Alice"
             email = "alice@acme.com"
-            createdBy {     // sets task.created_by = Alice.id
+            task(TaskTable.TASK.CREATED_BY) {   // sets task.created_by = Alice.id
                 title = "Alice's Task"
                 // task.updated_by remains NULL
             }
@@ -246,6 +246,8 @@ execute(ctx) {
     }
 }
 ```
+
+When a child table has only a single FK to the parent, the parameter is optional and defaults automatically — `task { }` works without arguments in that case.
 
 ### Accessing results
 
@@ -271,9 +273,7 @@ The code generator determines builder function names from your schema's FK relat
 
 - **Child table name (default)** — when a child table has a single FK to a parent, and the FK column name follows the `{table}_id` convention, the builder is named after the child table in camelCase. For example, `app_user` nested inside `organization` uses `appUser { }`.
 
-- **FK column name fallback** — when the FK column name does not follow the `{table}_id` convention (e.g., `created_by` references `app_user`), the builder is named after the FK column in camelCase. For example, `createdBy { }` inside `appUser`.
-
-- **Collision avoidance** — when two FK columns from the same child table point to the same parent table, both use the FK column name to produce distinct builders (e.g., `createdBy { }` and `updatedBy { }` on `AppUserBuilder`).
+- **Multiple FKs to the same parent** — when two FK columns from the same child table point to the same parent table, the builder is still named after the child table. Disambiguate by passing a `TableField` parameter: `task(TASK.CREATED_BY) { }` vs `task(TASK.UPDATED_BY) { }`. When only one FK exists, the parameter is optional and defaults automatically.
 
 - **Self-referential tables** — use the table name: `category { }` inside another `category { }`.
 
@@ -296,7 +296,7 @@ val result = execute(ctx) {
         appUser {
             name = "Bob"
             email = "bob@acme.com"
-            createdBy {
+            task(TaskTable.TASK.CREATED_BY) {
                 title = "Bob's task"
                 createdBy = alice   // FK wired explicitly to Alice
             }
@@ -327,7 +327,7 @@ val result = execute(ctx) {
         appUser {
             name = "Bob"
             email = "bob@beta.com"
-            createdBy {
+            task(TaskTable.TASK.CREATED_BY) {
                 title = "Cross-org task"
                 createdBy = alice   // Alice from Acme tree, task from Beta tree
             }
@@ -372,11 +372,11 @@ val result = execute(ctx) {
         appUser {
             name = "Worker"
             email = "worker@acme.com"
-            createdBy {
+            task(TaskTable.TASK.CREATED_BY) {
                 title = "Task 1"
                 createdBy = alice
             }
-            createdBy {
+            task(TaskTable.TASK.CREATED_BY) {
                 title = "Task 2"
                 createdBy = alice
             }
