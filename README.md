@@ -42,10 +42,10 @@ taskRecord.insert()
 val result = execute(ctx) {
     organization {
         name = "Acme"
-        organization {          // app_user nested under org via organization_id FK
+        appUser {           // app_user nested under org via organization_id FK
             name = "Alice"
             email = "alice@acme.com"
-            createdBy {         // task nested under user via created_by FK
+            createdBy {     // task nested under user via created_by FK
                 title = "Alice's Task"
             }
         }
@@ -61,6 +61,9 @@ The library inserts the organization first, then the user with the correct `orga
 - **Topological insert ordering** — records are inserted in dependency order regardless of declaration order
 - **Self-referential FK support** — uses a two-pass insert strategy so parent_id can be set after child records are created
 - **Multiple FKs to the same table** — disambiguated builder names (e.g., `createdBy { }` vs `updatedBy { }`) when a child table has multiple FK columns pointing to the same parent table
+- **Natural builder names** — child builders named after the child table with FK-column fallback when disambiguation is needed
+- **Placeholder objects** — capture builder results as typed references (`val alice = appUser { }`) for explicit FK wiring
+- **Cross-tree FK wiring** — use placeholders across separate root trees within the same `execute` block
 - **Typed result accessors** — retrieve inserted records by table name via `DslResult`
 - **Declaration-order preservation** — sibling records within the same parent are inserted in the order they are declared
 - **Code generator** — scans compiled jOOQ record classes via classpath scanning and produces typed Kotlin DSL extension functions
@@ -141,7 +144,7 @@ fun `test with declarative data`() {
     val result = execute(dslContext) {
         organization {
             name = "Acme"
-            organization {
+            appUser {
                 name = "Alice"
                 email = "alice@acme.com"
             }
@@ -172,13 +175,13 @@ execute(ctx) {
 
 ### Nested records
 
-Child tables are declared inside the parent they belong to. The builder name corresponds to the FK relationship:
+Child tables are declared inside the parent they belong to. The builder name corresponds to the child table name:
 
 ```kotlin
 execute(ctx) {
     organization {
         name = "Acme"
-        organization {          // declares an app_user with organization_id wired to this org
+        appUser {           // app_user nested under organization via organization_id FK
             name = "Alice"
             email = "alice@acme.com"
         }
@@ -194,10 +197,10 @@ Nesting is not limited to two levels:
 execute(ctx) {
     organization {
         name = "Acme"
-        organization {
+        appUser {
             name = "Alice"
             email = "alice@acme.com"
-            createdBy {         // task with created_by FK wired to Alice
+            createdBy {     // task with created_by FK wired to Alice
                 title = "Alice's Task"
             }
         }
@@ -213,9 +216,9 @@ Tables with a FK to themselves are supported. The library inserts the parent fir
 execute(ctx) {
     category {
         name = "Electronics"
-        childCategory {
+        category {          // nested category with parent_id wired to Electronics
             name = "Phones"
-            childCategory {
+            category {
                 name = "Smartphones"
             }
         }
@@ -232,10 +235,10 @@ When a child table has more than one FK column pointing to the same parent table
 execute(ctx) {
     organization {
         name = "Acme"
-        organization {
+        appUser {
             name = "Alice"
             email = "alice@acme.com"
-            createdBy {         // sets task.created_by = Alice.id
+            createdBy {     // sets task.created_by = Alice.id
                 title = "Alice's Task"
                 // task.updated_by remains NULL
             }
@@ -261,6 +264,127 @@ val all: Map<String, List<UpdatableRecord<*>>> = result.allRecords()
 ```
 
 Records in each table list are in declaration order.
+
+## Builder Naming
+
+The code generator determines builder function names from your schema's FK relationships:
+
+- **Child table name (default)** — when a child table has a single FK to a parent, and the FK column name follows the `{table}_id` convention, the builder is named after the child table in camelCase. For example, `app_user` nested inside `organization` uses `appUser { }`.
+
+- **FK column name fallback** — when the FK column name does not follow the `{table}_id` convention (e.g., `created_by` references `app_user`), the builder is named after the FK column in camelCase. For example, `createdBy { }` inside `appUser`.
+
+- **Collision avoidance** — when two FK columns from the same child table point to the same parent table, both use the FK column name to produce distinct builders (e.g., `createdBy { }` and `updatedBy { }` on `AppUserBuilder`).
+
+- **Self-referential tables** — use the table name: `category { }` inside another `category { }`.
+
+## Placeholder Objects
+
+Builder blocks return typed Result objects that you can capture with `val` for explicit FK wiring.
+
+### Capturing a placeholder
+
+```kotlin
+val result = execute(ctx) {
+    organization {
+        name = "Acme"
+        val alice = appUser {
+            name = "Alice"
+            email = "alice@acme.com"
+        }
+        // alice is an AppUserResult — alice.name returns "Alice" immediately
+        // alice.id returns null until execute() completes
+        appUser {
+            name = "Bob"
+            email = "bob@acme.com"
+            createdBy {
+                title = "Bob's task"
+                createdBy = alice   // FK wired explicitly to Alice
+            }
+        }
+    }
+}
+// After execute(): alice.id is populated with the DB-generated value
+```
+
+Every builder block returns a typed Result object. Capture it with `val` when you need to reference it elsewhere. Ignore the return value when you don't — Kotlin discards it silently.
+
+### Cross-tree FK wiring
+
+Placeholders work across separate root trees within the same `execute` block:
+
+```kotlin
+val result = execute(ctx) {
+    lateinit var alice: AppUserResult
+    organization {
+        name = "Acme"
+        alice = appUser {
+            name = "Alice"
+            email = "alice@acme.com"
+        }
+    }
+    organization {
+        name = "Beta"
+        appUser {
+            name = "Bob"
+            email = "bob@beta.com"
+            createdBy {
+                title = "Cross-org task"
+                createdBy = alice   // Alice from Acme tree, task from Beta tree
+            }
+        }
+    }
+}
+```
+
+The library automatically adjusts insert order so the referenced record is inserted first.
+
+### Overriding parent-context FK
+
+When a builder is nested under a parent, its FK to that parent is auto-resolved. Setting a placeholder property overrides the auto-resolved value:
+
+```kotlin
+val result = execute(ctx) {
+    val targetOrg = organization { name = "Target" }
+    organization {
+        name = "Host"
+        appUser {
+            name = "Bob"
+            email = "bob@target.com"
+            organization = targetOrg    // overrides auto-resolved FK from Host
+        }
+    }
+}
+// Bob's organization_id = Target.id, not Host.id
+```
+
+### Fan-out (one-to-many references)
+
+A single placeholder can be assigned to FK properties on multiple builders:
+
+```kotlin
+val result = execute(ctx) {
+    organization {
+        name = "Acme"
+        val alice = appUser {
+            name = "Alice"
+            email = "alice@acme.com"
+        }
+        appUser {
+            name = "Worker"
+            email = "worker@acme.com"
+            createdBy {
+                title = "Task 1"
+                createdBy = alice
+            }
+            createdBy {
+                title = "Task 2"
+                createdBy = alice
+            }
+        }
+    }
+}
+// Both tasks have created_by = Alice's id
+```
 
 ## Project Structure
 
