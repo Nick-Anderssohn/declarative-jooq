@@ -38,7 +38,7 @@ object TopologicalSorter {
         if (result.size != inDegree.size) {
             val remaining = inDegree.keys - result.toSet()
             throw IllegalStateException(
-                "Cycle detected in FK dependency graph. Tables involved: $remaining"
+                "Cycle detected in FK dependency graph (may involve placeholder references). Tables involved: $remaining"
             )
         }
         return result

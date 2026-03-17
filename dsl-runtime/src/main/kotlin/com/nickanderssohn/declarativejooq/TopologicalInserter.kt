@@ -10,7 +10,7 @@ class TopologicalInserter(private val dslContext: DSLContext) {
         }
 
         // Build table dependency graph from the actual nodes
-        val tableGraph = buildTableGraph(allNodes)
+        val tableGraph = buildTableGraph(allNodes, graph)
 
         // Get topological order
         val sortedTables = TopologicalSorter.sort(tableGraph)
@@ -44,6 +44,24 @@ class TopologicalInserter(private val dslContext: DSLContext) {
                     )
                 }
 
+                // Resolve placeholder FK references (overrides parent-context FK if same field)
+                for (ref in node.placeholderRefs) {
+                    val targetPk = ref.targetNode.table.primaryKey
+                        ?: throw IllegalStateException(
+                            "Placeholder target table ${ref.targetNode.table.name} has no primary key"
+                        )
+                    val targetPkValue = ref.targetNode.record.get(targetPk.fields[0])
+                        ?: throw IllegalStateException(
+                            "Placeholder target PK is null — target must be inserted before referencing node. " +
+                            "Table: ${ref.targetNode.table.name}, FK field: ${ref.fkField.name}"
+                        )
+                    @Suppress("UNCHECKED_CAST")
+                    (node.record as org.jooq.Record).set(
+                        ref.fkField as org.jooq.Field<Any?>,
+                        targetPkValue
+                    )
+                }
+
                 // Attach to DSLContext and insert
                 node.record.attach(dslContext.configuration())
                 node.record.store()
@@ -69,15 +87,20 @@ class TopologicalInserter(private val dslContext: DSLContext) {
         return ResultAssembler.assemble(allNodes)
     }
 
-    private fun buildTableGraph(nodes: List<RecordNode>): Map<String, Set<String>> {
-        val graph = mutableMapOf<String, MutableSet<String>>()
+    private fun buildTableGraph(nodes: List<RecordNode>, graph: RecordGraph): Map<String, Set<String>> {
+        val tableGraph = mutableMapOf<String, MutableSet<String>>()
         for (node in nodes) {
-            graph.getOrPut(node.table.name) { mutableSetOf() }
+            tableGraph.getOrPut(node.table.name) { mutableSetOf() }
             if (node.parentNode != null) {
-                graph.getOrPut(node.table.name) { mutableSetOf() }
+                tableGraph.getOrPut(node.table.name) { mutableSetOf() }
                     .add(node.parentNode.table.name)
             }
         }
-        return graph
+        // Add cross-tree placeholder edges
+        for ((sourceNode, ref) in graph.placeholderRefs) {
+            tableGraph.getOrPut(sourceNode.table.name) { mutableSetOf() }
+                .add(ref.targetNode.table.name)
+        }
+        return tableGraph
     }
 }
