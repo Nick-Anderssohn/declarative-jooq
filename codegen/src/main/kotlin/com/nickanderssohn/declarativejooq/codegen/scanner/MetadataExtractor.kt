@@ -67,7 +67,8 @@ class MetadataExtractor {
                 val parentTableName: String,
                 val parentBuilderClassName: String,
                 val isSelfRef: Boolean,
-                val candidateName: String
+                val candidateName: String,
+                val placeholderPropertyName: String
             )
 
             // Pass 1: Collect FK data and compute candidate names per NAME-01/02/04 rules
@@ -91,7 +92,9 @@ class MetadataExtractor {
                         toCamelCase(strippedFkCol)      // NAME-02: no match -> use FK column name
                     }
 
-                    RawFk(fk.name, fkColumnName, childFieldExpr, parentTableName, parentBuilderClassName, isSelfRef, candidateName)
+                    RawFk(fk.name, fkColumnName, childFieldExpr, parentTableName, parentBuilderClassName, isSelfRef, candidateName,
+                        placeholderPropertyName = toCamelCase(fkColumnName.removeSuffix("_id"))
+                    )
                 }
 
             // Pass 2: Collision detection per NAME-03 — if two FKs produce the same candidate, both fall back to FK col name
@@ -110,7 +113,12 @@ class MetadataExtractor {
                     childFieldExpression = raw.childFieldExpr,
                     parentTableName = raw.parentTableName,
                     parentBuilderClassName = raw.parentBuilderClassName,
+                    parentResultClassName = toPascalCase(raw.parentTableName) + "Result",
                     builderFunctionName = finalName,
+                    placeholderPropertyName = raw.placeholderPropertyName,
+                    childResultClassName = resultClassName,
+                    childRecordClassName = recordClassName,
+                    childSourcePackage = sourcePackage,
                     isSelfReferential = raw.isSelfRef
                 )
             }
