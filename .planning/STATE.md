@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Natural DSL Naming & Placeholders
 status: planning
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-17T20:56:44.553Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-03-17T21:24:00.958Z"
 last_activity: 2026-03-16 — Roadmap created for v0.2 (Phases 5-6)
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P02 | 2min | 2 tasks | 2 files |
 | Phase 06-placeholder-objects P01 | 8min | 2 tasks | 4 files |
 | Phase 06-placeholder-objects P02 | 4min | 3 tasks | 7 files |
+| Phase 06-placeholder-objects P03 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ v0.2 open decisions to resolve before Phase 5 implementation:
 - [Phase 06-01]: buildTableGraph accepts RecordGraph for cross-tree placeholder edges; RecordBuilder.kt intentionally unchanged for Plan 02
 - [Phase 06-02]: FK columns whose placeholderPropertyName equals column propertyName suppress the raw column property to avoid Kotlin conflicting declarations; FK resolved by TopologicalInserter
 - [Phase 06-02]: buildRecord() skips placeholder-claimed FK columns so no type mismatch in record construction
+- [Phase 06-placeholder-objects]: Cross-tree harness uses lateinit var alice: AppUserResult — works because execute block runs eagerly
+- [Phase 06-placeholder-objects]: Harness sources compiled in same generated package so AppUserResult referenced without import
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None — research complete, architecture fully specified in .planning/research/A
 
 ## Session Continuity
 
-Last session: 2026-03-17T20:56:44.552Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-17T21:24:00.956Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None

@@ -23,7 +23,7 @@ Requirements for v0.2 release. Each maps to roadmap phases.
 
 ### Documentation
 
-- [ ] **DOCS-01**: README.md updated to reflect new DSL naming convention and placeholder usage
+- [x] **DOCS-01**: README.md updated to reflect new DSL naming convention and placeholder usage
 
 ## Future Requirements
 
@@ -53,7 +53,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLCH-02 | Phase 6 | Complete |
 | PLCH-03 | Phase 6 | Complete |
 | PLCH-04 | Phase 6 | Complete |
-| DOCS-01 | Phase 6 | Pending |
+| DOCS-01 | Phase 6 | Complete |
 
 **Coverage:**
 - v0.2 requirements: 9 total
