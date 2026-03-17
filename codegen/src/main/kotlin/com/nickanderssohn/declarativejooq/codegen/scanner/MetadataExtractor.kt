@@ -223,7 +223,7 @@ class MetadataExtractor {
     }
 
     /**
-     * Converts snake_case to PascalCase: "organization" -> "Organization", "app_user" -> "AppUser"
+     * Converts snake_case to PascalCase: "organization" -> "Organization", "user" -> "User"
      */
     fun toPascalCase(input: String): String {
         return input.split("_").joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }

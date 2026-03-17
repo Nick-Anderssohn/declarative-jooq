@@ -42,7 +42,7 @@ taskRecord.insert()
 val result = execute(ctx) {
     organization {
         name = "Acme"
-        appUser {           // app_user nested under org via organization_id FK
+        user {           // "user" nested under org via organization_id FK
             name = "Alice"
             email = "alice@acme.com"
             task(TaskTable.TASK.CREATED_BY) {   // task nested under user via created_by FK
@@ -62,7 +62,7 @@ The library inserts the organization first, then the user with the correct `orga
 - **Self-referential FK support** — uses a two-pass insert strategy so parent_id can be set after child records are created
 - **Multiple FKs to the same table** — builder is always named after the child table; pass a `TableField` parameter to disambiguate (e.g., `task(TASK.CREATED_BY) { }` vs `task(TASK.UPDATED_BY) { }`)
 - **Natural builder names** — child builders always named after the child table in camelCase
-- **Placeholder objects** — capture builder results as typed references (`val alice = appUser { }`) for explicit FK wiring
+- **Placeholder objects** — capture builder results as typed references (`val alice = user { }`) for explicit FK wiring
 - **Cross-tree FK wiring** — use placeholders across separate root trees within the same `execute` block
 - **Typed result accessors** — retrieve inserted records by table name via `DslResult`
 - **Declaration-order preservation** — sibling records within the same parent are inserted in the order they are declared
@@ -144,14 +144,14 @@ fun `test with declarative data`() {
     val result = execute(dslContext) {
         organization {
             name = "Acme"
-            appUser {
+            user {
                 name = "Alice"
                 email = "alice@acme.com"
             }
         }
     }
 
-    val users = result.records("app_user")
+    val users = result.records("user")
     assertEquals(1, users.size)
 }
 ```
@@ -181,7 +181,7 @@ Child tables are declared inside the parent they belong to. The builder name cor
 execute(ctx) {
     organization {
         name = "Acme"
-        appUser {           // app_user nested under organization via organization_id FK
+        user {           // "user" nested under organization via organization_id FK
             name = "Alice"
             email = "alice@acme.com"
         }
@@ -197,7 +197,7 @@ Nesting is not limited to two levels:
 execute(ctx) {
     organization {
         name = "Acme"
-        appUser {
+        user {
             name = "Alice"
             email = "alice@acme.com"
             task(TaskTable.TASK.CREATED_BY) {   // task with created_by FK wired to Alice
@@ -231,11 +231,11 @@ execute(ctx) {
 When a child table has more than one FK column pointing to the same parent table, the builder is still named after the child table. Pass a `TableField` to specify which FK column to set:
 
 ```kotlin
-// task has created_by and updated_by, both referencing app_user
+// task has created_by and updated_by, both referencing "user"
 execute(ctx) {
     organization {
         name = "Acme"
-        appUser {
+        user {
             name = "Alice"
             email = "alice@acme.com"
             task(TaskTable.TASK.CREATED_BY) {   // sets task.created_by = Alice.id
@@ -271,7 +271,7 @@ Records in each table list are in declaration order.
 
 The code generator determines builder function names from your schema's FK relationships:
 
-- **Child table name (default)** — when a child table has a single FK to a parent, and the FK column name follows the `{table}_id` convention, the builder is named after the child table in camelCase. For example, `app_user` nested inside `organization` uses `appUser { }`.
+- **Child table name (default)** — when a child table has a single FK to a parent, and the FK column name follows the `{table}_id` convention, the builder is named after the child table in camelCase. For example, a `"user"` table nested inside `organization` uses `user { }`.
 
 - **Multiple FKs to the same parent** — when two FK columns from the same child table point to the same parent table, the builder is still named after the child table. Disambiguate by passing a `TableField` parameter: `task(TASK.CREATED_BY) { }` vs `task(TASK.UPDATED_BY) { }`. When only one FK exists, the parameter is optional and defaults automatically.
 
@@ -287,13 +287,13 @@ Builder blocks return typed Result objects that you can capture with `val` for e
 val result = execute(ctx) {
     organization {
         name = "Acme"
-        val alice = appUser {
+        val alice = user {
             name = "Alice"
             email = "alice@acme.com"
         }
-        // alice is an AppUserResult — alice.name returns "Alice" immediately
+        // alice is an UserResult — alice.name returns "Alice" immediately
         // alice.id returns null until execute() completes
-        appUser {
+        user {
             name = "Bob"
             email = "bob@acme.com"
             task(TaskTable.TASK.CREATED_BY) {
@@ -314,17 +314,17 @@ Placeholders work across separate root trees within the same `execute` block:
 
 ```kotlin
 val result = execute(ctx) {
-    lateinit var alice: AppUserResult
+    lateinit var alice: UserResult
     organization {
         name = "Acme"
-        alice = appUser {
+        alice = user {
             name = "Alice"
             email = "alice@acme.com"
         }
     }
     organization {
         name = "Beta"
-        appUser {
+        user {
             name = "Bob"
             email = "bob@beta.com"
             task(TaskTable.TASK.CREATED_BY) {
@@ -347,7 +347,7 @@ val result = execute(ctx) {
     val targetOrg = organization { name = "Target" }
     organization {
         name = "Host"
-        appUser {
+        user {
             name = "Bob"
             email = "bob@target.com"
             organization = targetOrg    // overrides auto-resolved FK from Host
@@ -365,11 +365,11 @@ A single placeholder can be assigned to FK properties on multiple builders:
 val result = execute(ctx) {
     organization {
         name = "Acme"
-        val alice = appUser {
+        val alice = user {
             name = "Alice"
             email = "alice@acme.com"
         }
-        appUser {
+        user {
             name = "Worker"
             email = "worker@acme.com"
             task(TaskTable.TASK.CREATED_BY) {

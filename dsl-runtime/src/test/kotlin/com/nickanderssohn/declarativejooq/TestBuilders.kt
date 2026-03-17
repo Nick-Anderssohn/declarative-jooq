@@ -4,7 +4,7 @@ package com.nickanderssohn.declarativejooq
  * Hand-written DSL builders that simulate what Phase 2 codegen will produce.
  *
  * OrganizationBuilder — root-level builder for the organization table.
- * AppUserBuilder — child builder for app_user, automatically wires organization_id FK.
+ * UserBuilder — child builder for "user", automatically wires organization_id FK.
  *
  * Extension function DslScope.organization() is the entry point users (and generated code)
  * will call inside the execute { } block.
@@ -29,15 +29,15 @@ class OrganizationBuilder(
     }
 
     /**
-     * Declare a child app_user record.  The FK (organization_id) will be resolved
+     * Declare a child user record.  The FK (organization_id) will be resolved
      * automatically from this organization's generated PK after it is inserted.
      */
-    fun user(block: AppUserBuilder.() -> Unit) {
+    fun user(block: UserBuilder.() -> Unit) {
         childBlocks.add { parentNode ->
-            val builder = AppUserBuilder(
+            val builder = UserBuilder(
                 recordGraph = graph,
                 parentNode = parentNode,
-                parentFkField = AppUserTable.APP_USER.ORGANIZATION_ID
+                parentFkField = UserTable.USER.ORGANIZATION_ID
             )
             builder.block()
             builder.build()
@@ -58,12 +58,12 @@ class OrganizationBuilder(
     }
 }
 
-class AppUserBuilder(
+class UserBuilder(
     recordGraph: RecordGraph,
     parentNode: RecordNode,
     parentFkField: org.jooq.TableField<*, *>
-) : RecordBuilder<AppUserRecord>(
-    table = AppUserTable.APP_USER,
+) : RecordBuilder<UserRecord>(
+    table = UserTable.USER,
     parentNode = parentNode,
     parentFkField = parentFkField,
     recordGraph = recordGraph
@@ -71,10 +71,10 @@ class AppUserBuilder(
     var name: String? = null
     var email: String? = null
 
-    override fun buildRecord(): AppUserRecord {
-        val record = AppUserRecord()
-        record.set(AppUserTable.APP_USER.NAME, name)
-        record.set(AppUserTable.APP_USER.EMAIL, email)
+    override fun buildRecord(): UserRecord {
+        val record = UserRecord()
+        record.set(UserTable.USER.NAME, name)
+        record.set(UserTable.USER.EMAIL, email)
         return record
     }
 }

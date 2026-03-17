@@ -45,7 +45,7 @@ class FullPipelineTest {
         // Create schema in Postgres
         ctx.execute("CREATE TABLE organization (id BIGSERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL)")
         ctx.execute(
-            "CREATE TABLE app_user (" +
+            "CREATE TABLE \"user\" (" +
                 "id BIGSERIAL PRIMARY KEY, " +
                 "name VARCHAR(255) NOT NULL, " +
                 "email VARCHAR(255) NOT NULL, " +
@@ -63,8 +63,8 @@ class FullPipelineTest {
             "CREATE TABLE task (" +
                 "id BIGSERIAL PRIMARY KEY, " +
                 "title VARCHAR(255) NOT NULL, " +
-                "created_by BIGINT NOT NULL REFERENCES app_user(id), " +
-                "updated_by BIGINT REFERENCES app_user(id)" +
+                "created_by BIGINT NOT NULL REFERENCES \"user\"(id), " +
+                "updated_by BIGINT REFERENCES \"user\"(id)" +
                 ")"
         )
 
@@ -94,7 +94,7 @@ class FullPipelineTest {
     fun truncateTables() {
         // Truncate all tables in reverse FK dependency order
         ctx.execute("TRUNCATE task CASCADE")
-        ctx.execute("TRUNCATE app_user CASCADE")
+        ctx.execute("TRUNCATE \"user\" CASCADE")
         ctx.execute("TRUNCATE category CASCADE")
         ctx.execute("TRUNCATE organization CASCADE")
     }
@@ -120,7 +120,7 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        appUser {
+                        user {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
@@ -133,11 +133,11 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        appUser {
+                        user {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
-                        appUser {
+                        user {
                             name = "Bob"
                             email = "bob@acme.com"
                         }
@@ -150,7 +150,7 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        appUser {
+                        user {
                             name = "Alice"
                             email = "alice@acme.com"
                             task(TaskTable.TASK.CREATED_BY) {
@@ -181,7 +181,7 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        appUser {
+                        user {
                             name = "Alice"
                             email = "alice@acme.com"
                             task(TaskTable.TASK.CREATED_BY) {
@@ -197,14 +197,14 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        appUser {
+                        user {
                             name = "Alice"
                             email = "alice@acme.com"
                             task(TaskTable.TASK.CREATED_BY) {
                                 title = "Alice's Task"
                             }
                         }
-                        appUser {
+                        user {
                             name = "Bob"
                             email = "bob@acme.com"
                         }
@@ -223,11 +223,11 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        val alice = appUser {
+                        val alice = user {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
-                        appUser {
+                        user {
                             name = "Bob"
                             email = "bob@acme.com"
                             task(TaskTable.TASK.CREATED_BY) {
@@ -242,17 +242,17 @@ class FullPipelineTest {
             /** PLCH-03: Cross-tree placeholder wiring */
             fun runCrossTree(ctx: DSLContext): DslResult {
                 return execute(ctx) {
-                    lateinit var alice: AppUserResult
+                    lateinit var alice: UserResult
                     organization {
                         name = "Acme"
-                        alice = appUser {
+                        alice = user {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
                     }
                     organization {
                         name = "Beta"
-                        appUser {
+                        user {
                             name = "Bob"
                             email = "bob@beta.com"
                             task(TaskTable.TASK.CREATED_BY) {
@@ -270,7 +270,7 @@ class FullPipelineTest {
                     val beta = organization { name = "Beta" }
                     organization {
                         name = "Acme"
-                        appUser {
+                        user {
                             name = "Bob"
                             email = "bob@beta.com"
                             organization = beta
@@ -284,11 +284,11 @@ class FullPipelineTest {
                 return execute(ctx) {
                     organization {
                         name = "Acme"
-                        val alice = appUser {
+                        val alice = user {
                             name = "Alice"
                             email = "alice@acme.com"
                         }
-                        appUser {
+                        user {
                             name = "Worker"
                             email = "worker@acme.com"
                             task(TaskTable.TASK.CREATED_BY) {
@@ -326,18 +326,18 @@ class FullPipelineTest {
         invokeHarness("runBasic")
 
         val orgCount = ctx.selectCount().from(DSL.table("organization")).fetchOne(0, Int::class.java)!!
-        val userCount = ctx.selectCount().from(DSL.table("app_user")).fetchOne(0, Int::class.java)!!
+        val userCount = ctx.selectCount().from(DSL.table(DSL.name("user"))).fetchOne(0, Int::class.java)!!
         assertEquals(1, orgCount, "Expected 1 organization row")
-        assertEquals(1, userCount, "Expected 1 app_user row")
+        assertEquals(1, userCount, "Expected 1 user row")
 
-        // Verify FK: app_user.organization_id = organization.id
+        // Verify FK: user.organization_id = organization.id
         val orgId = ctx.select(DSL.field("id")).from(DSL.table("organization"))
             .fetchOne()?.get(DSL.field("id"))
-        val orgIdFk = ctx.select(DSL.field("organization_id")).from(DSL.table("app_user"))
+        val orgIdFk = ctx.select(DSL.field("organization_id")).from(DSL.table(DSL.name("user")))
             .fetchOne()?.get(DSL.field("organization_id"))
         assertNotNull(orgId, "Expected organization row")
-        assertNotNull(orgIdFk, "Expected app_user row")
-        assertEquals(orgId, orgIdFk, "app_user.organization_id should match organization.id")
+        assertNotNull(orgIdFk, "Expected user row")
+        assertEquals(orgId, orgIdFk, "user.organization_id should match organization.id")
     }
 
     // -----------------------------------------------------------------------
@@ -349,14 +349,14 @@ class FullPipelineTest {
         invokeHarness("runMultipleSameType")
 
         val orgCount = ctx.selectCount().from(DSL.table("organization")).fetchOne(0, Int::class.java)!!
-        val userCount = ctx.selectCount().from(DSL.table("app_user")).fetchOne(0, Int::class.java)!!
+        val userCount = ctx.selectCount().from(DSL.table(DSL.name("user"))).fetchOne(0, Int::class.java)!!
         assertEquals(1, orgCount, "Expected 1 organization row")
-        assertEquals(2, userCount, "Expected 2 app_user rows")
+        assertEquals(2, userCount, "Expected 2 user rows")
 
         // Both users should point to the same org
         val orgId = ctx.select(DSL.field("id")).from(DSL.table("organization"))
             .fetchOne()?.get(DSL.field("id"))
-        val orgIds = ctx.select(DSL.field("organization_id")).from(DSL.table("app_user"))
+        val orgIds = ctx.select(DSL.field("organization_id")).from(DSL.table(DSL.name("user")))
             .fetch().map { it.get(DSL.field("organization_id")) }
         assertEquals(2, orgIds.size, "Expected 2 organization_id FK values")
         assertTrue(orgIds.all { it == orgId }, "Both users should reference the same organization")
@@ -371,18 +371,18 @@ class FullPipelineTest {
         invokeHarness("runMultiLevel")
 
         val orgCount = ctx.selectCount().from(DSL.table("organization")).fetchOne(0, Int::class.java)!!
-        val userCount = ctx.selectCount().from(DSL.table("app_user")).fetchOne(0, Int::class.java)!!
+        val userCount = ctx.selectCount().from(DSL.table(DSL.name("user"))).fetchOne(0, Int::class.java)!!
         val taskCount = ctx.selectCount().from(DSL.table("task")).fetchOne(0, Int::class.java)!!
         assertEquals(1, orgCount, "Expected 1 organization row")
-        assertEquals(1, userCount, "Expected 1 app_user row")
+        assertEquals(1, userCount, "Expected 1 user row")
         assertEquals(1, taskCount, "Expected 1 task row")
 
-        // Verify task.created_by = app_user.id
-        val userId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+        // Verify task.created_by = user.id
+        val userId = ctx.select(DSL.field("id")).from(DSL.table(DSL.name("user")))
             .fetchOne()?.get(DSL.field("id"))
         val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
             .fetchOne()?.get(DSL.field("created_by"))
-        assertEquals(userId, taskCreatedBy, "task.created_by should equal app_user.id")
+        assertEquals(userId, taskCreatedBy, "task.created_by should equal user.id")
     }
 
     // -----------------------------------------------------------------------
@@ -433,7 +433,7 @@ class FullPipelineTest {
         assertEquals(1, taskCount, "Expected 1 task row")
 
         // Verify created_by points to Alice, updated_by is NULL
-        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table(DSL.name("user")))
             .where(DSL.field("name").eq("Alice"))
             .fetchOne()?.get(DSL.field("id"))
         assertNotNull(aliceId, "Alice should be in the DB")
@@ -454,12 +454,12 @@ class FullPipelineTest {
         invokeHarness("runMixedGraph")
 
         val orgCount = ctx.selectCount().from(DSL.table("organization")).fetchOne(0, Int::class.java)!!
-        val userCount = ctx.selectCount().from(DSL.table("app_user")).fetchOne(0, Int::class.java)!!
+        val userCount = ctx.selectCount().from(DSL.table(DSL.name("user"))).fetchOne(0, Int::class.java)!!
         val taskCount = ctx.selectCount().from(DSL.table("task")).fetchOne(0, Int::class.java)!!
         val categoryCount = ctx.selectCount().from(DSL.table("category")).fetchOne(0, Int::class.java)!!
 
         assertEquals(1, orgCount, "Expected 1 organization row")
-        assertEquals(2, userCount, "Expected 2 app_user rows")
+        assertEquals(2, userCount, "Expected 2 user rows")
         assertEquals(1, taskCount, "Expected 1 task row")
         assertEquals(2, categoryCount, "Expected 2 category rows")
 
@@ -473,7 +473,7 @@ class FullPipelineTest {
         assertEquals(techId, softwareParentId, "Software.parent_id should equal Tech.id")
 
         // Verify task.created_by = Alice.id
-        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table(DSL.name("user")))
             .where(DSL.field("name").eq("Alice"))
             .fetchOne()?.get(DSL.field("id"))
         val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
@@ -489,7 +489,7 @@ class FullPipelineTest {
     fun placeholderCapture() {
         invokeHarness("runPlaceholderCapture")
 
-        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table(DSL.name("user")))
             .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
         val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
             .fetchOne()?.get(DSL.field("created_by"))
@@ -505,7 +505,7 @@ class FullPipelineTest {
     fun crossTreePlaceholder() {
         invokeHarness("runCrossTree")
 
-        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table(DSL.name("user")))
             .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
         val taskCreatedBy = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
             .fetchOne()?.get(DSL.field("created_by"))
@@ -522,7 +522,7 @@ class FullPipelineTest {
 
         val betaId = ctx.select(DSL.field("id")).from(DSL.table("organization"))
             .where(DSL.field("name").eq("Beta")).fetchOne()?.get(DSL.field("id"))
-        val bobOrgId = ctx.select(DSL.field("organization_id")).from(DSL.table("app_user"))
+        val bobOrgId = ctx.select(DSL.field("organization_id")).from(DSL.table(DSL.name("user")))
             .where(DSL.field("name").eq("Bob")).fetchOne()?.get(DSL.field("organization_id"))
         assertEquals(betaId, bobOrgId, "Bob's org should be Beta via placeholder override")
     }
@@ -535,7 +535,7 @@ class FullPipelineTest {
     fun placeholderFanOut() {
         invokeHarness("runFanOut")
 
-        val aliceId = ctx.select(DSL.field("id")).from(DSL.table("app_user"))
+        val aliceId = ctx.select(DSL.field("id")).from(DSL.table(DSL.name("user")))
             .where(DSL.field("name").eq("Alice")).fetchOne()?.get(DSL.field("id"))
         val taskCreatedBys = ctx.select(DSL.field("created_by")).from(DSL.table("task"))
             .fetch().map { it.get(DSL.field("created_by")) }

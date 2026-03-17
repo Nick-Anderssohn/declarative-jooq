@@ -26,8 +26,8 @@ class ScannerTest {
             "Expected OrganizationTable but got: $names"
         )
         assertTrue(
-            names.contains("com.nickanderssohn.declarativejooq.AppUserTable"),
-            "Expected AppUserTable but got: $names"
+            names.contains("com.nickanderssohn.declarativejooq.UserTable"),
+            "Expected UserTable but got: $names"
         )
         assertTrue(
             names.contains("com.nickanderssohn.declarativejooq.CategoryTable"),
@@ -49,8 +49,8 @@ class ScannerTest {
             "Expected OrganizationRecord but got: $names"
         )
         assertTrue(
-            names.contains("com.nickanderssohn.declarativejooq.AppUserRecord"),
-            "Expected AppUserRecord but got: $names"
+            names.contains("com.nickanderssohn.declarativejooq.UserRecord"),
+            "Expected UserRecord but got: $names"
         )
     }
 
@@ -60,7 +60,7 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        assertEquals(4, tables.size, "Expected 4 tables (organization, app_user, category, task)")
+        assertEquals(4, tables.size, "Expected 4 tables (organization, user, category, task)")
 
         val org = tables.find { it.tableName == "organization" }
             ?: fail("organization table not found")
@@ -75,16 +75,16 @@ class ScannerTest {
         assertEquals("name", orgNonIdentityColumns[0].propertyName)
         assertEquals(1, org.inboundFKs.size, "organization should have 1 inbound FK")
 
-        val appUser = tables.find { it.tableName == "app_user" }
-            ?: fail("app_user table not found")
-        assertEquals("app_user", appUser.tableName)
-        assertFalse(appUser.isRoot, "app_user should not be root")
-        assertEquals(1, appUser.outboundFKs.size, "app_user should have 1 outbound FK")
-        assertEquals("organization", appUser.outboundFKs[0].parentTableName)
-        val appUserNonIdentityColumns = appUser.columns.filter { !it.isIdentity }
-        assertEquals(3, appUserNonIdentityColumns.size, "app_user should have 3 non-identity columns (name, email, organization_id)")
-        val orgIdColumn = appUser.columns.find { it.propertyName == "organizationId" }
-        assertNotNull(orgIdColumn, "app_user should have organizationId column")
+        val user = tables.find { it.tableName == "user" }
+            ?: fail("user table not found")
+        assertEquals("user", user.tableName)
+        assertFalse(user.isRoot, "user should not be root")
+        assertEquals(1, user.outboundFKs.size, "user should have 1 outbound FK")
+        assertEquals("organization", user.outboundFKs[0].parentTableName)
+        val userNonIdentityColumns = user.columns.filter { !it.isIdentity }
+        assertEquals(3, userNonIdentityColumns.size, "user should have 3 non-identity columns (name, email, organization_id)")
+        val orgIdColumn = user.columns.find { it.propertyName == "organizationId" }
+        assertNotNull(orgIdColumn, "user should have organizationId column")
     }
 
     @Test
@@ -93,11 +93,11 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        val appUser = tables.find { it.tableName == "app_user" } ?: fail("app_user table not found")
-        // organization_id stripped = "organization" == parent "organization" => child table name "appUser"
-        val orgFk = appUser.outboundFKs.find { it.parentTableName == "organization" }
+        val user = tables.find { it.tableName == "user" } ?: fail("user table not found")
+        // organization_id stripped = "organization" == parent "organization" => child table name "user"
+        val orgFk = user.outboundFKs.find { it.parentTableName == "organization" }
             ?: fail("FK to organization not found")
-        assertEquals("appUser", orgFk.builderFunctionName,
+        assertEquals("user", orgFk.builderFunctionName,
             "When FK col stripped matches parent table, builder should use child table name")
     }
 
@@ -108,7 +108,7 @@ class ScannerTest {
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
-        // task has two FKs to app_user (created_by, updated_by) — both are multi-FK, so both get "task" as builder name
+        // task has two FKs to "user" (created_by, updated_by) — both are multi-FK, so both get "task" as builder name
         val createdByFk = task.outboundFKs.find { it.fkName.contains("created_by", ignoreCase = true) }
             ?: fail("created_by FK not found on task")
         assertEquals("task", createdByFk.builderFunctionName,
@@ -137,7 +137,7 @@ class ScannerTest {
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
-        // task has created_by -> app_user and updated_by -> app_user
+        // task has created_by -> "user" and updated_by -> "user"
         // Both are multi-FK (same child table, same parent table) — both should use child table name "task"
         val builderNames = task.outboundFKs.map { it.builderFunctionName }
         assertTrue(builderNames.all { it == "task" }, "All multi-FK builders should be named 'task', got: $builderNames")
@@ -152,16 +152,16 @@ class ScannerTest {
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
         val task = tables.find { it.tableName == "task" } ?: fail("task table not found")
-        // task has two FKs to app_user => both should be isMultiFk = true
+        // task has two FKs to "user" => both should be isMultiFk = true
         task.outboundFKs.forEach { fk ->
             assertTrue(fk.isMultiFk, "task FK '${fk.fkName}' should have isMultiFk = true")
         }
 
-        val appUser = tables.find { it.tableName == "app_user" } ?: fail("app_user table not found")
-        // app_user has one FK to organization => isMultiFk = false
-        val orgFk = appUser.outboundFKs.find { it.parentTableName == "organization" }
+        val user = tables.find { it.tableName == "user" } ?: fail("user table not found")
+        // user has one FK to organization => isMultiFk = false
+        val orgFk = user.outboundFKs.find { it.parentTableName == "organization" }
             ?: fail("FK to organization not found")
-        assertFalse(orgFk.isMultiFk, "app_user -> organization FK should have isMultiFk = false (single FK)")
+        assertFalse(orgFk.isMultiFk, "user -> organization FK should have isMultiFk = false (single FK)")
     }
 
     @Test
@@ -170,14 +170,14 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        val appUser = tables.find { it.tableName == "app_user" }
-            ?: fail("app_user table not found")
+        val user = tables.find { it.tableName == "user" }
+            ?: fail("user table not found")
 
         // organization_id -> organizationId
-        assertNotNull(appUser.columns.find { it.propertyName == "organizationId" })
+        assertNotNull(user.columns.find { it.propertyName == "organizationId" })
         // name -> name
-        assertNotNull(appUser.columns.find { it.propertyName == "name" })
+        assertNotNull(user.columns.find { it.propertyName == "name" })
         // id -> id
-        assertNotNull(appUser.columns.find { it.propertyName == "id" })
+        assertNotNull(user.columns.find { it.propertyName == "id" })
     }
 }

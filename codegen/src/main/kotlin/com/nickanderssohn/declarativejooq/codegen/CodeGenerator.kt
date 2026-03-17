@@ -100,7 +100,7 @@ class CodeGenerator {
     /**
      * Adds explicit imports for any child table classes referenced in FK expressions.
      * When a root/intermediate builder has inbound FKs, it references child table classes
-     * (e.g., AppUserTable.APP_USER.ORGANIZATION_ID) via raw string expressions in addStatement().
+     * (e.g., UserTable.USER.ORGANIZATION_ID) via raw string expressions in addStatement().
      * KotlinPoet does not automatically import classes used in raw code strings, so we add
      * them explicitly here.
      */

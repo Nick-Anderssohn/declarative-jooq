@@ -8,5 +8,5 @@ data class ColumnIR(
     val kotlinTypeName: TypeName,     // KotlinPoet TypeName (e.g., LONG, STRING)
     val isIdentity: Boolean,
     val isNullable: Boolean,
-    val tableFieldRefExpression: String // "AppUserTable.APP_USER.ORGANIZATION_ID"
+    val tableFieldRefExpression: String // "UserTable.USER.ORGANIZATION_ID"
 )

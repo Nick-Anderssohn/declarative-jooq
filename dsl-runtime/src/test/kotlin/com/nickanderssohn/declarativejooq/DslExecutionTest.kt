@@ -34,7 +34,7 @@ class DslExecutionTest {
     @BeforeEach
     fun cleanTables() {
         // Delete child rows first to satisfy FK constraint
-        dslContext.deleteFrom(AppUserTable.APP_USER).execute()
+        dslContext.deleteFrom(UserTable.USER).execute()
         dslContext.deleteFrom(OrganizationTable.ORGANIZATION).execute()
     }
 
@@ -92,9 +92,9 @@ class DslExecutionTest {
         assertNotNull(orgId, "Organization ID must be set after insert")
 
         // Fetch the user and verify FK
-        val userRows = dslContext.selectFrom(AppUserTable.APP_USER).fetch()
+        val userRows = dslContext.selectFrom(UserTable.USER).fetch()
         assertEquals(1, userRows.size)
-        val userOrgId = userRows[0].get(AppUserTable.APP_USER.ORGANIZATION_ID)
+        val userOrgId = userRows[0].get(UserTable.USER.ORGANIZATION_ID)
         assertEquals(orgId, userOrgId, "User's organization_id must equal the organization's generated id")
     }
 
@@ -112,17 +112,17 @@ class DslExecutionTest {
             }
         }
 
-        val users = result.records("app_user")
+        val users = result.records("user")
         assertEquals(2, users.size, "Expected 2 users in result")
 
         // Both users must reference the same organization
         val orgId = (result.records("organization")[0] as OrganizationRecord).id
         assertNotNull(orgId)
 
-        val userRows = dslContext.selectFrom(AppUserTable.APP_USER).fetch()
+        val userRows = dslContext.selectFrom(UserTable.USER).fetch()
         assertEquals(2, userRows.size)
         for (row in userRows) {
-            assertEquals(orgId, row.get(AppUserTable.APP_USER.ORGANIZATION_ID),
+            assertEquals(orgId, row.get(UserTable.USER.ORGANIZATION_ID),
                 "Each user must have organization_id = $orgId")
         }
     }
@@ -166,11 +166,11 @@ class DslExecutionTest {
         assertEquals("Beta", (orgs[1] as OrganizationRecord).name,
             "Second organization should be Beta")
 
-        val users = result.records("app_user")
+        val users = result.records("user")
         assertEquals(2, users.size)
-        assertEquals("Alice", (users[0] as AppUserRecord).name,
+        assertEquals("Alice", (users[0] as UserRecord).name,
             "First user should be Alice (declared under Alpha)")
-        assertEquals("Bob", (users[1] as AppUserRecord).name,
+        assertEquals("Bob", (users[1] as UserRecord).name,
             "Second user should be Bob (declared under Beta)")
     }
 
@@ -206,15 +206,15 @@ class DslExecutionTest {
         }
 
         // If topological order is correct, the FK constraint would have rejected the
-        // insert of app_user before organization. Verify the data is consistent.
+        // insert of "user" before organization. Verify the data is consistent.
         val orgRows = dslContext.selectFrom(OrganizationTable.ORGANIZATION).fetch()
-        val userRows = dslContext.selectFrom(AppUserTable.APP_USER).fetch()
+        val userRows = dslContext.selectFrom(UserTable.USER).fetch()
 
         assertEquals(1, orgRows.size)
         assertEquals(1, userRows.size)
 
         val orgId = orgRows[0].get(OrganizationTable.ORGANIZATION.ID)
-        val userOrgId = userRows[0].get(AppUserTable.APP_USER.ORGANIZATION_ID)
+        val userOrgId = userRows[0].get(UserTable.USER.ORGANIZATION_ID)
 
         assertNotNull(orgId)
         assertEquals(orgId, userOrgId,

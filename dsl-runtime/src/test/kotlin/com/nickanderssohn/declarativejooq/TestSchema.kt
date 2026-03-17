@@ -62,36 +62,36 @@ class OrganizationRecord() :
 }
 
 // ---------------------------------------------------------------------------
-// AppUserTable
+// UserTable ("user" is a reserved keyword — always quote in SQL)
 // ---------------------------------------------------------------------------
 
-class AppUserTable private constructor() : TableImpl<AppUserRecord>(
-    DSL.name("app_user")
+class UserTable private constructor() : TableImpl<UserRecord>(
+    DSL.name("user")
 ) {
-    val ID: TableField<AppUserRecord, Long?> =
+    val ID: TableField<UserRecord, Long?> =
         createField(DSL.name("id"), SQLDataType.BIGINT.identity(true), this)
 
-    val NAME: TableField<AppUserRecord, String?> =
+    val NAME: TableField<UserRecord, String?> =
         createField(DSL.name("name"), SQLDataType.VARCHAR(255).nullable(false), this)
 
-    val EMAIL: TableField<AppUserRecord, String?> =
+    val EMAIL: TableField<UserRecord, String?> =
         createField(DSL.name("email"), SQLDataType.VARCHAR(255).nullable(false), this)
 
-    val ORGANIZATION_ID: TableField<AppUserRecord, Long?> =
+    val ORGANIZATION_ID: TableField<UserRecord, Long?> =
         createField(DSL.name("organization_id"), SQLDataType.BIGINT.nullable(false), this)
 
-    override fun getRecordType(): Class<AppUserRecord> = AppUserRecord::class.java
+    override fun getRecordType(): Class<UserRecord> = UserRecord::class.java
 
-    override fun getPrimaryKey(): UniqueKey<AppUserRecord> =
-        Internal.createUniqueKey(this, DSL.name("pk_app_user"), arrayOf(ID), true)
+    override fun getPrimaryKey(): UniqueKey<UserRecord> =
+        Internal.createUniqueKey(this, DSL.name("pk_user"), arrayOf(ID), true)
 
-    override fun getIdentity(): Identity<AppUserRecord, *> =
+    override fun getIdentity(): Identity<UserRecord, *> =
         Internal.createIdentity(this, ID)
 
-    override fun getReferences(): List<ForeignKey<AppUserRecord, *>> = listOf(
+    override fun getReferences(): List<ForeignKey<UserRecord, *>> = listOf(
         Internal.createForeignKey(
             this,
-            DSL.name("fk_app_user_organization"),
+            DSL.name("fk_user_organization"),
             arrayOf(ORGANIZATION_ID),
             OrganizationTable.ORGANIZATION.primaryKey,
             arrayOf(OrganizationTable.ORGANIZATION.ID),
@@ -100,36 +100,36 @@ class AppUserTable private constructor() : TableImpl<AppUserRecord>(
     )
 
     companion object {
-        val APP_USER = AppUserTable()
+        val USER = UserTable()
     }
 }
 
 // ---------------------------------------------------------------------------
-// AppUserRecord
+// UserRecord
 // ---------------------------------------------------------------------------
 
 /**
  * No-arg constructor required by jOOQ's reflective record factory.
- * Must be declared after AppUserTable to avoid forward-reference at class load.
+ * Must be declared after UserTable to avoid forward-reference at class load.
  */
-class AppUserRecord() :
-    UpdatableRecordImpl<AppUserRecord>(AppUserTable.APP_USER) {
+class UserRecord() :
+    UpdatableRecordImpl<UserRecord>(UserTable.USER) {
 
     var id: Long?
-        get() = get(AppUserTable.APP_USER.ID)
-        set(value) = set(AppUserTable.APP_USER.ID, value)
+        get() = get(UserTable.USER.ID)
+        set(value) = set(UserTable.USER.ID, value)
 
     var name: String?
-        get() = get(AppUserTable.APP_USER.NAME)
-        set(value) = set(AppUserTable.APP_USER.NAME, value)
+        get() = get(UserTable.USER.NAME)
+        set(value) = set(UserTable.USER.NAME, value)
 
     var email: String?
-        get() = get(AppUserTable.APP_USER.EMAIL)
-        set(value) = set(AppUserTable.APP_USER.EMAIL, value)
+        get() = get(UserTable.USER.EMAIL)
+        set(value) = set(UserTable.USER.EMAIL, value)
 
     var organizationId: Long?
-        get() = get(AppUserTable.APP_USER.ORGANIZATION_ID)
-        set(value) = set(AppUserTable.APP_USER.ORGANIZATION_ID, value)
+        get() = get(UserTable.USER.ORGANIZATION_ID)
+        set(value) = set(UserTable.USER.ORGANIZATION_ID, value)
 }
 
 // ---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ class CategoryRecord() : UpdatableRecordImpl<CategoryRecord>(CategoryTable.CATEG
 }
 
 // ---------------------------------------------------------------------------
-// TaskTable (two FKs to app_user: created_by and updated_by)
+// TaskTable (two FKs to "user": created_by and updated_by)
 // ---------------------------------------------------------------------------
 
 class TaskTable private constructor() : TableImpl<TaskRecord>(DSL.name("task")) {
@@ -201,11 +201,11 @@ class TaskTable private constructor() : TableImpl<TaskRecord>(DSL.name("task")) 
     override fun getReferences(): List<ForeignKey<TaskRecord, *>> = listOf(
         Internal.createForeignKey(
             this, DSL.name("fk_task_created_by"), arrayOf(CREATED_BY),
-            AppUserTable.APP_USER.primaryKey, arrayOf(AppUserTable.APP_USER.ID), false
+            UserTable.USER.primaryKey, arrayOf(UserTable.USER.ID), false
         ),
         Internal.createForeignKey(
             this, DSL.name("fk_task_updated_by"), arrayOf(UPDATED_BY),
-            AppUserTable.APP_USER.primaryKey, arrayOf(AppUserTable.APP_USER.ID), false
+            UserTable.USER.primaryKey, arrayOf(UserTable.USER.ID), false
         )
     )
 
@@ -252,7 +252,7 @@ object TestSchema {
 
         ctx.execute(
             """
-            CREATE TABLE IF NOT EXISTS app_user (
+            CREATE TABLE IF NOT EXISTS "user" (
                 id              BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
                 name            VARCHAR(255) NOT NULL,
                 email           VARCHAR(255) NOT NULL,
@@ -276,8 +276,8 @@ object TestSchema {
             CREATE TABLE IF NOT EXISTS task (
                 id         BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
                 title      VARCHAR(255) NOT NULL,
-                created_by BIGINT NOT NULL REFERENCES app_user(id),
-                updated_by BIGINT REFERENCES app_user(id)
+                created_by BIGINT NOT NULL REFERENCES "user"(id),
+                updated_by BIGINT REFERENCES "user"(id)
             )
             """.trimIndent()
         )
