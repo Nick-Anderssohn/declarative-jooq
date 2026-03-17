@@ -32,7 +32,11 @@ Eliminate boilerplate and manual FK wiring when creating test data — declare w
 
 ### Active
 
-(None — next milestone not yet planned)
+- [ ] Child-table-named builder functions (default to child table name, fall back to FK column name when it doesn't match parent table)
+- [ ] Edge case handling for FK columns `table_name` and `table_name_id` pointing to same table
+- [ ] Placeholder objects returned from builder blocks for explicit FK assignment
+- [ ] Cross-root-tree placeholder references
+- [ ] Placeholder override of parent-context auto-resolved FKs
 
 ### Out of Scope
 
@@ -80,4 +84,14 @@ Known tech debt:
 | Reuse TestSchema classes for integration tests | Proves Postgres dialect without javac complexity | ✓ Good — simpler test setup |
 
 ---
-*Last updated: 2026-03-16 after v0.1 milestone*
+## Current Milestone: v0.2 Natural DSL Naming & Placeholders
+
+**Goal:** Make the DSL read naturally by naming builder functions after child tables, and add placeholder objects for explicit FK wiring across any scope.
+
+**Target features:**
+- Child-table-named builder functions (with FK column fallback for disambiguation)
+- Placeholder objects returned from builder blocks
+- Cross-root-tree and override FK assignment via placeholders
+
+---
+*Last updated: 2026-03-16 after v0.2 milestone start*
