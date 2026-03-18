@@ -13,10 +13,11 @@ class TodoItemRepository(private val dsl: DSLContext) {
             .where(TODO_ITEM.TODO_LIST_ID.eq(todoListId))
             .fetchInto(TodoItemRecord::class.java)
 
-    fun create(todoListId: Long, title: String): TodoItemRecord {
+    fun create(todoListId: Long, title: String, createdBy: Long? = null): TodoItemRecord {
         val record = dsl.newRecord(TODO_ITEM)
         record.todoListId = todoListId
         record.title = title
+        record.createdBy = createdBy
         record.completed = false
         record.store()
         return record

@@ -6,7 +6,7 @@ import com.nickanderssohn.todolist.repository.TodoItemRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-data class CreateTodoItemRequest(val title: String)
+data class CreateTodoItemRequest(val title: String, val createdBy: Long? = null)
 data class UpdateTodoItemRequest(val completed: Boolean)
 
 @RestController
@@ -21,7 +21,7 @@ class TodoItemController(private val repository: TodoItemRepository) {
     fun createItem(
         @PathVariable listId: Long,
         @RequestBody request: CreateTodoItemRequest
-    ): TodoItemDto = repository.create(listId, request.title).toDto()
+    ): TodoItemDto = repository.create(listId, request.title, request.createdBy).toDto()
 
     @PatchMapping("/{itemId}")
     fun updateCompleted(
