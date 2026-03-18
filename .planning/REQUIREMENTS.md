@@ -18,12 +18,12 @@ Requirements for the Richer Example milestone. All changes are to the `examples/
 
 ### API
 
-- [ ] **API-01**: User can create a user record via POST `/api/users`
-- [ ] **API-02**: User can list all users via GET `/api/users`
-- [ ] **API-03**: User can share a todo list with a user via POST `/api/todo-lists/{id}/share`
-- [ ] **API-04**: User can view which users a todo list is shared with via GET `/api/todo-lists/{id}/shares`
-- [ ] **API-05**: User can specify `created_by` user ID when creating a todo list
-- [ ] **API-06**: User can specify `created_by` user ID when creating a todo item
+- [x] **API-01**: User can create a user record via POST `/api/users`
+- [x] **API-02**: User can list all users via GET `/api/users`
+- [x] **API-03**: User can share a todo list with a user via POST `/api/todo-lists/{id}/share`
+- [x] **API-04**: User can view which users a todo list is shared with via GET `/api/todo-lists/{id}/shares`
+- [x] **API-05**: User can specify `created_by` user ID when creating a todo list
+- [x] **API-06**: User can specify `created_by` user ID when creating a todo item
 
 ### Tests
 
@@ -58,12 +58,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCHEMA-04 | Phase 7 | Complete |
 | SCHEMA-05 | Phase 7 | Complete |
 | SCHEMA-06 | Phase 7 | Complete |
-| API-01 | Phase 8 | Pending |
-| API-02 | Phase 8 | Pending |
-| API-03 | Phase 8 | Pending |
-| API-04 | Phase 8 | Pending |
-| API-05 | Phase 8 | Pending |
-| API-06 | Phase 8 | Pending |
+| API-01 | Phase 8 | Complete |
+| API-02 | Phase 8 | Complete |
+| API-03 | Phase 8 | Complete |
+| API-04 | Phase 8 | Complete |
+| API-05 | Phase 8 | Complete |
+| API-06 | Phase 8 | Complete |
 | TEST-01 | Phase 9 | Pending |
 | TEST-02 | Phase 9 | Pending |
 | TEST-03 | Phase 9 | Pending |

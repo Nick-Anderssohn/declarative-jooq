@@ -31,7 +31,7 @@
 **Milestone Goal:** Enrich the todo-list example with a user table, multi-FK relationships, sharing, and DSL integration tests that showcase placeholder and FK disambiguation patterns.
 
 - [x] **Phase 7: Example Schema** - Add user table, FK columns, and shared_with junction table to the todo-list example (completed 2026-03-18)
-- [ ] **Phase 8: Example API** - Add user and sharing endpoints to the todo-list Spring Boot API
+- [x] **Phase 8: Example API** - Add user and sharing endpoints to the todo-list Spring Boot API (completed 2026-03-18)
 - [ ] **Phase 9: Example Tests** - Add integration tests exercising multi-FK wiring and placeholder patterns
 
 ## Phase Details
@@ -60,7 +60,7 @@ Plans:
   3. `POST /api/todo-lists/{id}/share` shares a todo list with a specified user
   4. `GET /api/todo-lists/{id}/shares` returns the list of users a todo list is shared with
   5. `POST /api/todo-lists` and `POST /api/todo-lists/{id}/items` accept and persist a `createdBy` user ID
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 08-01-PLAN.md — User CRUD endpoints + createdBy on existing create endpoints
 - [ ] 08-02-PLAN.md — Todo list sharing endpoints (share and list shares)
@@ -90,5 +90,5 @@ Plans:
 | 5. Child-Table-Named Builder Functions | v0.2 | 2/2 | Complete | 2026-03-17 |
 | 6. Placeholder Objects | v0.2 | 3/3 | Complete | 2026-03-17 |
 | 7. Example Schema | 1/1 | Complete    | 2026-03-18 | - |
-| 8. Example API | 1/2 | In Progress|  | - |
+| 8. Example API | 2/2 | Complete   | 2026-03-18 | - |
 | 9. Example Tests | v0.3 | 0/? | Not started | - |

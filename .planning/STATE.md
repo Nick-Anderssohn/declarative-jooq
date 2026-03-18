@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: Richer Example
 status: planning
-stopped_at: Completed 08-example-api-08-01-PLAN.md
-last_updated: "2026-03-18T02:52:47.786Z"
+stopped_at: Completed 08-example-api-08-02-PLAN.md
+last_updated: "2026-03-18T02:54:52.803Z"
 last_activity: 2026-03-17 — v0.3 roadmap created
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 07-example-schema P01 | 2 | 2 tasks | 9 files |
 | Phase 08-example-api P01 | 1 | 2 tasks | 8 files |
+| Phase 08-example-api P02 | 5min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,7 @@ v0.3 decisions:
 - [Phase 07-example-schema]: created_by and updated_by are nullable FKs — records can exist without user assignment initially
 - [Phase 07-example-schema]: shared_with has composite UNIQUE(todo_list_id, user_id) to prevent duplicate shares
 - [Phase 08-example-api]: createdBy defaults to null in all create signatures so existing callers are unaffected
+- [Phase 08-example-api]: ShareController maps to /api/todo-lists/{listId} parent path with /share and /shares sub-mappings, matching TodoItemController pattern
 
 ### Pending Todos
 
@@ -85,6 +87,6 @@ None — requirements fully defined, roadmap created.
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:52:47.785Z
-Stopped at: Completed 08-example-api-08-01-PLAN.md
+Last session: 2026-03-18T02:54:52.801Z
+Stopped at: Completed 08-example-api-08-02-PLAN.md
 Resume file: None
