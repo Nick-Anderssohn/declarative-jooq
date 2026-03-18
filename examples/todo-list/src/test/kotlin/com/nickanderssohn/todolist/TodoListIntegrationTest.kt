@@ -4,6 +4,8 @@ import com.nickanderssohn.declarativejooq.DecDsl
 import com.nickanderssohn.todolist.generated.appUser
 import com.nickanderssohn.todolist.controller.CreateTodoItemRequest
 import com.nickanderssohn.todolist.controller.CreateTodoListRequest
+import com.nickanderssohn.todolist.controller.CreateUserRequest
+import com.nickanderssohn.todolist.controller.ShareTodoListRequest
 import com.nickanderssohn.todolist.jooq.SharedWithTable.Companion.SHARED_WITH
 import com.nickanderssohn.todolist.jooq.TodoItemTable.Companion.TODO_ITEM
 import com.nickanderssohn.todolist.jooq.TodoItemTable
@@ -324,5 +326,94 @@ class TodoListIntegrationTest {
         val sharedUserIds = shares.map { it.get(SHARED_WITH.USER_ID) }.toSet()
         assertEquals(setOf(aliceId, bobId), sharedUserIds,
             "shared_with should reference both Alice and Bob")
+    }
+
+    // -----------------------------------------------------------------------
+    // TEST-04: REST API creates and lists users
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun `REST API creates and lists users`() {
+        // Create two users
+        val alice = restTemplate.postForEntity(
+            "/api/users",
+            CreateUserRequest(name = "Alice", email = "alice@example.com"),
+            Map::class.java
+        )
+        assertEquals(HttpStatus.OK, alice.statusCode)
+        assertNotNull(alice.body!!["id"], "Created user should have an id")
+        assertEquals("Alice", alice.body!!["name"])
+        assertEquals("alice@example.com", alice.body!!["email"])
+
+        val bob = restTemplate.postForEntity(
+            "/api/users",
+            CreateUserRequest(name = "Bob", email = "bob@example.com"),
+            Map::class.java
+        )
+        assertEquals(HttpStatus.OK, bob.statusCode)
+
+        // List all users
+        val listResponse = restTemplate.getForEntity("/api/users", List::class.java)
+        assertEquals(HttpStatus.OK, listResponse.statusCode)
+        assertEquals(2, listResponse.body?.size, "Expected 2 users")
+
+        val names = (listResponse.body!! as List<Map<String, Any>>).map { it["name"] }.toSet()
+        assertEquals(setOf("Alice", "Bob"), names, "User names should match")
+    }
+
+    // -----------------------------------------------------------------------
+    // TEST-05: REST API shares a todo list and retrieves shares
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun `REST API shares a todo list and retrieves shares`() {
+        // Create a user via REST
+        val userResponse = restTemplate.postForEntity(
+            "/api/users",
+            CreateUserRequest(name = "Alice", email = "alice@example.com"),
+            Map::class.java
+        )
+        val userId = (userResponse.body!!["id"] as Number).toLong()
+
+        // Create a second user to share with
+        val user2Response = restTemplate.postForEntity(
+            "/api/users",
+            CreateUserRequest(name = "Bob", email = "bob@example.com"),
+            Map::class.java
+        )
+        val user2Id = (user2Response.body!!["id"] as Number).toLong()
+
+        // Create a todo list via REST (with createdBy = alice)
+        val listResponse = restTemplate.postForEntity(
+            "/api/todo-lists",
+            CreateTodoListRequest(title = "Shared List", description = "Test", createdBy = userId),
+            Map::class.java
+        )
+        assertEquals(HttpStatus.OK, listResponse.statusCode)
+        val listId = (listResponse.body!!["id"] as Number).toLong()
+
+        // Share with Bob
+        val shareResponse = restTemplate.postForEntity(
+            "/api/todo-lists/$listId/share",
+            ShareTodoListRequest(userId = user2Id),
+            Map::class.java
+        )
+        assertEquals(HttpStatus.OK, shareResponse.statusCode)
+        assertEquals(listId, (shareResponse.body!!["todoListId"] as Number).toLong(),
+            "Share response should reference the todo list")
+        assertEquals(user2Id, (shareResponse.body!!["userId"] as Number).toLong(),
+            "Share response should reference Bob")
+
+        // Retrieve shares
+        val sharesResponse = restTemplate.getForEntity(
+            "/api/todo-lists/$listId/shares",
+            List::class.java
+        )
+        assertEquals(HttpStatus.OK, sharesResponse.statusCode)
+        assertEquals(1, sharesResponse.body?.size, "Expected 1 share")
+
+        val share = (sharesResponse.body!![0] as Map<String, Any>)
+        assertEquals(user2Id, (share["userId"] as Number).toLong(),
+            "Shared user should be Bob")
     }
 }
