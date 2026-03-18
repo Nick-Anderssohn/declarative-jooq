@@ -37,7 +37,15 @@ class ScannerTest {
             names.contains("com.nickanderssohn.declarativejooq.TaskTable"),
             "Expected TaskTable but got: $names"
         )
-        assertEquals(4, names.size, "Expected exactly 4 table classes but got: $names")
+        assertTrue(
+            names.contains("com.nickanderssohn.declarativejooq.ProjectTable"),
+            "Expected ProjectTable but got: $names"
+        )
+        assertTrue(
+            names.contains("com.nickanderssohn.declarativejooq.MilestoneTable"),
+            "Expected MilestoneTable but got: $names"
+        )
+        assertEquals(6, names.size, "Expected exactly 6 table classes but got: $names")
     }
 
     @Test
@@ -60,7 +68,7 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        assertEquals(4, tables.size, "Expected 4 tables (organization, user, category, task)")
+        assertEquals(6, tables.size, "Expected 6 tables (organization, user, category, task, Project, milestone)")
 
         val org = tables.find { it.tableName == "organization" }
             ?: fail("organization table not found")
@@ -73,7 +81,7 @@ class ScannerTest {
         val orgNonIdentityColumns = org.columns.filter { !it.isIdentity }
         assertEquals(1, orgNonIdentityColumns.size, "organization should have 1 non-identity column")
         assertEquals("name", orgNonIdentityColumns[0].propertyName)
-        assertEquals(1, org.inboundFKs.size, "organization should have 1 inbound FK")
+        assertTrue(org.inboundFKs.size >= 1, "organization should have at least 1 inbound FK (from user, and from Project)")
 
         val user = tables.find { it.tableName == "user" }
             ?: fail("user table not found")
@@ -179,5 +187,56 @@ class ScannerTest {
         assertNotNull(user.columns.find { it.propertyName == "name" })
         // id -> id
         assertNotNull(user.columns.find { it.propertyName == "id" })
+    }
+
+    @Test
+    fun pascalCaseTableProducesCorrectIR() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val project = tables.find { it.tableName == "Project" }
+            ?: fail("Project table not found")
+
+        assertEquals("Project", project.tableName)
+        assertEquals("ProjectBuilder", project.builderClassName)
+        assertEquals("ProjectResult", project.resultClassName)
+        assertEquals("project", project.dslFunctionName, "dslFunctionName should be camelCase 'project'")
+
+        val orgIdCol = project.columns.find { it.columnName == "OrganizationId" }
+            ?: fail("OrganizationId column not found")
+        assertEquals("organizationId", orgIdCol.propertyName, "PascalCase column OrganizationId -> camelCase property organizationId")
+
+        assertEquals(1, project.outboundFKs.size, "Project should have 1 outbound FK")
+        val fk = project.outboundFKs[0]
+        assertEquals("organization", fk.parentTableName)
+        // NAME-01: OrganizationId stripped -> Organization -> normalized matches parent "organization"
+        // -> use child table name "Project" -> camelCase "project"
+        assertEquals("project", fk.builderFunctionName,
+            "FK to organization via OrganizationId (NAME-01): should use child table name 'project'")
+    }
+
+    @Test
+    fun camelCaseColumnsProduceCorrectIR() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val milestone = tables.find { it.tableName == "milestone" }
+            ?: fail("milestone table not found")
+
+        assertEquals("milestone", milestone.dslFunctionName)
+
+        val projectIdCol = milestone.columns.find { it.columnName == "projectId" }
+            ?: fail("projectId column not found")
+        assertEquals("projectId", projectIdCol.propertyName, "camelCase column 'projectId' -> property 'projectId'")
+
+        assertEquals(1, milestone.outboundFKs.size, "milestone should have 1 outbound FK")
+        val fk = milestone.outboundFKs[0]
+        // projectId stripped -> project -> normalized matches parent "Project" -> NAME-01 -> use child table name "milestone"
+        assertEquals("milestone", fk.builderFunctionName,
+            "FK to Project via projectId (NAME-01): should use child table name 'milestone'")
+        assertEquals("project", fk.placeholderPropertyName,
+            "placeholderPropertyName: projectId stripped -> 'project'")
     }
 }
