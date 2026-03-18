@@ -109,7 +109,7 @@ class JavaFullPipelineTest {
         package com.nickanderssohn.generated.java
 
         import com.nickanderssohn.declarativejooq.DslResult
-        import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DecDsl
         import com.nickanderssohn.declarativejooq.JavaTaskTable
         import org.jooq.DSLContext
 
@@ -117,7 +117,7 @@ class JavaFullPipelineTest {
 
             /** One org + one user (root + nested) */
             fun runBasic(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -130,7 +130,7 @@ class JavaFullPipelineTest {
 
             /** One org + two users */
             fun runMultipleSameType(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -147,7 +147,7 @@ class JavaFullPipelineTest {
 
             /** Three-level chain: org -> user -> task (via CREATED_BY FK field) */
             fun runMultiLevel(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -163,7 +163,7 @@ class JavaFullPipelineTest {
 
             /** Three-level self-ref: Electronics -> Phones -> Smartphones */
             fun runSelfRef(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     category {
                         name = "Electronics"
                         category {
@@ -178,7 +178,7 @@ class JavaFullPipelineTest {
 
             /** Org + user + task via CREATED_BY (multi-FK: created_by set, updated_by NULL) */
             fun runMultiFk(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -194,7 +194,7 @@ class JavaFullPipelineTest {
 
             /** Mixed graph: org with two users, category tree, task */
             fun runMixedGraph(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {

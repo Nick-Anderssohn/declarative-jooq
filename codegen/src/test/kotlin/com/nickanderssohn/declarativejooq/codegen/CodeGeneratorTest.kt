@@ -167,7 +167,7 @@ class CodeGeneratorTest {
         package com.nickanderssohn.generated
 
         import com.nickanderssohn.declarativejooq.DslResult
-        import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DecDsl
         import org.jooq.DSLContext
 
         object TestHarness {
@@ -177,7 +177,7 @@ class CodeGeneratorTest {
              * Note: builder function is named after child table (organization_id matches parent -> user)
              */
             fun run(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -193,7 +193,7 @@ class CodeGeneratorTest {
              * Returned as Any so the calling test can access it via reflection.
              */
             fun runWithTypedResult(ctx: DSLContext): Any {
-                val result = execute(ctx) {
+                val result = DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                     }
@@ -269,7 +269,7 @@ class CodeGeneratorTest {
         package com.nickanderssohn.generated
 
         import com.nickanderssohn.declarativejooq.DslResult
-        import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DecDsl
         import com.nickanderssohn.declarativejooq.TaskTable
         import org.jooq.DSLContext
 
@@ -278,7 +278,7 @@ class CodeGeneratorTest {
              * Self-referential insert: Electronics -> Phones -> Smartphones
              */
             fun runSelfRef(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     category {
                         name = "Electronics"
                         category {
@@ -295,7 +295,7 @@ class CodeGeneratorTest {
              * Multi-FK insert: user nested under task (FK from task.created_by -> "user")
              */
             fun runMultiFk(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -427,7 +427,7 @@ class CodeGeneratorTest {
         package com.nickanderssohn.generated
 
         import com.nickanderssohn.declarativejooq.DslResult
-        import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DecDsl
         import com.nickanderssohn.declarativejooq.TaskTable
         import org.jooq.DSLContext
 
@@ -435,7 +435,7 @@ class CodeGeneratorTest {
 
             /** PLCH-01 + PLCH-02: Capture placeholder, assign to FK property */
             fun runPlaceholderCapture(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         val alice = user {
@@ -456,7 +456,7 @@ class CodeGeneratorTest {
 
             /** PLCH-03: Cross-tree — alice from tree 1 used in tree 2 */
             fun runCrossTree(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     lateinit var alice: UserResult
                     organization {
                         name = "Acme"
@@ -481,7 +481,7 @@ class CodeGeneratorTest {
 
             /** PLCH-04: Placeholder overrides parent-context FK */
             fun runOverride(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     val beta = organization { name = "Beta" }
                     organization {
                         name = "Acme"
@@ -496,7 +496,7 @@ class CodeGeneratorTest {
 
             /** Fan-out: one placeholder assigned to multiple tasks */
             fun runFanOut(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         val alice = user {
@@ -651,12 +651,12 @@ class CodeGeneratorTest {
         package com.nickanderssohn.generated
 
         import com.nickanderssohn.declarativejooq.DslResult
-        import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DecDsl
         import org.jooq.DSLContext
 
         object PascalCaseHarness {
             fun run(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         project {

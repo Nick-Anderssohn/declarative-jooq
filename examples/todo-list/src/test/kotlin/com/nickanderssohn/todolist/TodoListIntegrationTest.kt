@@ -1,6 +1,6 @@
 package com.nickanderssohn.todolist
 
-import com.nickanderssohn.declarativejooq.execute
+import com.nickanderssohn.declarativejooq.DecDsl
 import com.nickanderssohn.todolist.generated.todoList
 import com.nickanderssohn.todolist.controller.CreateTodoItemRequest
 import com.nickanderssohn.todolist.controller.CreateTodoListRequest
@@ -57,7 +57,7 @@ class TodoListIntegrationTest {
 
     @Test
     fun `declarative-jooq seeds test data correctly`() {
-        val result = execute(dslContext) {
+        val result = DecDsl.execute(dslContext) {
             todoList {
                 title = "Groceries"
                 description = "Weekly shopping"
@@ -141,7 +141,7 @@ class TodoListIntegrationTest {
     @Test
     fun `seeded data is accessible via REST API`() {
         // Seed data using declarative-jooq DSL
-        execute(dslContext) {
+        DecDsl.execute(dslContext) {
             todoList {
                 title = "Work Tasks"
                 todoItem {

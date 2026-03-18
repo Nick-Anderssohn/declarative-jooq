@@ -109,7 +109,7 @@ class FullPipelineTest {
         package com.nickanderssohn.generated
 
         import com.nickanderssohn.declarativejooq.DslResult
-        import com.nickanderssohn.declarativejooq.execute
+        import com.nickanderssohn.declarativejooq.DecDsl
         import com.nickanderssohn.declarativejooq.TaskTable
         import org.jooq.DSLContext
 
@@ -117,7 +117,7 @@ class FullPipelineTest {
 
             /** One org + one user (root + nested) */
             fun runBasic(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -130,7 +130,7 @@ class FullPipelineTest {
 
             /** One org + two users */
             fun runMultipleSameType(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -147,7 +147,7 @@ class FullPipelineTest {
 
             /** Three-level chain: org -> user -> task (via CREATED_BY FK field) */
             fun runMultiLevel(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -163,7 +163,7 @@ class FullPipelineTest {
 
             /** Three-level self-ref: Electronics -> Phones -> Smartphones */
             fun runSelfRef(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     category {
                         name = "Electronics"
                         category {
@@ -178,7 +178,7 @@ class FullPipelineTest {
 
             /** Org + user + task via CREATED_BY (multi-FK: created_by set, updated_by NULL) */
             fun runMultiFk(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -194,7 +194,7 @@ class FullPipelineTest {
 
             /** Mixed graph: org with two users, category tree, task */
             fun runMixedGraph(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         user {
@@ -220,7 +220,7 @@ class FullPipelineTest {
 
             /** PLCH-01+02: Placeholder capture and FK assignment */
             fun runPlaceholderCapture(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         val alice = user {
@@ -241,7 +241,7 @@ class FullPipelineTest {
 
             /** PLCH-03: Cross-tree placeholder wiring */
             fun runCrossTree(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     lateinit var alice: UserResult
                     organization {
                         name = "Acme"
@@ -266,7 +266,7 @@ class FullPipelineTest {
 
             /** PLCH-04: Placeholder overrides parent-context FK */
             fun runOverride(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     val beta = organization { name = "Beta" }
                     organization {
                         name = "Acme"
@@ -281,7 +281,7 @@ class FullPipelineTest {
 
             /** Fan-out: one placeholder assigned to multiple tasks */
             fun runFanOut(ctx: DSLContext): DslResult {
-                return execute(ctx) {
+                return DecDsl.execute(ctx) {
                     organization {
                         name = "Acme"
                         val alice = user {

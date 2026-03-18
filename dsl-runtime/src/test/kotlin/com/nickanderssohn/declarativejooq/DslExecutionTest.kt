@@ -13,7 +13,7 @@ import org.junit.jupiter.api.TestInstance
  * Integration tests for the full DSL flow.
  *
  * Covers DSL-01 through DSL-08:
- *   DSL-01  execute() entry point returns DslResult
+ *   DSL-01  DecDsl.execute() entry point returns DslResult
  *   DSL-02  Root builder functions at execute block top level
  *   DSL-03  Child builder auto-populates FK from parent context
  *   DSL-04  Multiple records of same type in one block
@@ -39,12 +39,12 @@ class DslExecutionTest {
     }
 
     // -----------------------------------------------------------------------
-    // DSL-01: execute() returns a DslResult with the inserted records
+    // DSL-01: DecDsl.execute() returns a DslResult with the inserted records
     // -----------------------------------------------------------------------
 
     @Test
     fun testBasicExecute() {
-        val result = execute(dslContext) {
+        val result = DecDsl.execute(dslContext) {
             organization { name = "Acme" }
         }
 
@@ -60,7 +60,7 @@ class DslExecutionTest {
 
     @Test
     fun testRootBuilder() {
-        execute(dslContext) {
+        DecDsl.execute(dslContext) {
             organization { name = "RootCorp" }
         }
 
@@ -75,7 +75,7 @@ class DslExecutionTest {
 
     @Test
     fun testFkResolution() {
-        execute(dslContext) {
+        DecDsl.execute(dslContext) {
             organization {
                 name = "Acme"
                 user {
@@ -104,7 +104,7 @@ class DslExecutionTest {
 
     @Test
     fun testMultipleChildren() {
-        val result = execute(dslContext) {
+        val result = DecDsl.execute(dslContext) {
             organization {
                 name = "Acme"
                 user { name = "Alice"; email = "a@a.com" }
@@ -133,7 +133,7 @@ class DslExecutionTest {
 
     @Test
     fun testGeneratedKeyPopulated() {
-        val result = execute(dslContext) {
+        val result = DecDsl.execute(dslContext) {
             organization { name = "KeyCheck" }
         }
 
@@ -148,7 +148,7 @@ class DslExecutionTest {
 
     @Test
     fun testDeclarationOrder() {
-        val result = execute(dslContext) {
+        val result = DecDsl.execute(dslContext) {
             organization {
                 name = "Alpha"
                 user { name = "Alice"; email = "alice@alpha.com" }
@@ -180,7 +180,7 @@ class DslExecutionTest {
 
     @Test
     fun testMultipleRootRecords() {
-        val result = execute(dslContext) {
+        val result = DecDsl.execute(dslContext) {
             organization { name = "Org1" }
             organization { name = "Org2" }
         }
@@ -198,7 +198,7 @@ class DslExecutionTest {
 
     @Test
     fun testTopologicalOrder() {
-        execute(dslContext) {
+        DecDsl.execute(dslContext) {
             organization {
                 name = "TopoCorp"
                 user { name = "Carol"; email = "carol@topo.com" }
