@@ -27,9 +27,9 @@ Requirements for the Richer Example milestone. All changes are to the `examples/
 
 ### Tests
 
-- [ ] **TEST-01**: Integration test seeds users and todo lists/items with `created_by`/`updated_by` FK wiring via DSL
-- [ ] **TEST-02**: Integration test uses placeholder refs to wire one user as creator of multiple records
-- [ ] **TEST-03**: Integration test seeds `shared_with` records via DSL
+- [x] **TEST-01**: Integration test seeds users and todo lists/items with `created_by`/`updated_by` FK wiring via DSL
+- [x] **TEST-02**: Integration test uses placeholder refs to wire one user as creator of multiple records
+- [x] **TEST-03**: Integration test seeds `shared_with` records via DSL
 - [ ] **TEST-04**: REST API integration test covers user creation and listing
 - [ ] **TEST-05**: REST API integration test covers sharing a list and retrieving shares
 
@@ -64,9 +64,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-04 | Phase 8 | Complete |
 | API-05 | Phase 8 | Complete |
 | API-06 | Phase 8 | Complete |
-| TEST-01 | Phase 9 | Pending |
-| TEST-02 | Phase 9 | Pending |
-| TEST-03 | Phase 9 | Pending |
+| TEST-01 | Phase 9 | Complete |
+| TEST-02 | Phase 9 | Complete |
+| TEST-03 | Phase 9 | Complete |
 | TEST-04 | Phase 9 | Pending |
 | TEST-05 | Phase 9 | Pending |
 

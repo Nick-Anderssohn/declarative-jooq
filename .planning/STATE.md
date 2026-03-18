@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: Richer Example
 status: planning
-stopped_at: Completed 08-example-api-08-02-PLAN.md
-last_updated: "2026-03-18T02:57:26.451Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-18T03:28:25.274Z"
 last_activity: 2026-03-17 — v0.3 roadmap created
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-example-schema P01 | 2 | 2 tasks | 9 files |
 | Phase 08-example-api P01 | 1 | 2 tasks | 8 files |
 | Phase 08-example-api P02 | 5min | 1 tasks | 3 files |
+| Phase 09-example-tests P01 | 7min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ v0.3 decisions:
 - [Phase 07-example-schema]: shared_with has composite UNIQUE(todo_list_id, user_id) to prevent duplicate shares
 - [Phase 08-example-api]: createdBy defaults to null in all create signatures so existing callers are unaffected
 - [Phase 08-example-api]: ShareController maps to /api/todo-lists/{listId} parent path with /share and /shares sub-mappings, matching TodoItemController pattern
+- [Phase 09-example-tests]: TEST-01 structure: bob at root level, alice as second appUser with child todoList(CREATED_BY) and todoItem(CREATED_BY), todoList wired to item via placeholder ref
+- [Phase 09-example-tests]: Existing tests adapted to appUser { todoList(CREATED_BY) { } } nesting because app_user became codegen root table after schema changes
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None — requirements fully defined, roadmap created.
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:54:52.801Z
-Stopped at: Completed 08-example-api-08-02-PLAN.md
+Last session: 2026-03-18T03:28:25.272Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
