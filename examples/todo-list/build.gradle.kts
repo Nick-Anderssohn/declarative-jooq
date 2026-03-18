@@ -34,7 +34,6 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.postgresql:postgresql:42.7.4")
-    implementation("com.nickanderssohn:dsl-runtime:0.1.0-SNAPSHOT")
 
     // jOOQ (version managed by Spring Boot BOM)
     implementation("org.jooq:jooq")
@@ -46,6 +45,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.20.6")
     testImplementation("org.testcontainers:postgresql:1.20.6")
     testImplementation("org.testcontainers:junit-jupiter:1.20.6")
+    testImplementation("com.nickanderssohn:dsl-runtime:0.1.0-SNAPSHOT")
 }
 
 declarativeJooq {
