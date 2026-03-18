@@ -28,6 +28,12 @@ class TodoItemTable private constructor(alias: Name) :
     val COMPLETED: TableField<TodoItemRecord, Boolean?> =
         createField(DSL.name("completed"), SQLDataType.BOOLEAN, this, "")
 
+    val CREATED_BY: TableField<TodoItemRecord, Long?> =
+        createField(DSL.name("created_by"), SQLDataType.BIGINT, this, "")
+
+    val UPDATED_BY: TableField<TodoItemRecord, Long?> =
+        createField(DSL.name("updated_by"), SQLDataType.BIGINT, this, "")
+
     override fun getRecordType(): Class<TodoItemRecord> = TodoItemRecord::class.java
 
     override fun getPrimaryKey() =
@@ -40,6 +46,22 @@ class TodoItemTable private constructor(alias: Name) :
             arrayOf(TODO_LIST_ID),
             TodoListTable.TODO_LIST.primaryKey,
             arrayOf(TodoListTable.TODO_LIST.ID),
+            false
+        ),
+        Internal.createForeignKey(
+            this,
+            DSL.name("todo_item_created_by_fkey"),
+            arrayOf(CREATED_BY),
+            UserTable.APP_USER.primaryKey,
+            arrayOf(UserTable.APP_USER.ID),
+            false
+        ),
+        Internal.createForeignKey(
+            this,
+            DSL.name("todo_item_updated_by_fkey"),
+            arrayOf(UPDATED_BY),
+            UserTable.APP_USER.primaryKey,
+            arrayOf(UserTable.APP_USER.ID),
             false
         )
     )

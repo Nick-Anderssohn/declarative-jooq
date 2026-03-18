@@ -19,4 +19,12 @@ class TodoItemRecord : UpdatableRecordImpl<TodoItemRecord>(TodoItemTable.TODO_IT
     var completed: Boolean?
         get() = get(TodoItemTable.TODO_ITEM.COMPLETED) as Boolean?
         set(value) { set(TodoItemTable.TODO_ITEM.COMPLETED, value) }
+
+    var createdBy: Long?
+        get() = get(TodoItemTable.TODO_ITEM.CREATED_BY) as Long?
+        set(value) { set(TodoItemTable.TODO_ITEM.CREATED_BY, value) }
+
+    var updatedBy: Long?
+        get() = get(TodoItemTable.TODO_ITEM.UPDATED_BY) as Long?
+        set(value) { set(TodoItemTable.TODO_ITEM.UPDATED_BY, value) }
 }

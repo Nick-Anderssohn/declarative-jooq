@@ -1,5 +1,6 @@
 package com.nickanderssohn.todolist.jooq
 
+import org.jooq.ForeignKey
 import org.jooq.Name
 import org.jooq.Record
 import org.jooq.TableField
@@ -25,10 +26,35 @@ class TodoListTable private constructor(alias: Name) :
     val DESCRIPTION: TableField<TodoListRecord, String?> =
         createField(DSL.name("description"), SQLDataType.CLOB, this, "")
 
+    val CREATED_BY: TableField<TodoListRecord, Long?> =
+        createField(DSL.name("created_by"), SQLDataType.BIGINT, this, "")
+
+    val UPDATED_BY: TableField<TodoListRecord, Long?> =
+        createField(DSL.name("updated_by"), SQLDataType.BIGINT, this, "")
+
     override fun getRecordType(): Class<TodoListRecord> = TodoListRecord::class.java
 
     override fun getPrimaryKey() =
         Internal.createUniqueKey(this, DSL.name("todo_list_pkey"), arrayOf(ID), true)
+
+    override fun getReferences(): List<ForeignKey<TodoListRecord, *>> = listOf(
+        Internal.createForeignKey(
+            this,
+            DSL.name("todo_list_created_by_fkey"),
+            arrayOf(CREATED_BY),
+            UserTable.APP_USER.primaryKey,
+            arrayOf(UserTable.APP_USER.ID),
+            false
+        ),
+        Internal.createForeignKey(
+            this,
+            DSL.name("todo_list_updated_by_fkey"),
+            arrayOf(UPDATED_BY),
+            UserTable.APP_USER.primaryKey,
+            arrayOf(UserTable.APP_USER.ID),
+            false
+        )
+    )
 
     override fun `as`(alias: String) = TodoListTable(DSL.name(alias))
     override fun `as`(alias: Name) = TodoListTable(alias)
