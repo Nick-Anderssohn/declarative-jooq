@@ -75,7 +75,10 @@ Plans:
   3. An integration test seeds `shared_with` records via the DSL and the junction rows exist in the database
   4. A REST API test verifies user creation and listing via HTTP
   5. A REST API test verifies sharing a list and retrieving the list of shares via HTTP
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Regenerate builders + DSL integration tests (multi-FK, placeholder fan-out, shared_with)
+- [ ] 09-02-PLAN.md — REST API integration tests (user CRUD, sharing endpoints)
 
 ## Progress
 
@@ -91,4 +94,4 @@ Plans:
 | 6. Placeholder Objects | v0.2 | 3/3 | Complete | 2026-03-17 |
 | 7. Example Schema | 1/1 | Complete    | 2026-03-18 | - |
 | 8. Example API | 2/2 | Complete   | 2026-03-18 | - |
-| 9. Example Tests | v0.3 | 0/? | Not started | - |
+| 9. Example Tests | v0.3 | 0/2 | Not started | - |

@@ -4,7 +4,7 @@ milestone: v0.3
 milestone_name: Richer Example
 status: planning
 stopped_at: Completed 08-example-api-08-02-PLAN.md
-last_updated: "2026-03-18T02:54:52.803Z"
+last_updated: "2026-03-18T02:57:26.451Z"
 last_activity: 2026-03-17 — v0.3 roadmap created
 progress:
   total_phases: 3
