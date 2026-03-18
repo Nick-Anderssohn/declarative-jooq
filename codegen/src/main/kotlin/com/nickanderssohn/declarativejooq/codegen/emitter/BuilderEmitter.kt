@@ -1,6 +1,7 @@
 package com.nickanderssohn.declarativejooq.codegen.emitter
 
 import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.scanner.NamingConventions
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
@@ -265,7 +266,5 @@ class BuilderEmitter {
         return classBuilder.build()
     }
 
-    private fun toPascalCase(input: String): String {
-        return input.split("_").joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-    }
+    private fun toPascalCase(input: String): String = NamingConventions.toPascalCase(input)
 }

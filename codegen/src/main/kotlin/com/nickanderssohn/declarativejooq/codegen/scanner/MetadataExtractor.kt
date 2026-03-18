@@ -3,6 +3,7 @@ package com.nickanderssohn.declarativejooq.codegen.scanner
 import com.nickanderssohn.declarativejooq.codegen.ir.ColumnIR
 import com.nickanderssohn.declarativejooq.codegen.ir.ForeignKeyIR
 import com.nickanderssohn.declarativejooq.codegen.ir.TableIR
+import com.nickanderssohn.declarativejooq.codegen.scanner.NamingConventions
 import com.squareup.kotlinpoet.BOOLEAN
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.INT
@@ -82,18 +83,18 @@ class MetadataExtractor {
                     val parentTableName = fk.key.table.name
                     val parentBuilderClassName = toPascalCase(parentTableName) + "Builder"
                     val isSelfRef = parentTableName == tableName
-                    val strippedFkCol = fkColumnName.removeSuffix("_id")
+                    val strippedFkCol = NamingConventions.stripIdSuffix(fkColumnName)
 
                     val candidateName = if (isSelfRef) {
                         toCamelCase(tableName)          // NAME-04: self-ref uses table name
-                    } else if (strippedFkCol == parentTableName) {
+                    } else if (NamingConventions.normalizedEquals(strippedFkCol, parentTableName)) {
                         toCamelCase(tableName)          // NAME-01: stripped col matches parent -> use child table name
                     } else {
                         toCamelCase(strippedFkCol)      // NAME-02: no match -> use FK column name
                     }
 
                     RawFk(fk.name, fkColumnName, childFieldExpr, parentTableName, parentBuilderClassName, isSelfRef, candidateName,
-                        placeholderPropertyName = toCamelCase(fkColumnName.removeSuffix("_id"))
+                        placeholderPropertyName = toCamelCase(NamingConventions.stripIdSuffix(fkColumnName))
                     )
                 }
 
@@ -112,7 +113,7 @@ class MetadataExtractor {
                 val isMultiFk = raw.parentTableName in multiFkParents
                 val finalName = when {
                     isMultiFk -> toCamelCase(tableName) // Always use child table name for multi-FK groups
-                    raw.candidateName in collidingNames -> toCamelCase(raw.fkColumnName.removeSuffix("_id"))
+                    raw.candidateName in collidingNames -> toCamelCase(NamingConventions.stripIdSuffix(raw.fkColumnName))
                     else -> raw.candidateName
                 }
                 ForeignKeyIR(
@@ -214,18 +215,14 @@ class MetadataExtractor {
     }
 
     /**
-     * Converts snake_case to camelCase: "organization_id" -> "organizationId", "name" -> "name"
+     * Converts any naming convention to camelCase: "organization_id" -> "organizationId",
+     * "OrganizationId" -> "organizationId", "organizationId" -> "organizationId"
      */
-    fun toCamelCase(input: String): String {
-        val parts = input.split("_")
-        if (parts.isEmpty()) return input
-        return parts[0].lowercase() + parts.drop(1).joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-    }
+    fun toCamelCase(input: String): String = NamingConventions.toCamelCase(input)
 
     /**
-     * Converts snake_case to PascalCase: "organization" -> "Organization", "user" -> "User"
+     * Converts any naming convention to PascalCase: "organization" -> "Organization",
+     * "UserProfile" -> "UserProfile", "userProfile" -> "UserProfile"
      */
-    fun toPascalCase(input: String): String {
-        return input.split("_").joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-    }
+    fun toPascalCase(input: String): String = NamingConventions.toPascalCase(input)
 }
