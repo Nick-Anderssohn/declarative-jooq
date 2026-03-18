@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: completed
-stopped_at: "Completed quick task 260317-n30: Add example todo-list manager project"
-last_updated: "2026-03-17T23:54:16.017Z"
-last_activity: "2026-03-17 — Completed quick task 260317-n30: Add standalone todo-list example project demonstrating declarative-jooq in Spring Boot"
+stopped_at: "Completed quick task 260317-nvt: Support PascalCase and camelCase naming conventions in codegen"
+last_updated: "2026-03-17T00:00:00Z"
+last_activity: "2026-03-17 — Completed quick task 260317-nvt: NamingConventions utility added; MetadataExtractor and BuilderEmitter updated to support SNAKE_CASE/PASCAL_CASE/CAMEL_CASE schemas"
 progress:
   total_phases: 0
   completed_phases: 0
@@ -87,9 +87,10 @@ None — research complete, architecture fully specified in .planning/research/A
 | 260316-or6 | Create README.md describing the repository | 2026-03-17 | 7b59b84 | [260316-or6-create-a-readme-md-that-describes-the-re](./quick/260316-or6-create-a-readme-md-that-describes-the-re/) |
 | 260317-m29 | Change multi-FK disambiguation from column-named to table-named with TableField parameter | 2026-03-17 | 21eb0bf | [260317-m29-change-multi-fk-disambiguation-from-colu](./quick/260317-m29-change-multi-fk-disambiguation-from-colu/) |
 | 260317-n30 | Add standalone todo-list example project demonstrating declarative-jooq in Spring Boot | 2026-03-17 | 68cf1e5 | [260317-n30-add-example-todo-list-manager-project-us](./quick/260317-n30-add-example-todo-list-manager-project-us/) |
+| 260317-nvt | Support PascalCase and camelCase db schema naming conventions in codegen | 2026-03-17 | 89e109f | [260317-nvt-right-now-we-assume-that-snake-case-was-](./quick/260317-nvt-right-now-we-assume-that-snake-case-was-/) |
 
 ## Session Continuity
 
-Last session: 2026-03-17T23:54:16.011Z
-Stopped at: Completed quick task 260317-n30: Add example todo-list manager project
+Last session: 2026-03-17T00:06:00Z
+Stopped at: Completed quick task 260317-nvt: Support PascalCase and camelCase naming conventions in codegen
 Resume file: None
