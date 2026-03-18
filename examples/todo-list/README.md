@@ -9,7 +9,7 @@ A self-contained Spring Boot + Kotlin + jOOQ example demonstrating how to integr
 - The `declarative-jooq` Gradle plugin generating a test-data seeding DSL from those classes
 - Integration tests that use the generated DSL to seed hierarchical data in one declaration:
   ```kotlin
-  execute(dslContext) {
+  DecDsl.execute(dslContext) {
       todoList {
           title = "Groceries"
           todoItem { title = "Buy milk" }

@@ -39,7 +39,7 @@ taskRecord.insert()
 **After** — declarative DSL:
 
 ```kotlin
-val result = execute(ctx) {
+val result = DecDsl.execute(ctx) {
     organization {
         name = "Acme"
         user {           // "user" nested under org via organization_id FK
@@ -137,11 +137,11 @@ Generated sources are placed in `build/generated/declarative-jooq/` and are auto
 ### 5. Write tests
 
 ```kotlin
-import com.nickanderssohn.declarativejooq.execute
+import com.nickanderssohn.declarativejooq.DecDsl
 
 @Test
 fun `test with declarative data`() {
-    val result = execute(dslContext) {
+    val result = DecDsl.execute(dslContext) {
         organization {
             name = "Acme"
             user {
@@ -163,7 +163,7 @@ fun `test with declarative data`() {
 Any table that has no required FK columns can be declared at the top level:
 
 ```kotlin
-execute(ctx) {
+DecDsl.execute(ctx) {
     organization {
         name = "Acme Corp"
     }
@@ -178,7 +178,7 @@ execute(ctx) {
 Child tables are declared inside the parent they belong to. The builder name corresponds to the child table name:
 
 ```kotlin
-execute(ctx) {
+DecDsl.execute(ctx) {
     organization {
         name = "Acme"
         user {           // "user" nested under organization via organization_id FK
@@ -194,7 +194,7 @@ execute(ctx) {
 Nesting is not limited to two levels:
 
 ```kotlin
-execute(ctx) {
+DecDsl.execute(ctx) {
     organization {
         name = "Acme"
         user {
@@ -213,7 +213,7 @@ execute(ctx) {
 Tables with a FK to themselves are supported. The library inserts the parent first (without the self-reference), then updates the child's FK column in a second pass:
 
 ```kotlin
-execute(ctx) {
+DecDsl.execute(ctx) {
     category {
         name = "Electronics"
         category {          // nested category with parent_id wired to Electronics
@@ -232,7 +232,7 @@ When a child table has more than one FK column pointing to the same parent table
 
 ```kotlin
 // task has created_by and updated_by, both referencing "user"
-execute(ctx) {
+DecDsl.execute(ctx) {
     organization {
         name = "Acme"
         user {
@@ -254,7 +254,7 @@ When a child table has only a single FK to the parent, the parameter is optional
 `execute` returns a `DslResult` that provides access to inserted records:
 
 ```kotlin
-val result = execute(ctx) {
+val result = DecDsl.execute(ctx) {
     organization { name = "Acme" }
 }
 
@@ -284,7 +284,7 @@ Builder blocks return typed Result objects that you can capture with `val` for e
 ### Capturing a placeholder
 
 ```kotlin
-val result = execute(ctx) {
+val result = DecDsl.execute(ctx) {
     organization {
         name = "Acme"
         val alice = user {
@@ -292,7 +292,7 @@ val result = execute(ctx) {
             email = "alice@acme.com"
         }
         // alice is an UserResult — alice.name returns "Alice" immediately
-        // alice.id returns null until execute() completes
+        // alice.id returns null until DecDsl.execute() completes
         user {
             name = "Bob"
             email = "bob@acme.com"
@@ -303,17 +303,17 @@ val result = execute(ctx) {
         }
     }
 }
-// After execute(): alice.id is populated with the DB-generated value
+// After DecDsl.execute(): alice.id is populated with the DB-generated value
 ```
 
 Every builder block returns a typed Result object. Capture it with `val` when you need to reference it elsewhere. Ignore the return value when you don't — Kotlin discards it silently.
 
 ### Cross-tree FK wiring
 
-Placeholders work across separate root trees within the same `execute` block:
+Placeholders work across separate root trees within the same `DecDsl.execute` block:
 
 ```kotlin
-val result = execute(ctx) {
+val result = DecDsl.execute(ctx) {
     lateinit var alice: UserResult
     organization {
         name = "Acme"
@@ -343,7 +343,7 @@ The library automatically adjusts insert order so the referenced record is inser
 When a builder is nested under a parent, its FK to that parent is auto-resolved. Setting a placeholder property overrides the auto-resolved value:
 
 ```kotlin
-val result = execute(ctx) {
+val result = DecDsl.execute(ctx) {
     val targetOrg = organization { name = "Target" }
     organization {
         name = "Host"
@@ -362,7 +362,7 @@ val result = execute(ctx) {
 A single placeholder can be assigned to FK properties on multiple builders:
 
 ```kotlin
-val result = execute(ctx) {
+val result = DecDsl.execute(ctx) {
     organization {
         name = "Acme"
         val alice = user {
