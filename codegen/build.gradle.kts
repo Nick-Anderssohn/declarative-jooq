@@ -28,4 +28,5 @@ tasks.test {
     testLogging {
         events("passed", "failed", "skipped")
     }
+    dependsOn(":dsl-runtime:testClasses")
 }
