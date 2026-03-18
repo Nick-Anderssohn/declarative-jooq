@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: Richer Example
 status: planning
-stopped_at: Completed 07-example-schema-07-01-PLAN.md
-last_updated: "2026-03-18T02:34:47.638Z"
+stopped_at: Completed 08-example-api-08-01-PLAN.md
+last_updated: "2026-03-18T02:52:47.786Z"
 last_activity: 2026-03-17 — v0.3 roadmap created
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
   percent: 0
 ---
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 07-example-schema P01 | 2 | 2 tasks | 9 files |
+| Phase 08-example-api P01 | 1 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,7 @@ v0.3 decisions:
 - [Phase 07-example-schema]: Use app_user as table name (not user) to avoid PostgreSQL reserved word conflict
 - [Phase 07-example-schema]: created_by and updated_by are nullable FKs — records can exist without user assignment initially
 - [Phase 07-example-schema]: shared_with has composite UNIQUE(todo_list_id, user_id) to prevent duplicate shares
+- [Phase 08-example-api]: createdBy defaults to null in all create signatures so existing callers are unaffected
 
 ### Pending Todos
 
@@ -83,6 +85,6 @@ None — requirements fully defined, roadmap created.
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:32:27.969Z
-Stopped at: Completed 07-example-schema-07-01-PLAN.md
+Last session: 2026-03-18T02:52:47.785Z
+Stopped at: Completed 08-example-api-08-01-PLAN.md
 Resume file: None

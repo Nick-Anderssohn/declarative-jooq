@@ -60,7 +60,7 @@ Plans:
   3. `POST /api/todo-lists/{id}/share` shares a todo list with a specified user
   4. `GET /api/todo-lists/{id}/shares` returns the list of users a todo list is shared with
   5. `POST /api/todo-lists` and `POST /api/todo-lists/{id}/items` accept and persist a `createdBy` user ID
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 08-01-PLAN.md — User CRUD endpoints + createdBy on existing create endpoints
 - [ ] 08-02-PLAN.md — Todo list sharing endpoints (share and list shares)
@@ -90,5 +90,5 @@ Plans:
 | 5. Child-Table-Named Builder Functions | v0.2 | 2/2 | Complete | 2026-03-17 |
 | 6. Placeholder Objects | v0.2 | 3/3 | Complete | 2026-03-17 |
 | 7. Example Schema | 1/1 | Complete    | 2026-03-18 | - |
-| 8. Example API | v0.3 | 0/2 | Not started | - |
+| 8. Example API | 1/2 | In Progress|  | - |
 | 9. Example Tests | v0.3 | 0/? | Not started | - |
