@@ -60,7 +60,10 @@ Plans:
   3. `POST /api/todo-lists/{id}/share` shares a todo list with a specified user
   4. `GET /api/todo-lists/{id}/shares` returns the list of users a todo list is shared with
   5. `POST /api/todo-lists` and `POST /api/todo-lists/{id}/items` accept and persist a `createdBy` user ID
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — User CRUD endpoints + createdBy on existing create endpoints
+- [ ] 08-02-PLAN.md — Todo list sharing endpoints (share and list shares)
 
 ### Phase 9: Example Tests
 **Goal**: Integration tests demonstrate multi-FK DSL wiring (created_by/updated_by disambiguation), placeholder refs wiring one user to multiple records, and shared_with seeding — proving the library patterns work end-to-end
@@ -86,6 +89,6 @@ Plans:
 | 4. Edge Cases and Integration | v0.1 | 2/2 | Complete | 2026-03-16 |
 | 5. Child-Table-Named Builder Functions | v0.2 | 2/2 | Complete | 2026-03-17 |
 | 6. Placeholder Objects | v0.2 | 3/3 | Complete | 2026-03-17 |
-| 7. Example Schema | 1/1 | Complete   | 2026-03-18 | - |
-| 8. Example API | v0.3 | 0/? | Not started | - |
+| 7. Example Schema | 1/1 | Complete    | 2026-03-18 | - |
+| 8. Example API | v0.3 | 0/2 | Not started | - |
 | 9. Example Tests | v0.3 | 0/? | Not started | - |
