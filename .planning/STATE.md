@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Maven Central Release
 status: unknown
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-19T02:55:23.794Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-19T03:12:37.124Z"
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 4
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Eliminate boilerplate and manual FK wiring when creating test data — declare what records you want and how they relate, and the library handles insertion order, FK assignment, and result assembly.
-**Current focus:** Phase 12 — ci-workflows
+**Current focus:** Phase 13 — readme-and-docs
 
 ## Current Position
 
-Phase: 12 (ci-workflows) — EXECUTING
+Phase: 13 (readme-and-docs) — EXECUTING
 Plan: 1 of 1
 
 ## Performance Metrics
@@ -45,6 +45,7 @@ Plan: 1 of 1
 | Phase 11 P01 | 15 | 2 tasks | 6 files |
 | Phase 11 P02 | 20 | 2 tasks | 3 files |
 | Phase 12 P01 | 2 | 2 tasks | 2 files |
+| Phase 13 P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,9 @@ Key v1.0 context:
 - [Phase 11]: POM inceptionYear corrected to 2026; developer/SCM URLs corrected to github.com/Nick-Anderssohn (capital N-A) — fix committed in 57dd0c9
 - [Phase 12]: ci.yml and publish.yml are separate files with zero overlap — ci.yml never publishes, publish.yml never runs on PRs or branch pushes
 - [Phase 12]: publish.yml uses publishToMavenCentral (not publishAndReleaseToMavenCentral) to preserve manual portal release (automaticRelease=false in all 3 modules)
+- [Phase 13]: Remove mavenLocal instructions entirely — Maven Central is now the sole distribution channel
+- [Phase 13]: Version 1.0.0 used in all README coordinate examples to match the published artifact
+- [Phase 13]: Gradle 8.13 in Tech Stack table to reflect actual version used (upgraded in Phase 11)
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T02:33:18.383Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-03-19T03:12:37.122Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None

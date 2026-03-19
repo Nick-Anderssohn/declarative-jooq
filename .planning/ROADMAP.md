@@ -43,7 +43,7 @@
 - [x] **Phase 10: Credentials Setup** - GPG key, Sonatype Portal token, and all GitHub Secrets configured (completed 2026-03-18)
 - [x] **Phase 11: Publishing Configuration** - All 3 modules publishable to mavenLocal with correct JARs, POM, and signatures (completed 2026-03-19)
 - [x] **Phase 12: CI Workflows** - GitHub Actions CI (build/test on PR) and publish (on v* tag) wired up (completed 2026-03-19)
-- [ ] **Phase 13: README and Docs** - README rewritten with Maven Central coordinates, usage guide, badges, and CHANGELOG
+- [x] **Phase 13: README and Docs** - README rewritten with Maven Central coordinates, usage guide, badges, and CHANGELOG (completed 2026-03-19)
 - [ ] **Phase 14: First Publish Validation** - First-publish checklist for verifying artifacts after tagging v1.0.0
 
 ## Phase Details
@@ -100,7 +100,10 @@ Plans:
   2. README includes a DSL usage example showing `DecDsl.execute {}` with at least one nested builder and FK resolution
   3. README header displays a GitHub Actions build status badge and a Maven Central version badge that link to their respective sources
   4. `CHANGELOG.md` exists and documents v1.0.0 as the first public release with a summary of capabilities
-**Plans**: TBD
+**Plans:** 1/1 plans complete
+
+Plans:
+- [ ] 13-01-PLAN.md — Rewrite README.md for Maven Central and create CHANGELOG.md
 
 ### Phase 14: First Publish Validation
 **Goal**: Developer has a concrete checklist to verify the first publish succeeded end-to-end before announcing the release
@@ -126,6 +129,6 @@ Plans:
 | 9. Example Tests | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
-| 12. CI Workflows | 1/1 | Complete    | 2026-03-19 | - |
-| 13. README and Docs | v1.0 | 0/? | Not started | - |
+| 12. CI Workflows | v1.0 | 1/1 | Complete | 2026-03-19 |
+| 13. README and Docs | 1/1 | Complete   | 2026-03-19 | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |

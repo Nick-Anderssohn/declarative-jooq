@@ -25,9 +25,9 @@
 
 ### Documentation
 
-- [ ] **DOCS-01**: README.md is rewritten with Maven Central dependency coordinates, `pluginManagement` setup block, DSL usage guide, and a clear value proposition for jOOQ + Kotlin test data
-- [ ] **DOCS-02**: README header includes a GitHub Actions build status badge and Maven Central version badge
-- [ ] **DOCS-03**: `CHANGELOG.md` documents v1.0.0 as the first public release
+- [x] **DOCS-01**: README.md is rewritten with Maven Central dependency coordinates, `pluginManagement` setup block, DSL usage guide, and a clear value proposition for jOOQ + Kotlin test data
+- [x] **DOCS-02**: README header includes a GitHub Actions build status badge and Maven Central version badge
+- [x] **DOCS-03**: `CHANGELOG.md` documents v1.0.0 as the first public release
 
 ### Validation
 
@@ -65,9 +65,9 @@
 | PUB-04 | Phase 11 | Complete |
 | CI-01 | Phase 12 | Complete |
 | CI-02 | Phase 12 | Complete |
-| DOCS-01 | Phase 13 | Pending |
-| DOCS-02 | Phase 13 | Pending |
-| DOCS-03 | Phase 13 | Pending |
+| DOCS-01 | Phase 13 | Complete |
+| DOCS-02 | Phase 13 | Complete |
+| DOCS-03 | Phase 13 | Complete |
 | VALID-01 | Phase 14 | Pending |
 
 **Coverage:**
