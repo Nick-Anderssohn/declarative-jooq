@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Maven Central Release
 status: unknown
-stopped_at: Completed 11-02-PLAN.md (awaiting human checkpoint: artifact verification)
-last_updated: "2026-03-19T01:16:00.000Z"
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-03-19T01:28:52.881Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
   completed_plans: 3
 ---
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Eliminate boilerplate and manual FK wiring when creating test data — declare what records you want and how they relate, and the library handles insertion order, FK assignment, and result assembly.
-**Current focus:** Phase 11 — publishing-configuration
+**Current focus:** Phase 12 — maven-central-release (next)
 
 ## Current Position
 
-Phase: 11 (publishing-configuration) — EXECUTING
-Plan: 2 of 2 (awaiting human artifact verification)
+Phase: 11 (publishing-configuration) — COMPLETE
+Plan: 2 of 2 (complete)
 
 ## Performance Metrics
 
@@ -43,7 +43,7 @@ Plan: 2 of 2 (awaiting human artifact verification)
 *Updated after each plan completion*
 | Phase 10 P01 | 1 | 1 tasks | 1 files |
 | Phase 11 P01 | 15 | 2 tasks | 6 files |
-| Phase 11 P02 | 5 | 1 tasks | 0 files |
+| Phase 11 P02 | 20 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -62,6 +62,7 @@ Key v1.0 context:
 - [Phase 11]: Use publishToMavenCentral(automaticRelease = false) — vanniktech 0.35.0 removed SonatypeHost enum; Central Portal is now the default
 - [Phase 11]: Artifact IDs use declarative-jooq- prefix for Maven Central discoverability
 - [Phase 11]: Signing guard: tasks.withType<Sign>().configureEach { enabled = findProperty('signingInMemoryKey') \!= null } — publishToMavenLocal works without credentials
+- [Phase 11]: POM inceptionYear corrected to 2026; developer/SCM URLs corrected to github.com/Nick-Anderssohn (capital N-A) — fix committed in 57dd0c9
 
 ### Pending Todos
 
@@ -73,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T01:16:00.000Z
-Stopped at: Completed 11-02-PLAN.md (awaiting human checkpoint: artifact verification)
+Last session: 2026-03-19T01:28:35.251Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None

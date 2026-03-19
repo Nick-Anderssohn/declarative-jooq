@@ -16,7 +16,7 @@
 - [x] **PUB-01**: Library version is bumped to `1.0.0` (SNAPSHOT removed, Maven Central ready)
 - [x] **PUB-02**: All 3 modules (dsl-runtime, codegen, gradle-plugin) are configured with the vanniktech maven-publish plugin and complete POM metadata (name, description, url, licenses, developers, scm)
 - [x] **PUB-03**: GPG signing is configured via in-memory keys on all 3 modules, with a guard so local builds without signing credentials still work
-- [ ] **PUB-04**: `./gradlew publishToMavenLocal` succeeds for all 3 modules, producing main JAR, sources JAR, Javadoc JAR, `.asc` signatures, and valid POM
+- [x] **PUB-04**: `./gradlew publishToMavenLocal` succeeds for all 3 modules, producing main JAR, sources JAR, Javadoc JAR, `.asc` signatures, and valid POM
 
 ### CI
 
@@ -62,7 +62,7 @@
 | PUB-01 | Phase 11 | Complete |
 | PUB-02 | Phase 11 | Complete |
 | PUB-03 | Phase 11 | Complete |
-| PUB-04 | Phase 11 | Pending |
+| PUB-04 | Phase 11 | Complete |
 | CI-01 | Phase 12 | Pending |
 | CI-02 | Phase 12 | Pending |
 | DOCS-01 | Phase 13 | Pending |
