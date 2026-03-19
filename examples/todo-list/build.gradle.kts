@@ -49,11 +49,21 @@ dependencies {
 }
 
 declarativeJooq {
+    // Where the compiled application classes live; the plugin scans these to find jOOQ table classes.
     classesDir.set(layout.buildDirectory.dir("classes/kotlin/main"))
-    outputPackage.set("com.nickanderssohn.todolist.generated")
+
+    // Root package for the generated DSL files.
+    outputPackage.set("com.nickanderssohn.generated.dsl")
+
+    // Only generate DSL for classes whose package matches this prefix (filters out unrelated tables).
     packageFilter.set("com.nickanderssohn.todolist.jooq")
-    // Optional: customize the output directory (shown here with the default value for illustration)
-    outputDir.set(layout.buildDirectory.dir("generated/declarative-jooq"))
+
+    // If we want the generated code to live in source control, rather than only exist in the build,
+    // then you can use outputDir. If you omit this, then the generated classes will only exist in the build dir.
+    outputDir.set(layout.projectDirectory.dir("src/test/kotlin"))
+
+    // We want the generated code to live with test classes. Shouldn't exist in the production jar.
+    sourceSet.set("test")
 }
 
 tasks.named("generateDeclarativeJooqDsl") {

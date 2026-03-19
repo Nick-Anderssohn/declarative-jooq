@@ -1,16 +1,16 @@
 package com.nickanderssohn.todolist
 
 import com.nickanderssohn.declarativejooq.DecDsl
-import com.nickanderssohn.todolist.generated.appUser
+import com.nickanderssohn.generated.dsl.appUser
 import com.nickanderssohn.todolist.controller.CreateTodoItemRequest
 import com.nickanderssohn.todolist.controller.CreateTodoListRequest
 import com.nickanderssohn.todolist.controller.CreateUserRequest
 import com.nickanderssohn.todolist.controller.ShareTodoListRequest
 import com.nickanderssohn.todolist.jooq.SharedWithTable.Companion.SHARED_WITH
-import com.nickanderssohn.todolist.jooq.TodoItemTable.Companion.TODO_ITEM
 import com.nickanderssohn.todolist.jooq.TodoItemTable
-import com.nickanderssohn.todolist.jooq.TodoListTable.Companion.TODO_LIST
+import com.nickanderssohn.todolist.jooq.TodoItemTable.Companion.TODO_ITEM
 import com.nickanderssohn.todolist.jooq.TodoListTable
+import com.nickanderssohn.todolist.jooq.TodoListTable.Companion.TODO_LIST
 import com.nickanderssohn.todolist.jooq.UserTable.Companion.APP_USER
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
