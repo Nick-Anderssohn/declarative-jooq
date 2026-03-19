@@ -12,8 +12,8 @@ mavenPublishing {
     pom {
         name.set("declarative-jooq Code Generator")
         description.set("Code generator that produces type-safe Kotlin DSL builders from jOOQ TableImpl classes for declarative test data creation.")
-        inceptionYear.set("2024")
-        url.set("https://github.com/nickanderssohn/declarative-jooq")
+        inceptionYear.set("2026")
+        url.set("https://github.com/Nick-Anderssohn/declarative-jooq")
 
         licenses {
             license {
@@ -27,14 +27,14 @@ mavenPublishing {
             developer {
                 id.set("nickanderssohn")
                 name.set("Nick Anderssohn")
-                url.set("https://github.com/nickanderssohn/")
+                url.set("https://github.com/Nick-Anderssohn")
             }
         }
 
         scm {
-            url.set("https://github.com/nickanderssohn/declarative-jooq/")
-            connection.set("scm:git:git://github.com/nickanderssohn/declarative-jooq.git")
-            developerConnection.set("scm:git:ssh://git@github.com/nickanderssohn/declarative-jooq.git")
+            url.set("https://github.com/Nick-Anderssohn/declarative-jooq/")
+            connection.set("scm:git:git://github.com/Nick-Anderssohn/declarative-jooq.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Nick-Anderssohn/declarative-jooq.git")
         }
     }
 }

@@ -41,7 +41,7 @@
 **Milestone Goal:** Publish declarative-jooq to Maven Central with GitHub CI automation and a polished README that positions the library as the go-to test data tool for jOOQ + Kotlin projects.
 
 - [x] **Phase 10: Credentials Setup** - GPG key, Sonatype Portal token, and all GitHub Secrets configured (completed 2026-03-18)
-- [ ] **Phase 11: Publishing Configuration** - All 3 modules publishable to mavenLocal with correct JARs, POM, and signatures
+- [x] **Phase 11: Publishing Configuration** - All 3 modules publishable to mavenLocal with correct JARs, POM, and signatures (completed 2026-03-19)
 - [ ] **Phase 12: CI Workflows** - GitHub Actions CI (build/test on PR) and publish (on v* tag) wired up
 - [ ] **Phase 13: README and Docs** - README rewritten with Maven Central coordinates, usage guide, badges, and CHANGELOG
 - [ ] **Phase 14: First Publish Validation** - First-publish checklist for verifying artifacts after tagging v1.0.0
@@ -72,7 +72,7 @@ Plans:
   3. Each module's POM contains all required Maven Central fields: name, description, url, licenses, developers, and scm
   4. Running `./gradlew publishToMavenLocal` on a machine without GPG credentials configured completes without error (signing guard is in place)
   5. Version reads `1.0.0` (no SNAPSHOT suffix) across all modules
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md — Configure vanniktech 0.35.0, version bump, POM metadata, signing guard, Gradle 8.13 upgrade
@@ -122,7 +122,7 @@ Plans:
 | 8. Example API | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 9. Example Tests | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
-| 11. Publishing Configuration | 1/2 | In Progress|  | - |
+| 11. Publishing Configuration | 2/2 | Complete   | 2026-03-19 | - |
 | 12. CI Workflows | v1.0 | 0/? | Not started | - |
 | 13. README and Docs | v1.0 | 0/? | Not started | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |
