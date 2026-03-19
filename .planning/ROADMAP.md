@@ -44,6 +44,7 @@
 - [x] **Phase 11: Publishing Configuration** - All 3 modules publishable to mavenLocal with correct JARs, POM, and signatures (completed 2026-03-19)
 - [x] **Phase 12: CI Workflows** - GitHub Actions CI (build/test on PR) and publish (on v* tag) wired up (completed 2026-03-19)
 - [x] **Phase 13: README and Docs** - README rewritten with Maven Central coordinates, usage guide, badges, and CHANGELOG (completed 2026-03-19)
+- [ ] **Phase 13.1: Configurable DSL output directory and todo-list example update** - outputDir/sourceSet extension properties, todo-list version bump, README docs
 - [ ] **Phase 14: First Publish Validation** - First-publish checklist for verifying artifacts after tagging v1.0.0
 
 ## Phase Details
@@ -105,6 +106,24 @@ Plans:
 Plans:
 - [ ] 13-01-PLAN.md — Rewrite README.md for Maven Central and create CHANGELOG.md
 
+### Phase 13.1: Configurable DSL output directory and todo-list example update (INSERTED)
+
+**Goal:** Users can configure the Gradle plugin's output directory and target source set via the `declarativeJooq` extension, and the todo-list example is updated to version 1.0.0 with the new properties demonstrated
+**Requirements**: CONFIG-01, CONFIG-02, CONFIG-03, CONFIG-04
+**Depends on:** Phase 13
+**Success Criteria** (what must be TRUE):
+  1. `DeclarativeJooqExtension` has `outputDir: DirectoryProperty` (default: `build/generated/declarative-jooq`) and `sourceSet: Property<String>` (default: `"test"`)
+  2. Setting a custom `outputDir` in the extension produces generated sources at the specified path
+  3. Setting a custom `sourceSet` in the extension wires generated sources into the specified source set
+  4. Existing configurations without `outputDir` or `sourceSet` continue to work identically (backward compatible)
+  5. `examples/todo-list/build.gradle.kts` uses version `1.0.0` and demonstrates `outputDir`
+  6. README "Configure the extension" section documents `outputDir` and `sourceSet` with defaults
+**Plans:** 2 plans
+
+Plans:
+- [ ] 13.1-01-PLAN.md — Add outputDir and sourceSet to extension, wire in plugin, add functional tests
+- [ ] 13.1-02-PLAN.md — Update todo-list example to 1.0.0 and document new properties in README
+
 ### Phase 14: First Publish Validation
 **Goal**: Developer has a concrete checklist to verify the first publish succeeded end-to-end before announcing the release
 **Depends on**: Phase 12, Phase 13
@@ -130,5 +149,6 @@ Plans:
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
 | 12. CI Workflows | v1.0 | 1/1 | Complete | 2026-03-19 |
-| 13. README and Docs | 1/1 | Complete   | 2026-03-19 | - |
+| 13. README and Docs | v1.0 | 1/1 | Complete | 2026-03-19 |
+| 13.1. Configurable DSL output directory | v1.0 | 0/2 | Not started | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |

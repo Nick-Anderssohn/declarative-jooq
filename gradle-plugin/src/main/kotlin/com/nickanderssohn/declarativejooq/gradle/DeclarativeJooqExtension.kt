@@ -12,4 +12,10 @@ abstract class DeclarativeJooqExtension {
 
     /** Optional package filter to restrict which jOOQ packages are scanned. */
     abstract val packageFilter: Property<String>
+
+    /** Output directory for generated DSL sources. Defaults to build/generated/declarative-jooq. */
+    abstract val outputDir: DirectoryProperty
+
+    /** Source set to wire generated sources into. Defaults to "test". */
+    abstract val sourceSet: Property<String>
 }
