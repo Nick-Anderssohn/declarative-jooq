@@ -22,5 +22,3 @@ jobs:
 
       - name: Build and test
         run: ./gradlew build :integration-tests:test
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: "true"
