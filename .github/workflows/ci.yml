@@ -21,6 +21,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Build and test
-        run: ./gradlew build
+        run: ./gradlew build :integration-tests:test
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
