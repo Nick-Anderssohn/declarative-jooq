@@ -111,6 +111,13 @@ declarativeJooq {
 
     // Optional: restrict which jOOQ packages are scanned.
     packageFilter.set("com.example.jooq")
+
+    // Optional: output directory for generated sources. Default: build/generated/declarative-jooq
+    outputDir.set(layout.buildDirectory.dir("generated/declarative-jooq"))
+
+    // Optional: source set to wire generated sources into. Default: "test"
+    // Override to "main" if you need the generated DSL accessible from production code.
+    sourceSet.set("test")
 }
 ```
 
@@ -120,7 +127,7 @@ declarativeJooq {
 ./gradlew generateDeclarativeJooqDsl
 ```
 
-Generated sources are placed in `build/generated/declarative-jooq/` and are automatically added to the test source set. Regenerate whenever your jOOQ record classes change.
+Generated sources are placed in the `outputDir` directory (default: `build/generated/declarative-jooq/`) and are automatically added to the configured `sourceSet` (default: `test`). Regenerate whenever your jOOQ record classes change.
 
 ### 4. Write tests
 
@@ -380,7 +387,7 @@ val result = DecDsl.execute(ctx) {
 |---|---|
 | `dsl-runtime` | Core DSL engine: record graph, topological sorter, inserter, result assembler |
 | `codegen` | Source code generator: scans jOOQ record classes via classpath scanning, emits typed Kotlin DSL builders using KotlinPoet |
-| `gradle-plugin` | Gradle build integration: registers `generateDeclarativeJooqDsl` task, wires extension config, auto-adds generated sources to test source set |
+| `gradle-plugin` | Gradle build integration: registers `generateDeclarativeJooqDsl` task, wires extension config, auto-adds generated sources to the configured source set (default: test) |
 | `integration-tests` | End-to-end tests: spins up a Postgres 16 container via Testcontainers, generates and compiles DSL sources at test time, exercises all FK scenarios |
 
 ## Building and Testing
