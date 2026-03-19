@@ -72,7 +72,7 @@ Plans:
   3. Each module's POM contains all required Maven Central fields: name, description, url, licenses, developers, and scm
   4. Running `./gradlew publishToMavenLocal` on a machine without GPG credentials configured completes without error (signing guard is in place)
   5. Version reads `1.0.0` (no SNAPSHOT suffix) across all modules
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 11-01-PLAN.md — Configure vanniktech 0.35.0, version bump, POM metadata, signing guard, Gradle 8.13 upgrade
@@ -122,7 +122,7 @@ Plans:
 | 8. Example API | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 9. Example Tests | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
-| 11. Publishing Configuration | v1.0 | 0/2 | Not started | - |
+| 11. Publishing Configuration | 1/2 | In Progress|  | - |
 | 12. CI Workflows | v1.0 | 0/? | Not started | - |
 | 13. README and Docs | v1.0 | 0/? | Not started | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |
