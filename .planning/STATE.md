@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Maven Central Release
 status: unknown
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-03-19T01:28:52.881Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-19T02:33:18.384Z"
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Eliminate boilerplate and manual FK wiring when creating test data — declare what records you want and how they relate, and the library handles insertion order, FK assignment, and result assembly.
-**Current focus:** Phase 12 — maven-central-release (next)
+**Current focus:** Phase 12 — ci-workflows
 
 ## Current Position
 
-Phase: 11 (publishing-configuration) — COMPLETE
-Plan: 2 of 2 (complete)
+Phase: 12 (ci-workflows) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Plan: 2 of 2 (complete)
 | Phase 10 P01 | 1 | 1 tasks | 1 files |
 | Phase 11 P01 | 15 | 2 tasks | 6 files |
 | Phase 11 P02 | 20 | 2 tasks | 3 files |
+| Phase 12 P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,8 @@ Key v1.0 context:
 - [Phase 11]: Artifact IDs use declarative-jooq- prefix for Maven Central discoverability
 - [Phase 11]: Signing guard: tasks.withType<Sign>().configureEach { enabled = findProperty('signingInMemoryKey') \!= null } — publishToMavenLocal works without credentials
 - [Phase 11]: POM inceptionYear corrected to 2026; developer/SCM URLs corrected to github.com/Nick-Anderssohn (capital N-A) — fix committed in 57dd0c9
+- [Phase 12]: ci.yml and publish.yml are separate files with zero overlap — ci.yml never publishes, publish.yml never runs on PRs or branch pushes
+- [Phase 12]: publish.yml uses publishToMavenCentral (not publishAndReleaseToMavenCentral) to preserve manual portal release (automaticRelease=false in all 3 modules)
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T01:28:35.251Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-03-19T02:33:18.383Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None

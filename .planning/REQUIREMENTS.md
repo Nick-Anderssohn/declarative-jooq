@@ -20,8 +20,8 @@
 
 ### CI
 
-- [ ] **CI-01**: `ci.yml` GitHub Actions workflow runs `./gradlew build` (including Testcontainers integration tests) on every PR and push to `main`
-- [ ] **CI-02**: `publish.yml` GitHub Actions workflow publishes all 3 modules to Maven Central when a `v*` tag is pushed, using GitHub Secrets for credentials
+- [x] **CI-01**: `ci.yml` GitHub Actions workflow runs `./gradlew build` (including Testcontainers integration tests) on every PR and push to `main`
+- [x] **CI-02**: `publish.yml` GitHub Actions workflow publishes all 3 modules to Maven Central when a `v*` tag is pushed, using GitHub Secrets for credentials
 
 ### Documentation
 
@@ -63,8 +63,8 @@
 | PUB-02 | Phase 11 | Complete |
 | PUB-03 | Phase 11 | Complete |
 | PUB-04 | Phase 11 | Complete |
-| CI-01 | Phase 12 | Pending |
-| CI-02 | Phase 12 | Pending |
+| CI-01 | Phase 12 | Complete |
+| CI-02 | Phase 12 | Complete |
 | DOCS-01 | Phase 13 | Pending |
 | DOCS-02 | Phase 13 | Pending |
 | DOCS-03 | Phase 13 | Pending |

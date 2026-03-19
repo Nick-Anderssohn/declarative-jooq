@@ -42,7 +42,7 @@
 
 - [x] **Phase 10: Credentials Setup** - GPG key, Sonatype Portal token, and all GitHub Secrets configured (completed 2026-03-18)
 - [x] **Phase 11: Publishing Configuration** - All 3 modules publishable to mavenLocal with correct JARs, POM, and signatures (completed 2026-03-19)
-- [ ] **Phase 12: CI Workflows** - GitHub Actions CI (build/test on PR) and publish (on v* tag) wired up
+- [x] **Phase 12: CI Workflows** - GitHub Actions CI (build/test on PR) and publish (on v* tag) wired up (completed 2026-03-19)
 - [ ] **Phase 13: README and Docs** - README rewritten with Maven Central coordinates, usage guide, badges, and CHANGELOG
 - [ ] **Phase 14: First Publish Validation** - First-publish checklist for verifying artifacts after tagging v1.0.0
 
@@ -86,7 +86,7 @@ Plans:
   1. Opening or updating a PR triggers `ci.yml` and the GitHub Actions check runs `./gradlew build` including Testcontainers integration tests
   2. Pushing a `v*` tag triggers `publish.yml` and the workflow publishes all three modules to Maven Central using GitHub Secrets (no manual credential entry)
   3. The CI workflow never attempts to publish and the publish workflow never runs on plain pushes or PRs
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 12-01-PLAN.md — Create ci.yml (PR/push build gate) and publish.yml (v* tag Maven Central publish)
@@ -126,6 +126,6 @@ Plans:
 | 9. Example Tests | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
-| 12. CI Workflows | v1.0 | 0/1 | Not started | - |
+| 12. CI Workflows | 1/1 | Complete   | 2026-03-19 | - |
 | 13. README and Docs | v1.0 | 0/? | Not started | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |
