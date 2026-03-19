@@ -106,16 +106,19 @@ Settings > Secrets and variables > Actions > **New repository secret**
 `~/.gradle/gradle.properties`:
 
 ```properties
-signing.keyId=SIGNING_KEY_ID_VALUE
-signing.password=SIGNING_PASSWORD_VALUE
-signing.key=BASE64_ENCODED_ARMORED_KEY
-sonatypeUsername=SONATYPE_USERNAME_VALUE
-sonatypePassword=SONATYPE_PASSWORD_VALUE
+# Vanniktech in-memory signing
+signingInMemoryKeyId=SIGNING_KEY_ID_VALUE
+signingInMemoryKeyPassword=SIGNING_PASSWORD_VALUE
+signingInMemoryKey=BASE64_ENCODED_ARMORED_KEY
+
+# Maven Central credentials
+mavenCentralUsername=SONATYPE_USERNAME_VALUE
+mavenCentralPassword=SONATYPE_PASSWORD_VALUE
 ```
 
-`signing.key` is the same base64 output as the `SIGNING_KEY` GitHub Secret.
+`signingInMemoryKey` is the same base64 output as the `SIGNING_KEY` GitHub Secret.
 
-**Alternative: keyring file** (legacy, not used by Phase 11)
+**Alternative: keyring file** (legacy — NOT compatible with the vanniktech plugin configuration used by this project)
 
 ```properties
 signing.keyId=SIGNING_KEY_ID_VALUE
@@ -125,4 +128,4 @@ sonatypeUsername=SONATYPE_USERNAME_VALUE
 sonatypePassword=SONATYPE_PASSWORD_VALUE
 ```
 
-Use the in-memory variant — Phase 11 publishing config expects `signing.key`, not a keyring file path.
+Phase 11 publishing config uses vanniktech's `signingInMemoryKey` properties. The legacy `signing.key` / `signing.keyId` / `signing.password` names are NOT recognized by the vanniktech plugin.
