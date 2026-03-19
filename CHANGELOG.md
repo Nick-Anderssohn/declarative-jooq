@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2026-03-19
+
+First public release on Maven Central.
+
+### Added
+
+- Declarative DSL for jOOQ test data creation with automatic FK resolution
+- Topological insert ordering — records inserted in dependency order regardless of declaration order
+- Self-referential FK support via two-pass insert strategy
+- Multiple FKs to the same table with `TableField` disambiguation
+- Placeholder objects for explicit cross-tree FK wiring
+- Typed result accessors via `DslResult`
+- Code generator that scans compiled jOOQ record classes and produces typed Kotlin DSL builders
+- Gradle plugin (`com.nickanderssohn.declarative-jooq`) with `generateDeclarativeJooqDsl` task
+- Three published modules: `declarative-jooq-dsl-runtime`, `declarative-jooq-codegen`, `declarative-jooq-gradle-plugin`
+
+[1.0.0]: https://github.com/Nick-Anderssohn/declarative-jooq/releases/tag/v1.0.0
