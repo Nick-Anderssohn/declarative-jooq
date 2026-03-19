@@ -86,7 +86,10 @@ Plans:
   1. Opening or updating a PR triggers `ci.yml` and the GitHub Actions check runs `./gradlew build` including Testcontainers integration tests
   2. Pushing a `v*` tag triggers `publish.yml` and the workflow publishes all three modules to Maven Central using GitHub Secrets (no manual credential entry)
   3. The CI workflow never attempts to publish and the publish workflow never runs on plain pushes or PRs
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 12-01-PLAN.md — Create ci.yml (PR/push build gate) and publish.yml (v* tag Maven Central publish)
 
 ### Phase 13: README and Docs
 **Goal**: A developer who has never seen the project can understand its value, add the dependency, configure the plugin, and write their first DSL block from the README alone
@@ -122,7 +125,7 @@ Plans:
 | 8. Example API | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 9. Example Tests | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
-| 11. Publishing Configuration | 2/2 | Complete   | 2026-03-19 | - |
-| 12. CI Workflows | v1.0 | 0/? | Not started | - |
+| 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
+| 12. CI Workflows | v1.0 | 0/1 | Not started | - |
 | 13. README and Docs | v1.0 | 0/? | Not started | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |
