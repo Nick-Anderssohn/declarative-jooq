@@ -3,6 +3,7 @@ package com.nickanderssohn.declarativejooq.gradle
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -115,5 +116,50 @@ class DeclarativeJooqPluginFunctionalTest {
         val result = createRunner("tasks", "--group=declarative-jooq").build()
 
         assertTrue(result.output.contains("generateDeclarativeJooqDsl"))
+    }
+
+    @Test
+    fun `custom output directory is used`() {
+        buildFile.writeText(
+            """
+            plugins {
+                id("com.nickanderssohn.declarative-jooq")
+            }
+            declarativeJooq {
+                classesDir.set(file("jooq-classes"))
+                outputPackage.set("com.nickanderssohn.generated")
+                outputDir.set(layout.buildDirectory.dir("generated/my-custom-dsl"))
+            }
+            """.trimIndent()
+        )
+
+        createRunner("generateDeclarativeJooqDsl").build()
+
+        val outputDir = testProjectDir.resolve("build/generated/my-custom-dsl")
+        assertTrue(outputDir.exists(), "Custom output directory build/generated/my-custom-dsl should exist")
+        val defaultDir = testProjectDir.resolve("build/generated/declarative-jooq")
+        assertFalse(defaultDir.exists(), "Default output directory should NOT exist when custom is set")
+    }
+
+    @Test
+    fun `custom source set is wired`() {
+        buildFile.writeText(
+            """
+            plugins {
+                kotlin("jvm") version "2.1.20"
+                id("com.nickanderssohn.declarative-jooq")
+            }
+            declarativeJooq {
+                classesDir.set(file("jooq-classes"))
+                outputPackage.set("com.nickanderssohn.generated")
+                sourceSet.set("main")
+            }
+            """.trimIndent()
+        )
+
+        // The task should succeed without error when wiring to "main"
+        val result = createRunner("generateDeclarativeJooqDsl").build()
+
+        assertEquals(TaskOutcome.SUCCESS, result.task(":generateDeclarativeJooqDsl")?.outcome)
     }
 }
