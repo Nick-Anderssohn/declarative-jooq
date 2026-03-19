@@ -126,6 +126,6 @@ Plans:
 | 9. Example Tests | v0.3 | 2/2 | Complete | 2026-03-18 |
 | 10. Credentials Setup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
-| 12. CI Workflows | 1/1 | Complete   | 2026-03-19 | - |
+| 12. CI Workflows | 1/1 | Complete    | 2026-03-19 | - |
 | 13. README and Docs | v1.0 | 0/? | Not started | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |
