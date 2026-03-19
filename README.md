@@ -1,5 +1,8 @@
 # declarative-jooq
 
+[![CI](https://github.com/Nick-Anderssohn/declarative-jooq/actions/workflows/ci.yml/badge.svg)](https://github.com/Nick-Anderssohn/declarative-jooq/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/com.nickanderssohn/declarative-jooq-dsl-runtime)](https://central.sonatype.com/artifact/com.nickanderssohn/declarative-jooq-dsl-runtime)
+
 Declarative test data creation for jOOQ with automatic FK resolution.
 
 ## What it does
@@ -71,22 +74,14 @@ The library inserts the organization first, then the user with the correct `orga
 
 ## Getting Started
 
-### 1. Publish to mavenLocal
+### 1. Add the plugin to your build
 
-declarative-jooq is not published to a public Maven repository. Publish it locally first:
-
-```bash
-./gradlew publishToMavenLocal
-```
-
-### 2. Add the plugin to your build
-
-In your consumer project's `settings.gradle.kts`, add the plugin classpath:
+In your consumer project's `settings.gradle.kts`, add Maven Central to the plugin repositories:
 
 ```kotlin
 pluginManagement {
     repositories {
-        mavenLocal()
+        mavenCentral()
         gradlePluginPortal()
     }
 }
@@ -96,22 +91,15 @@ In your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-    id("com.nickanderssohn.declarative-jooq") version "0.1.0"
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
+    id("com.nickanderssohn.declarative-jooq") version "1.0.0"
 }
 
 dependencies {
-    testImplementation("com.nickanderssohn:dsl-runtime:0.1.0")
+    testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.0.0")
 }
 ```
 
-> Note: Check the version string against the published artifact in your local Maven repository (`~/.m2/repository/com/nickanderssohn/`).
-
-### 3. Configure the extension
+### 2. Configure the extension
 
 ```kotlin
 declarativeJooq {
@@ -126,7 +114,7 @@ declarativeJooq {
 }
 ```
 
-### 4. Generate DSL sources
+### 3. Generate DSL sources
 
 ```bash
 ./gradlew generateDeclarativeJooqDsl
@@ -134,7 +122,7 @@ declarativeJooq {
 
 Generated sources are placed in `build/generated/declarative-jooq/` and are automatically added to the test source set. Regenerate whenever your jOOQ record classes change.
 
-### 5. Write tests
+### 4. Write tests
 
 ```kotlin
 import com.nickanderssohn.declarativejooq.DecDsl
@@ -446,7 +434,7 @@ Publish to local Maven repository:
 | jOOQ | 3.19.16 |
 | KotlinPoet | 2.2.0 |
 | ClassGraph | 4.8.181 |
-| Gradle | 8.12 |
+| Gradle | 8.13 |
 | JUnit | 5.11.4 |
 | Testcontainers | 1.20.6 |
 | H2 (unit tests) | 2.3.232 |
@@ -456,7 +444,6 @@ Publish to local Maven repository:
 ## Limitations
 
 - **Composite foreign keys are not supported.** Only single-column FK relationships are handled.
-- **Published via mavenLocal only.** There is no public Maven Central artifact.
 - **Insert-only.** The library creates records; it does not support queries, updates, or deletes.
 - **No schema management.** declarative-jooq assumes your schema already exists; it does not create or migrate tables.
 - **jOOQ record classes required.** The code generator needs compiled jOOQ-generated record classes on the classpath; hand-written POJOs are not supported.
