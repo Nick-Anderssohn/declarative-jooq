@@ -44,7 +44,7 @@
 - [x] **Phase 11: Publishing Configuration** - All 3 modules publishable to mavenLocal with correct JARs, POM, and signatures (completed 2026-03-19)
 - [x] **Phase 12: CI Workflows** - GitHub Actions CI (build/test on PR) and publish (on v* tag) wired up (completed 2026-03-19)
 - [x] **Phase 13: README and Docs** - README rewritten with Maven Central coordinates, usage guide, badges, and CHANGELOG (completed 2026-03-19)
-- [ ] **Phase 13.1: Configurable DSL output directory and todo-list example update** - outputDir/sourceSet extension properties, todo-list version bump, README docs
+- [x] **Phase 13.1: Configurable DSL output directory and todo-list example update** - outputDir/sourceSet extension properties, todo-list version bump, README docs (completed 2026-03-19)
 - [ ] **Phase 14: First Publish Validation** - First-publish checklist for verifying artifacts after tagging v1.0.0
 
 ## Phase Details
@@ -118,7 +118,7 @@ Plans:
   4. Existing configurations without `outputDir` or `sourceSet` continue to work identically (backward compatible)
   5. `examples/todo-list/build.gradle.kts` uses version `1.0.0` and demonstrates `outputDir`
   6. README "Configure the extension" section documents `outputDir` and `sourceSet` with defaults
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 13.1-01-PLAN.md — Add outputDir and sourceSet to extension, wire in plugin, add functional tests
@@ -150,5 +150,5 @@ Plans:
 | 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
 | 12. CI Workflows | v1.0 | 1/1 | Complete | 2026-03-19 |
 | 13. README and Docs | v1.0 | 1/1 | Complete | 2026-03-19 |
-| 13.1. Configurable DSL output directory | 1/2 | In Progress|  | - |
+| 13.1. Configurable DSL output directory | 2/2 | Complete   | 2026-03-19 | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |

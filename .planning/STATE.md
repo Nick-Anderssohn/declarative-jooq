@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Maven Central Release
 status: unknown
-stopped_at: Completed 13.1-01-PLAN.md
-last_updated: "2026-03-19T05:46:37.227Z"
+stopped_at: Completed 13.1-02-PLAN.md
+last_updated: "2026-03-19T05:49:30.811Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 1 of 2
 | Phase 12 P01 | 2 | 2 tasks | 2 files |
 | Phase 13 P01 | 2 | 2 tasks | 2 files |
 | Phase 13.1 P01 | 1 | 2 tasks | 3 files |
+| Phase 13.1 P02 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Key v1.0 context:
 - [Phase 13]: Version 1.0.0 used in all README coordinate examples to match the published artifact
 - [Phase 13]: Gradle 8.13 in Tech Stack table to reflect actual version used (upgraded in Phase 11)
 - [Phase 13.1-01]: Extension-convention pattern: set defaults on extension.outputDir/sourceSet, then wire extension property to task via convention() so users can override in declarativeJooq{} block
+- [Phase 13.1]: Example app version updated to 1.0.0 to match all plugin/runtime coordinates (no more SNAPSHOT references)
+- [Phase 13.1]: outputDir shown in todo-list example with comment clarifying it is the default value, for illustration
 
 ### Roadmap Evolution
 
@@ -87,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:46:37.224Z
-Stopped at: Completed 13.1-01-PLAN.md
+Last session: 2026-03-19T05:49:30.810Z
+Stopped at: Completed 13.1-02-PLAN.md
 Resume file: None
