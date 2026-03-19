@@ -118,7 +118,7 @@ Plans:
   4. Existing configurations without `outputDir` or `sourceSet` continue to work identically (backward compatible)
   5. `examples/todo-list/build.gradle.kts` uses version `1.0.0` and demonstrates `outputDir`
   6. README "Configure the extension" section documents `outputDir` and `sourceSet` with defaults
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 13.1-01-PLAN.md — Add outputDir and sourceSet to extension, wire in plugin, add functional tests
@@ -150,5 +150,5 @@ Plans:
 | 11. Publishing Configuration | v1.0 | 2/2 | Complete | 2026-03-19 |
 | 12. CI Workflows | v1.0 | 1/1 | Complete | 2026-03-19 |
 | 13. README and Docs | v1.0 | 1/1 | Complete | 2026-03-19 |
-| 13.1. Configurable DSL output directory | v1.0 | 0/2 | Not started | - |
+| 13.1. Configurable DSL output directory | 1/2 | In Progress|  | - |
 | 14. First Publish Validation | v1.0 | 0/? | Not started | - |

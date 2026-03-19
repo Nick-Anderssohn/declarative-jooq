@@ -31,8 +31,8 @@
 
 ### Configuration
 
-- [ ] **CONFIG-01**: `DeclarativeJooqExtension` exposes `outputDir: DirectoryProperty` (default: `build/generated/declarative-jooq`) and `sourceSet: Property<String>` (default: `"test"`), both wired into plugin and task via `convention()`
-- [ ] **CONFIG-02**: Functional tests verify custom `outputDir` produces output at the configured path and custom `sourceSet` wires into the specified source set
+- [x] **CONFIG-01**: `DeclarativeJooqExtension` exposes `outputDir: DirectoryProperty` (default: `build/generated/declarative-jooq`) and `sourceSet: Property<String>` (default: `"test"`), both wired into plugin and task via `convention()`
+- [x] **CONFIG-02**: Functional tests verify custom `outputDir` produces output at the configured path and custom `sourceSet` wires into the specified source set
 - [ ] **CONFIG-03**: `examples/todo-list` uses version `1.0.0` for plugin and runtime dependency, and demonstrates `outputDir` in its `declarativeJooq` block
 - [ ] **CONFIG-04**: README "Configure the extension" section documents `outputDir` and `sourceSet` with defaults and usage guidance
 
@@ -75,8 +75,8 @@
 | DOCS-01 | Phase 13 | Complete |
 | DOCS-02 | Phase 13 | Complete |
 | DOCS-03 | Phase 13 | Complete |
-| CONFIG-01 | Phase 13.1 | Pending |
-| CONFIG-02 | Phase 13.1 | Pending |
+| CONFIG-01 | Phase 13.1 | Complete |
+| CONFIG-02 | Phase 13.1 | Complete |
 | CONFIG-03 | Phase 13.1 | Pending |
 | CONFIG-04 | Phase 13.1 | Pending |
 | VALID-01 | Phase 14 | Pending |
