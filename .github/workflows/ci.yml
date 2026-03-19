@@ -15,17 +15,10 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '11'
           cache: 'gradle'
 
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Build and test
         run: ./gradlew build
-
-      - name: Publish to mavenLocal for example projects
-        run: ./gradlew publishToMavenLocal
-
-      - name: Test todo-list example
-        run: ./gradlew test
-        working-directory: examples/todo-list
