@@ -5,11 +5,11 @@ plugins {
     kotlin("plugin.spring") version "2.1.20"
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.nickanderssohn.declarative-jooq") version "0.1.0-SNAPSHOT"
+    id("com.nickanderssohn.declarative-jooq") version "1.0.0"
 }
 
 group = "com.nickanderssohn"
-version = "0.1.0-SNAPSHOT"
+version = "1.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -45,13 +45,15 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.20.6")
     testImplementation("org.testcontainers:postgresql:1.20.6")
     testImplementation("org.testcontainers:junit-jupiter:1.20.6")
-    testImplementation("com.nickanderssohn:dsl-runtime:0.1.0-SNAPSHOT")
+    testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.0.0")
 }
 
 declarativeJooq {
     classesDir.set(layout.buildDirectory.dir("classes/kotlin/main"))
     outputPackage.set("com.nickanderssohn.todolist.generated")
     packageFilter.set("com.nickanderssohn.todolist.jooq")
+    // Optional: customize the output directory (shown here with the default value for illustration)
+    outputDir.set(layout.buildDirectory.dir("generated/declarative-jooq"))
 }
 
 tasks.named("generateDeclarativeJooqDsl") {
