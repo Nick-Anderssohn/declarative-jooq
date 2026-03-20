@@ -1,5 +1,10 @@
 package com.nickanderssohn.declarativejooq.codegen.ir
 
+/**
+ * Intermediate representation of a single-column foreign key relationship. Captures both
+ * the schema metadata (table/column names) and the derived naming used in generated code
+ * (builder function names, placeholder property names).
+ */
 data class ForeignKeyIR(
     val fkName: String,                      // "fk_user_organization"
     val childTableName: String,              // "user"

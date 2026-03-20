@@ -1,5 +1,9 @@
 package com.nickanderssohn.declarativejooq.codegen.ir
 
+/**
+ * Intermediate representation of a single database table, produced by [MetadataExtractor][com.nickanderssohn.declarativejooq.codegen.scanner.MetadataExtractor]
+ * and consumed by the emitters to generate builder, result, and scope classes.
+ */
 data class TableIR(
     val tableName: String,               // "organization"
     val tableClassName: String,          // "OrganizationTable"

@@ -15,6 +15,12 @@ import com.squareup.kotlinpoet.UNIT
 import com.squareup.kotlinpoet.BOOLEAN
 import com.squareup.kotlinpoet.asTypeName
 
+/**
+ * Emits a per-table builder class (e.g., `OrganizationBuilder`) from a [TableIR].
+ * The builder extends [RecordBuilder][com.nickanderssohn.declarativejooq.RecordBuilder],
+ * exposes mutable properties for each column, placeholder properties for outbound FKs,
+ * and child builder functions for each inbound FK relationship.
+ */
 class BuilderEmitter {
 
     fun emit(tableIR: TableIR, outputPackage: String): TypeSpec {

@@ -1,5 +1,9 @@
 package com.nickanderssohn.declarativejooq
 
+/**
+ * Sorts table names in FK-dependency order (parents before children) using Kahn's algorithm.
+ * Used by [TopologicalInserter] to determine the correct insert sequence.
+ */
 object TopologicalSorter {
     /**
      * Sorts table names topologically based on FK dependencies.

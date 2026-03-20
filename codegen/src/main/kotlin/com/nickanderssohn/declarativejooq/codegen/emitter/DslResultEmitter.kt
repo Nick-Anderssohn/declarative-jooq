@@ -9,6 +9,11 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 
+/**
+ * Emits the `GeneratedDslResult` class, which wraps [DslResult][com.nickanderssohn.declarativejooq.DslResult]
+ * and provides typed accessor functions (e.g., `organizations()`, `users()`) for every
+ * table in the schema.
+ */
 class DslResultEmitter {
 
     fun emit(tables: List<TableIR>, outputPackage: String): TypeSpec {

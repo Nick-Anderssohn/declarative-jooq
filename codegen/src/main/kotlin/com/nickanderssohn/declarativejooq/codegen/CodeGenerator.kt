@@ -11,6 +11,11 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File
 
+/**
+ * Top-level orchestrator for code generation. Scans compiled jOOQ table classes from a
+ * class directory, extracts schema metadata into [TableIR], and emits typed Kotlin DSL
+ * source files (builders, result classes, DslScope extensions, and GeneratedDslResult).
+ */
 class CodeGenerator {
 
     /**

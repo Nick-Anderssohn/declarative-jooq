@@ -3,6 +3,10 @@ package com.nickanderssohn.declarativejooq.gradle
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 
+/**
+ * Configuration extension for the `declarativeJooq { }` block in build scripts.
+ * Properties are forwarded to [GenerateDeclarativeJooqDslTask] via Gradle conventions.
+ */
 abstract class DeclarativeJooqExtension {
     /** Directory containing compiled jOOQ record classes (e.g., build/classes/kotlin/main). Required. */
     abstract val classesDir: DirectoryProperty

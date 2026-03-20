@@ -2,6 +2,11 @@ package com.nickanderssohn.declarativejooq
 
 import org.jooq.UpdatableRecord
 
+/**
+ * In-memory graph of [RecordNode]s built during DSL evaluation. Tracks root nodes,
+ * parent-child edges (from nested builder blocks), and cross-tree placeholder references.
+ * Consumed by [TopologicalInserter] to determine insert order and resolve FK values.
+ */
 class RecordGraph {
     private val _rootNodes: MutableList<RecordNode> = mutableListOf()
     val rootNodes: List<RecordNode> get() = _rootNodes

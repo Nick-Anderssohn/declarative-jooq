@@ -6,6 +6,11 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.UNIT
 
+/**
+ * Emits a [DslScope][com.nickanderssohn.declarativejooq.DslScope] extension function for
+ * each root table (e.g., `fun DslScope.organization(block: OrganizationBuilder.() -> Unit)`).
+ * These are the top-level entry points in the DSL block passed to [DecDsl.execute][com.nickanderssohn.declarativejooq.DecDsl.execute].
+ */
 class DslScopeEmitter {
 
     fun emit(tableIR: TableIR, outputPackage: String): FunSpec {

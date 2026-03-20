@@ -2,6 +2,10 @@ package com.nickanderssohn.declarativejooq.codegen.ir
 
 import com.squareup.kotlinpoet.TypeName
 
+/**
+ * Intermediate representation of a single table column, including its Kotlin type mapping
+ * and the jOOQ field reference expression used in generated code.
+ */
 data class ColumnIR(
     val columnName: String,           // "organization_id"
     val propertyName: String,         // "organizationId"

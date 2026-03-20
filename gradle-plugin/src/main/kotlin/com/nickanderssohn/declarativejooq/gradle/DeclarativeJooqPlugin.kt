@@ -4,6 +4,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSetContainer
 
+/**
+ * Gradle plugin that registers the `generateDeclarativeJooqDsl` task and wires its output
+ * into the configured source set (default: `test`). Provides the `declarativeJooq { }` extension
+ * block for build script configuration.
+ */
 class DeclarativeJooqPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         // 1. Create extension

@@ -6,6 +6,10 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 
+/**
+ * Gradle task that invokes [CodeGenerator] to scan compiled jOOQ classes and emit
+ * typed Kotlin DSL sources into the configured output directory.
+ */
 abstract class GenerateDeclarativeJooqDslTask : DefaultTask() {
 
     @get:InputDirectory

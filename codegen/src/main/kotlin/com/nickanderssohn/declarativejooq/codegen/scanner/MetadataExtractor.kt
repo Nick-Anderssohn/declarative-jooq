@@ -16,6 +16,11 @@ import java.io.File
 import java.lang.reflect.Modifier
 import java.net.URLClassLoader
 
+/**
+ * Reflectively inspects compiled jOOQ table classes to extract schema metadata (columns,
+ * foreign keys, identity fields) into [TableIR] intermediate representations. Handles
+ * FK naming conventions, multi-FK disambiguation, and cross-links inbound FKs between tables.
+ */
 class MetadataExtractor {
 
     fun extract(classDir: File, tableClassNames: List<String>): List<TableIR> {

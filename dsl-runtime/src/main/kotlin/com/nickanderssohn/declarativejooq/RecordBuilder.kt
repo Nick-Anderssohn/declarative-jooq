@@ -4,11 +4,20 @@ import org.jooq.Table
 import org.jooq.TableField
 import org.jooq.UpdatableRecord
 
+/**
+ * Captures a placeholder FK assignment made during DSL evaluation, before the target node
+ * exists in the graph. Converted to a [PlaceholderRef] when [RecordBuilder.build] is called.
+ */
 data class PendingPlaceholderRef(
     val fkField: TableField<*, *>,
     val targetRecord: UpdatableRecord<*>
 )
 
+/**
+ * Base class for all generated per-table builders (e.g., `OrganizationBuilder`). Manages
+ * record construction, parent-child linking, and placeholder FK collection. Generated
+ * builders extend this and override [buildRecord] to set column values from DSL properties.
+ */
 @DeclarativeJooqDsl
 abstract class RecordBuilder<R : UpdatableRecord<R>>(
     val table: Table<R>,

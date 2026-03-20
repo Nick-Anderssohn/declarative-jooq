@@ -2,6 +2,11 @@ package com.nickanderssohn.declarativejooq
 
 import org.jooq.DSLContext
 
+/**
+ * Inserts all records from a [RecordGraph] into the database in FK-dependency order.
+ * Uses [TopologicalSorter] to determine table-level insert order, resolves parent FK
+ * values before each insert, and performs a second pass for self-referential FKs.
+ */
 class TopologicalInserter(private val dslContext: DSLContext) {
     fun insertAll(graph: RecordGraph): DslResult {
         val allNodes = graph.allNodes()
