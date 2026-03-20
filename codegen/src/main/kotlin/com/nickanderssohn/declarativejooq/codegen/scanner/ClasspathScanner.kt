@@ -18,7 +18,7 @@ class ClasspathScanner {
         }
         return scanner.scan().use { scan ->
             scan.getSubclasses("org.jooq.impl.TableImpl")
-                .filterNot { it.isAbstract }
+                .filterNot { it.isAbstract || it.isInnerClass }
                 .map { it.name }
         }
     }
@@ -32,7 +32,7 @@ class ClasspathScanner {
         }
         return scanner.scan().use { scan ->
             scan.getSubclasses("org.jooq.impl.UpdatableRecordImpl")
-                .filterNot { it.isAbstract }
+                .filterNot { it.isAbstract || it.isInnerClass }
                 .map { it.name }
         }
     }

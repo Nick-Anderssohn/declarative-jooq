@@ -17,6 +17,7 @@ data class ForeignKeyIR(
     val childResultClassName: String,        // "UserResult"
     val childRecordClassName: String,        // "UserRecord"
     val childSourcePackage: String,          // "com.nickanderssohn.declarativejooq"
+    val childRecordSourcePackage: String = childSourcePackage,
     val isSelfReferential: Boolean = false,
     val isMultiFk: Boolean = false           // true when multiple FKs from same child table point to same parent
 )

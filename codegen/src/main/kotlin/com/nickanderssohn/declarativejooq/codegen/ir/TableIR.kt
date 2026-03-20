@@ -13,6 +13,7 @@ data class TableIR(
     val resultClassName: String,         // "OrganizationResult"
     val dslFunctionName: String,         // "organization"
     val sourcePackage: String,           // "com.nickanderssohn.declarativejooq"
+    val recordSourcePackage: String = sourcePackage,
     val columns: List<ColumnIR>,
     val outboundFKs: List<ForeignKeyIR>,
     val inboundFKs: MutableList<ForeignKeyIR> = mutableListOf(),

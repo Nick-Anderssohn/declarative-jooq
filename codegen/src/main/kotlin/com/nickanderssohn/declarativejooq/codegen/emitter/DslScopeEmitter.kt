@@ -17,7 +17,7 @@ class DslScopeEmitter {
         val dslScopeType = ClassName("com.nickanderssohn.declarativejooq", "DslScope")
         val builderClass = ClassName(outputPackage, tableIR.builderClassName)
         val resultClass = ClassName(outputPackage, tableIR.resultClassName)
-        val recordType = ClassName(tableIR.sourcePackage, tableIR.recordClassName)
+        val recordType = ClassName(tableIR.recordSourcePackage, tableIR.recordClassName)
         val blockType = LambdaTypeName.get(receiver = builderClass, returnType = UNIT)
 
         val hasSelfRefInbound = tableIR.inboundFKs.any { it.isSelfReferential }

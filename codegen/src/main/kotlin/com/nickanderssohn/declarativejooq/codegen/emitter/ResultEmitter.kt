@@ -17,7 +17,7 @@ import com.squareup.kotlinpoet.TypeSpec
 class ResultEmitter {
 
     fun emit(tableIR: TableIR, outputPackage: String): TypeSpec {
-        val recordType = ClassName(tableIR.sourcePackage, tableIR.recordClassName)
+        val recordType = ClassName(tableIR.recordSourcePackage, tableIR.recordClassName)
 
         val classBuilder = TypeSpec.classBuilder(tableIR.resultClassName)
 

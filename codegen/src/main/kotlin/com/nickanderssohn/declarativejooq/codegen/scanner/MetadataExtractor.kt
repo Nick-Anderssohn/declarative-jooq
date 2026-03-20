@@ -40,6 +40,7 @@ class MetadataExtractor {
             val tableClassName = klass.simpleName
             val recordClassName = tableInstance.recordType.simpleName
             val sourcePackage = klass.packageName
+            val recordSourcePackage = tableInstance.recordType.packageName
 
             val builderClassName = toPascalCase(tableName) + "Builder"
             val resultClassName = toPascalCase(tableName) + "Result"
@@ -134,6 +135,7 @@ class MetadataExtractor {
                     childResultClassName = resultClassName,
                     childRecordClassName = recordClassName,
                     childSourcePackage = sourcePackage,
+                    childRecordSourcePackage = recordSourcePackage,
                     isSelfReferential = raw.isSelfRef,
                     isMultiFk = isMultiFk
                 )
@@ -148,6 +150,7 @@ class MetadataExtractor {
                 resultClassName = resultClassName,
                 dslFunctionName = dslFunctionName,
                 sourcePackage = sourcePackage,
+                recordSourcePackage = recordSourcePackage,
                 columns = columns,
                 outboundFKs = outboundFKs,
                 inboundFKs = mutableListOf(),

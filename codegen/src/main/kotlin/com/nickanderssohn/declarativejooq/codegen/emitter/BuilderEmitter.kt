@@ -24,7 +24,7 @@ import com.squareup.kotlinpoet.asTypeName
 class BuilderEmitter {
 
     fun emit(tableIR: TableIR, outputPackage: String): TypeSpec {
-        val recordType = ClassName(tableIR.sourcePackage, tableIR.recordClassName)
+        val recordType = ClassName(tableIR.recordSourcePackage, tableIR.recordClassName)
         val tableClass = ClassName(tableIR.sourcePackage, tableIR.tableClassName)
         val recordBuilderType = ClassName("com.nickanderssohn.declarativejooq", "RecordBuilder")
             .parameterizedBy(recordType)
@@ -146,12 +146,13 @@ class BuilderEmitter {
         // Override buildRecord()
         val buildRecordBody = CodeBlock.builder()
         buildRecordBody.addStatement("val record = %T()", recordType)
-        // Skip columns claimed by placeholder properties — their FK values are resolved by TopologicalInserter
+        // Only set columns that were explicitly assigned (non-null). This avoids overriding
+        // database DEFAULT values (e.g., created_at TIMESTAMP DEFAULT NOW()) with null.
         for (col in rawColumnProps) {
             buildRecordBody.addStatement(
-                "record.set(%L, %L)",
-                col.tableFieldRefExpression,
-                col.propertyName
+                "%L?.let { record.set(%L, it) }",
+                col.propertyName,
+                col.tableFieldRefExpression
             )
         }
         buildRecordBody.addStatement("return record")
@@ -189,7 +190,7 @@ class BuilderEmitter {
                 val fk = fkGroup.first() // Use first FK for type/class info (all share same child table)
                 val childBuilderClass = ClassName(outputPackage, toPascalCase(fk.childTableName) + "Builder")
                 val childResultClass = ClassName(outputPackage, fk.childResultClassName)
-                val childRecordClass = ClassName(fk.childSourcePackage, fk.childRecordClassName)
+                val childRecordClass = ClassName(fk.childRecordSourcePackage, fk.childRecordClassName)
                 val blockType = LambdaTypeName.get(
                     receiver = childBuilderClass,
                     returnType = UNIT

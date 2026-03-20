@@ -39,7 +39,7 @@ class DslResultEmitter {
 
         // Accessor function for EVERY table (not just roots)
         for (table in tables) {
-            val recordClass = ClassName(table.sourcePackage, table.recordClassName)
+            val recordClass = ClassName(table.recordSourcePackage, table.recordClassName)
             val resultClass = ClassName(outputPackage, table.resultClassName)
             val returnType = listType.parameterizedBy(resultClass)
 
