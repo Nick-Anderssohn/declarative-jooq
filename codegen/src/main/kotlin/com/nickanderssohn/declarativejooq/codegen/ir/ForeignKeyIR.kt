@@ -7,7 +7,7 @@ data class ForeignKeyIR(
     val parentTableName: String,             // "organization"
     val parentBuilderClassName: String,      // "OrganizationBuilder"
     val parentResultClassName: String,       // "OrganizationResult"
-    val builderFunctionName: String,         // "user" — derived from FK column name
+    val builderFunctionName: String,         // "user" — derived from child table name
     val placeholderPropertyName: String,     // "organization", "createdBy", "parent"
     val childResultClassName: String,        // "UserResult"
     val childRecordClassName: String,        // "UserRecord"

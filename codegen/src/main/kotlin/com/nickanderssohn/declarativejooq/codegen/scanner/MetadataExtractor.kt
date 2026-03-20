@@ -103,7 +103,8 @@ class MetadataExtractor {
             val parentGroupCounts = rawFks.groupingBy { it.parentTableName }.eachCount()
             val multiFkParents = parentGroupCounts.filter { it.value > 1 }.keys
 
-            // Pass 2: Collision detection per NAME-03 — if two FKs produce the same candidate, both fall back to FK col name
+            // Pass 2: Collision detection per NAME-03 — if two FKs produce the same candidate,
+            // the caller must explicitly pass a TableField to disambiguate.
             // (Only applies for non-multi-FK groups since multi-FK groups are handled above)
             val nonMultiFkRaws = rawFks.filter { it.parentTableName !in multiFkParents }
             val nameCounts = nonMultiFkRaws.groupingBy { it.candidateName }.eachCount()

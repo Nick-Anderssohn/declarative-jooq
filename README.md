@@ -394,7 +394,7 @@ val result = DecDsl.execute(ctx) {
 
 ### Prerequisites
 
-- JDK 11 or later
+- JDK 17 or later
 - Docker (required for integration tests that use Testcontainers)
 
 ### Commands
@@ -446,7 +446,7 @@ Publish to local Maven repository:
 | Testcontainers | 1.20.6 |
 | H2 (unit tests) | 2.3.232 |
 | PostgreSQL (integration) | 16 (Alpine) |
-| JVM target | 11 |
+| JVM target | 17 |
 
 ## Limitations
 

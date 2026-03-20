@@ -5,7 +5,7 @@ A self-contained Spring Boot + Kotlin + jOOQ example demonstrating how to integr
 
 ## What this demonstrates
 
-- Hand-written jOOQ Table/Record classes for two related tables (`todo_list`, `todo_item`)
+- Hand-written jOOQ Table/Record classes for four related tables (`user`, `todo_list`, `todo_item`, `shared_with`)
 - The `declarative-jooq` Gradle plugin generating a test-data seeding DSL from those classes
 - Integration tests that use the generated DSL to seed hierarchical data in one declaration:
   ```kotlin
@@ -23,12 +23,17 @@ A self-contained Spring Boot + Kotlin + jOOQ example demonstrating how to integr
 
 ## Prerequisites
 
-- JDK 11 or later
+- JDK 17 or later
 - Docker (for Testcontainers in integration tests)
 
 ## Data model
 
 ```
+app_user
+  id     BIGSERIAL PK
+  name   VARCHAR(255) NOT NULL
+  email  VARCHAR(255) NOT NULL
+
 todo_list
   id          BIGSERIAL PK
   title       VARCHAR(255) NOT NULL
@@ -41,6 +46,11 @@ todo_item
   title        VARCHAR(255) NOT NULL
   completed    BOOLEAN NOT NULL DEFAULT FALSE
   created_at   TIMESTAMP NOT NULL
+
+shared_with
+  id           BIGSERIAL PK
+  todo_list_id BIGINT NOT NULL FK -> todo_list(id)
+  user_id      BIGINT NOT NULL FK -> app_user(id)
 ```
 
 ## How to run

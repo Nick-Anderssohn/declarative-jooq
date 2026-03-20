@@ -12,5 +12,5 @@ data class TableIR(
     val columns: List<ColumnIR>,
     val outboundFKs: List<ForeignKeyIR>,
     val inboundFKs: MutableList<ForeignKeyIR> = mutableListOf(),
-    val isRoot: Boolean                  // true if outboundFKs is empty
+    val isRoot: Boolean                  // true if no non-self-referential outbound FKs
 )
