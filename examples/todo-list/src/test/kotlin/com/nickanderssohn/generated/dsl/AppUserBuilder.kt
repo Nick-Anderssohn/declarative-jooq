@@ -4,13 +4,13 @@ import com.nickanderssohn.declarativejooq.DslScope
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
 import com.nickanderssohn.declarativejooq.RecordNode
-import com.nickanderssohn.todolist.jooq.SharedWithTable
-import com.nickanderssohn.todolist.jooq.TodoItemRecord
-import com.nickanderssohn.todolist.jooq.TodoItemTable
-import com.nickanderssohn.todolist.jooq.TodoListRecord
-import com.nickanderssohn.todolist.jooq.TodoListTable
-import com.nickanderssohn.todolist.jooq.UserRecord
-import com.nickanderssohn.todolist.jooq.UserTable
+import com.nickanderssohn.todolist.jooq.tables.AppUser
+import com.nickanderssohn.todolist.jooq.tables.SharedWith
+import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.TodoList
+import com.nickanderssohn.todolist.jooq.tables.records.AppUserRecord
+import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
+import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
@@ -19,22 +19,22 @@ import org.jooq.TableField
 
 public class AppUserBuilder(
   private val graph: RecordGraph,
-) : RecordBuilder<UserRecord>(table = UserTable.APP_USER, parentNode = null, parentFkField = null, recordGraph = graph) {
+) : RecordBuilder<AppUserRecord>(table = AppUser.APP_USER, parentNode = null, parentFkField = null, recordGraph = graph) {
   public var name: String? = null
 
   public var email: String? = null
 
   private val childBlocks: MutableList<(RecordNode) -> Unit> = mutableListOf()
 
-  override fun buildRecord(): UserRecord {
-    val record = UserRecord()
-    record.set(UserTable.APP_USER.NAME, name)
-    record.set(UserTable.APP_USER.EMAIL, email)
+  override fun buildRecord(): AppUserRecord {
+    val record = AppUserRecord()
+    name?.let { record.set(AppUser.APP_USER.NAME, it) }
+    email?.let { record.set(AppUser.APP_USER.EMAIL, it) }
     return record
   }
 
   public fun user(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkField = SharedWithTable.SHARED_WITH.USER_ID)
+    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkField = SharedWith.SHARED_WITH.USER_ID)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -74,16 +74,16 @@ public class AppUserBuilder(
 }
 
 public class AppUserResult(
-  internal val record: UserRecord,
+  internal val record: AppUserRecord,
 ) {
   public val id: Long?
-    get() = record.get(UserTable.APP_USER.ID)
+    get() = record.get(AppUser.APP_USER.ID)
 
   public val name: String?
-    get() = record.get(UserTable.APP_USER.NAME)
+    get() = record.get(AppUser.APP_USER.NAME)
 
   public val email: String?
-    get() = record.get(UserTable.APP_USER.EMAIL)
+    get() = record.get(AppUser.APP_USER.EMAIL)
 }
 
 public fun DslScope.appUser(block: AppUserBuilder.() -> Unit): AppUserResult {
@@ -91,6 +91,6 @@ public fun DslScope.appUser(block: AppUserBuilder.() -> Unit): AppUserResult {
   builder.block()
   val node = builder.buildWithChildren()
   recordGraph.addRootNode(node)
-  val result = AppUserResult(node.record as UserRecord)
+  val result = AppUserResult(node.record as AppUserRecord)
   return result
 }

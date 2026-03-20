@@ -4,8 +4,8 @@ import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
 import com.nickanderssohn.declarativejooq.RecordNode
-import com.nickanderssohn.todolist.jooq.SharedWithRecord
-import com.nickanderssohn.todolist.jooq.SharedWithTable
+import com.nickanderssohn.todolist.jooq.tables.SharedWith
+import com.nickanderssohn.todolist.jooq.tables.records.SharedWithRecord
 import kotlin.Boolean
 import kotlin.Long
 import kotlin.Unit
@@ -17,7 +17,7 @@ public class SharedWithBuilder(
   parentNode: RecordNode?,
   parentFkField: TableField<*, *>?,
   isSelfReferential: Boolean = false,
-) : RecordBuilder<SharedWithRecord>(table = SharedWithTable.SHARED_WITH, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<SharedWithRecord>(table = SharedWith.SHARED_WITH, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var todoListId: Long? = null
 
   public var userId: Long? = null
@@ -26,7 +26,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWithTable.SHARED_WITH.TODO_LIST_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWith.SHARED_WITH.TODO_LIST_ID as TableField<*, *>, value.record))
       }
     }
 
@@ -34,7 +34,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWithTable.SHARED_WITH.USER_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>, value.record))
       }
     }
 
@@ -42,8 +42,8 @@ public class SharedWithBuilder(
 
   override fun buildRecord(): SharedWithRecord {
     val record = SharedWithRecord()
-    record.set(SharedWithTable.SHARED_WITH.TODO_LIST_ID, todoListId)
-    record.set(SharedWithTable.SHARED_WITH.USER_ID, userId)
+    todoListId?.let { record.set(SharedWith.SHARED_WITH.TODO_LIST_ID, it) }
+    userId?.let { record.set(SharedWith.SHARED_WITH.USER_ID, it) }
     return record
   }
 
@@ -58,11 +58,11 @@ public class SharedWithResult(
   internal val record: SharedWithRecord,
 ) {
   public val id: Long?
-    get() = record.get(SharedWithTable.SHARED_WITH.ID)
+    get() = record.get(SharedWith.SHARED_WITH.ID)
 
   public val todoListId: Long?
-    get() = record.get(SharedWithTable.SHARED_WITH.TODO_LIST_ID)
+    get() = record.get(SharedWith.SHARED_WITH.TODO_LIST_ID)
 
   public val userId: Long?
-    get() = record.get(SharedWithTable.SHARED_WITH.USER_ID)
+    get() = record.get(SharedWith.SHARED_WITH.USER_ID)
 }

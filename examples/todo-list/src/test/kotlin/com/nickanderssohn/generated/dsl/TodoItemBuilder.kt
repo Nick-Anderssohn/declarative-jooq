@@ -4,8 +4,9 @@ import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
 import com.nickanderssohn.declarativejooq.RecordNode
-import com.nickanderssohn.todolist.jooq.TodoItemRecord
-import com.nickanderssohn.todolist.jooq.TodoItemTable
+import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
+import java.time.LocalDateTime
 import kotlin.Boolean
 import kotlin.Long
 import kotlin.String
@@ -18,26 +19,28 @@ public class TodoItemBuilder(
   parentNode: RecordNode?,
   parentFkField: TableField<*, *>?,
   isSelfReferential: Boolean = false,
-) : RecordBuilder<TodoItemRecord>(table = TodoItemTable.TODO_ITEM, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<TodoItemRecord>(table = TodoItem.TODO_ITEM, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var todoListId: Long? = null
 
   public var title: String? = null
 
   public var completed: Boolean? = null
 
-  public var todoList: TodoListResult? = null
-    set(`value`) {
-      field = value
-      if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItemTable.TODO_ITEM.TODO_LIST_ID as TableField<*, *>, value.record))
-      }
-    }
+  public var createdAt: LocalDateTime? = null
 
   public var createdBy: AppUserResult? = null
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItemTable.TODO_ITEM.CREATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItem.TODO_ITEM.CREATED_BY as TableField<*, *>, value.record))
+      }
+    }
+
+  public var todoList: TodoListResult? = null
+    set(`value`) {
+      field = value
+      if (value != null) {
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItem.TODO_ITEM.TODO_LIST_ID as TableField<*, *>, value.record))
       }
     }
 
@@ -45,7 +48,7 @@ public class TodoItemBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItemTable.TODO_ITEM.UPDATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItem.TODO_ITEM.UPDATED_BY as TableField<*, *>, value.record))
       }
     }
 
@@ -53,9 +56,10 @@ public class TodoItemBuilder(
 
   override fun buildRecord(): TodoItemRecord {
     val record = TodoItemRecord()
-    record.set(TodoItemTable.TODO_ITEM.TODO_LIST_ID, todoListId)
-    record.set(TodoItemTable.TODO_ITEM.TITLE, title)
-    record.set(TodoItemTable.TODO_ITEM.COMPLETED, completed)
+    todoListId?.let { record.set(TodoItem.TODO_ITEM.TODO_LIST_ID, it) }
+    title?.let { record.set(TodoItem.TODO_ITEM.TITLE, it) }
+    completed?.let { record.set(TodoItem.TODO_ITEM.COMPLETED, it) }
+    createdAt?.let { record.set(TodoItem.TODO_ITEM.CREATED_AT, it) }
     return record
   }
 
@@ -70,20 +74,23 @@ public class TodoItemResult(
   internal val record: TodoItemRecord,
 ) {
   public val id: Long?
-    get() = record.get(TodoItemTable.TODO_ITEM.ID)
+    get() = record.get(TodoItem.TODO_ITEM.ID)
 
   public val todoListId: Long?
-    get() = record.get(TodoItemTable.TODO_ITEM.TODO_LIST_ID)
+    get() = record.get(TodoItem.TODO_ITEM.TODO_LIST_ID)
 
   public val title: String?
-    get() = record.get(TodoItemTable.TODO_ITEM.TITLE)
+    get() = record.get(TodoItem.TODO_ITEM.TITLE)
 
   public val completed: Boolean?
-    get() = record.get(TodoItemTable.TODO_ITEM.COMPLETED)
+    get() = record.get(TodoItem.TODO_ITEM.COMPLETED)
 
   public val createdBy: Long?
-    get() = record.get(TodoItemTable.TODO_ITEM.CREATED_BY)
+    get() = record.get(TodoItem.TODO_ITEM.CREATED_BY)
 
   public val updatedBy: Long?
-    get() = record.get(TodoItemTable.TODO_ITEM.UPDATED_BY)
+    get() = record.get(TodoItem.TODO_ITEM.UPDATED_BY)
+
+  public val createdAt: LocalDateTime?
+    get() = record.get(TodoItem.TODO_ITEM.CREATED_AT)
 }

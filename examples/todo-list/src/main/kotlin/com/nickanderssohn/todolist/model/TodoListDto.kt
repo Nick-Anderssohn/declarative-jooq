@@ -1,7 +1,7 @@
 package com.nickanderssohn.todolist.model
 
-import com.nickanderssohn.todolist.jooq.TodoItemRecord
-import com.nickanderssohn.todolist.jooq.TodoListRecord
+import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
+import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
 
 data class TodoListDto(
     val id: Long?,

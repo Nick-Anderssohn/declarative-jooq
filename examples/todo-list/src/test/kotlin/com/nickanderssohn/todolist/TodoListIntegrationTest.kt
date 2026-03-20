@@ -6,12 +6,12 @@ import com.nickanderssohn.todolist.controller.CreateTodoItemRequest
 import com.nickanderssohn.todolist.controller.CreateTodoListRequest
 import com.nickanderssohn.todolist.controller.CreateUserRequest
 import com.nickanderssohn.todolist.controller.ShareTodoListRequest
-import com.nickanderssohn.todolist.jooq.SharedWithTable.Companion.SHARED_WITH
-import com.nickanderssohn.todolist.jooq.TodoItemTable
-import com.nickanderssohn.todolist.jooq.TodoItemTable.Companion.TODO_ITEM
-import com.nickanderssohn.todolist.jooq.TodoListTable
-import com.nickanderssohn.todolist.jooq.TodoListTable.Companion.TODO_LIST
-import com.nickanderssohn.todolist.jooq.UserTable.Companion.APP_USER
+import com.nickanderssohn.todolist.jooq.tables.AppUser.Companion.APP_USER
+import com.nickanderssohn.todolist.jooq.tables.SharedWith.Companion.SHARED_WITH
+import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.TodoItem.Companion.TODO_ITEM
+import com.nickanderssohn.todolist.jooq.tables.TodoList
+import com.nickanderssohn.todolist.jooq.tables.TodoList.Companion.TODO_LIST
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -67,7 +67,7 @@ class TodoListIntegrationTest {
             appUser {
                 name = "Seed User"
                 email = "seed@example.com"
-                todoList(TodoListTable.TODO_LIST.CREATED_BY) {
+                todoList(TodoList.TODO_LIST.CREATED_BY) {
                     title = "Groceries"
                     description = "Weekly shopping"
                     todoItem {
@@ -100,7 +100,7 @@ class TodoListIntegrationTest {
         }
 
         // Verify DslResult records
-        val todoListRecords = result.records<com.nickanderssohn.todolist.jooq.TodoListRecord>("todo_list")
+        val todoListRecords = result.records<com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord>("todo_list")
         assertEquals(1, todoListRecords.size, "DslResult should show 1 root todo_list")
     }
 
@@ -155,7 +155,7 @@ class TodoListIntegrationTest {
             appUser {
                 name = "Seed User"
                 email = "seed@example.com"
-                todoList(TodoListTable.TODO_LIST.CREATED_BY) {
+                todoList(TodoList.TODO_LIST.CREATED_BY) {
                     title = "Work Tasks"
                     todoItem {
                         title = "Write tests"
@@ -206,12 +206,12 @@ class TodoListIntegrationTest {
             appUser {
                 name = "Alice"
                 email = "alice@example.com"
-                val myList = todoList(TodoListTable.TODO_LIST.CREATED_BY) {
+                val myList = todoList(TodoList.TODO_LIST.CREATED_BY) {
                     title = "Alice's List"
                     description = "Test list"
                     updatedBy = bob
                 }
-                todoItem(TodoItemTable.TODO_ITEM.CREATED_BY) {
+                todoItem(TodoItem.TODO_ITEM.CREATED_BY) {
                     title = "Alice's Item"
                     updatedBy = bob
                     todoList = myList
@@ -261,10 +261,10 @@ class TodoListIntegrationTest {
             appUser {
                 name = "Alice"
                 email = "alice@example.com"
-                todoList(TodoListTable.TODO_LIST.CREATED_BY) {
+                todoList(TodoList.TODO_LIST.CREATED_BY) {
                     title = "List One"
                 }
-                todoList(TodoListTable.TODO_LIST.CREATED_BY) {
+                todoList(TodoList.TODO_LIST.CREATED_BY) {
                     title = "List Two"
                 }
             }
@@ -295,7 +295,7 @@ class TodoListIntegrationTest {
             appUser {
                 name = "Owner"
                 email = "owner@example.com"
-                todoList(TodoListTable.TODO_LIST.CREATED_BY) {
+                todoList(TodoList.TODO_LIST.CREATED_BY) {
                     title = "Shared List"
                     sharedWith {
                         user = alice

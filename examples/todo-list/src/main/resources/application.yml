@@ -4,6 +4,6 @@ spring:
     username: postgres
     password: postgres
   flyway:
-    enabled: true
+    enabled: false
   jooq:
     sql-dialect: POSTGRES

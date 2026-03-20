@@ -4,10 +4,11 @@ import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
 import com.nickanderssohn.declarativejooq.RecordNode
-import com.nickanderssohn.todolist.jooq.SharedWithTable
-import com.nickanderssohn.todolist.jooq.TodoItemTable
-import com.nickanderssohn.todolist.jooq.TodoListRecord
-import com.nickanderssohn.todolist.jooq.TodoListTable
+import com.nickanderssohn.todolist.jooq.tables.SharedWith
+import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.TodoList
+import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
+import java.time.LocalDateTime
 import kotlin.Boolean
 import kotlin.Long
 import kotlin.String
@@ -20,16 +21,18 @@ public class TodoListBuilder(
   parentNode: RecordNode?,
   parentFkField: TableField<*, *>?,
   isSelfReferential: Boolean = false,
-) : RecordBuilder<TodoListRecord>(table = TodoListTable.TODO_LIST, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<TodoListRecord>(table = TodoList.TODO_LIST, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var title: String? = null
 
   public var description: String? = null
+
+  public var createdAt: LocalDateTime? = null
 
   public var createdBy: AppUserResult? = null
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoListTable.TODO_LIST.CREATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoList.TODO_LIST.CREATED_BY as TableField<*, *>, value.record))
       }
     }
 
@@ -37,7 +40,7 @@ public class TodoListBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoListTable.TODO_LIST.UPDATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoList.TODO_LIST.UPDATED_BY as TableField<*, *>, value.record))
       }
     }
 
@@ -45,13 +48,14 @@ public class TodoListBuilder(
 
   override fun buildRecord(): TodoListRecord {
     val record = TodoListRecord()
-    record.set(TodoListTable.TODO_LIST.TITLE, title)
-    record.set(TodoListTable.TODO_LIST.DESCRIPTION, description)
+    title?.let { record.set(TodoList.TODO_LIST.TITLE, it) }
+    description?.let { record.set(TodoList.TODO_LIST.DESCRIPTION, it) }
+    createdAt?.let { record.set(TodoList.TODO_LIST.CREATED_AT, it) }
     return record
   }
 
   public fun sharedWith(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = SharedWithTable.SHARED_WITH.TODO_LIST_ID)
+    val builder = SharedWithBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = SharedWith.SHARED_WITH.TODO_LIST_ID)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -62,7 +66,7 @@ public class TodoListBuilder(
   }
 
   public fun todoItem(block: TodoItemBuilder.() -> Unit): TodoItemResult {
-    val builder = TodoItemBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = TodoItemTable.TODO_ITEM.TODO_LIST_ID)
+    val builder = TodoItemBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = TodoItem.TODO_ITEM.TODO_LIST_ID)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -83,17 +87,20 @@ public class TodoListResult(
   internal val record: TodoListRecord,
 ) {
   public val id: Long?
-    get() = record.get(TodoListTable.TODO_LIST.ID)
+    get() = record.get(TodoList.TODO_LIST.ID)
 
   public val title: String?
-    get() = record.get(TodoListTable.TODO_LIST.TITLE)
+    get() = record.get(TodoList.TODO_LIST.TITLE)
 
   public val description: String?
-    get() = record.get(TodoListTable.TODO_LIST.DESCRIPTION)
+    get() = record.get(TodoList.TODO_LIST.DESCRIPTION)
 
   public val createdBy: Long?
-    get() = record.get(TodoListTable.TODO_LIST.CREATED_BY)
+    get() = record.get(TodoList.TODO_LIST.CREATED_BY)
 
   public val updatedBy: Long?
-    get() = record.get(TodoListTable.TODO_LIST.UPDATED_BY)
+    get() = record.get(TodoList.TODO_LIST.UPDATED_BY)
+
+  public val createdAt: LocalDateTime?
+    get() = record.get(TodoList.TODO_LIST.CREATED_AT)
 }

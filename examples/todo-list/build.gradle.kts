@@ -1,11 +1,19 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+buildscript {
+    dependencies {
+        classpath("org.flywaydb:flyway-database-postgresql:10.20.1")
+    }
+}
+
 plugins {
     kotlin("jvm") version "2.1.20"
     kotlin("plugin.spring") version "2.1.20"
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.nickanderssohn.declarative-jooq") version "1.0.0"
+    id("org.flywaydb.flyway") version "10.20.1"
+    id("nu.studer.jooq") version "10.2.1"
 }
 
 group = "com.nickanderssohn"
@@ -20,6 +28,12 @@ kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
         freeCompilerArgs.add("-Xjsr305=strict")
+    }
+}
+
+sourceSets {
+    main {
+        kotlin.srcDir("src/generated/jooq")
     }
 }
 
@@ -41,6 +55,9 @@ dependencies {
     // Jackson for Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    // jOOQ code generation needs the PostgreSQL driver
+    jooqGenerator("org.postgresql:postgresql:42.7.4")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:testcontainers:1.20.6")
     testImplementation("org.testcontainers:postgresql:1.20.6")
@@ -48,21 +65,51 @@ dependencies {
     testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.0.0")
 }
 
+flyway {
+    url = "jdbc:postgresql://localhost:5432/todolist"
+    user = "postgres"
+    password = "postgres"
+}
+
+jooq {
+    version.set("3.19.19")
+    configurations {
+        create("main") {
+            generateSchemaSourceOnCompilation.set(false)
+            jooqConfiguration.apply {
+                jdbc.apply {
+                    driver = "org.postgresql.Driver"
+                    url = "jdbc:postgresql://localhost:5432/todolist"
+                    user = "postgres"
+                    password = "postgres"
+                }
+                generator.apply {
+                    name = "org.jooq.codegen.KotlinGenerator"
+                    database.apply {
+                        name = "org.jooq.meta.postgres.PostgresDatabase"
+                        inputSchema = "public"
+                        excludes = "flyway_schema_history"
+                    }
+                    generate.apply {
+                        isDeprecated = false
+                        isRecords = true
+                        isFluentSetters = true
+                    }
+                    target.apply {
+                        packageName = "com.nickanderssohn.todolist.jooq"
+                        directory = "${project.projectDir}/src/generated/jooq"
+                    }
+                }
+            }
+        }
+    }
+}
+
 declarativeJooq {
-    // Where the compiled application classes live; the plugin scans these to find jOOQ table classes.
     classesDir.set(layout.buildDirectory.dir("classes/kotlin/main"))
-
-    // Root package for the generated DSL files.
     outputPackage.set("com.nickanderssohn.generated.dsl")
-
-    // Only generate DSL for classes whose package matches this prefix (filters out unrelated tables).
-    packageFilter.set("com.nickanderssohn.todolist.jooq")
-
-    // If we want the generated code to live in source control, rather than only exist in the build,
-    // then you can use outputDir. If you omit this, then the generated classes will only exist in the build dir.
+    packageFilter.set("com.nickanderssohn.todolist.jooq.tables")
     outputDir.set(layout.projectDirectory.dir("src/test/kotlin"))
-
-    // We want the generated code to live with test classes. Shouldn't exist in the production jar.
     sourceSet.set("test")
 }
 

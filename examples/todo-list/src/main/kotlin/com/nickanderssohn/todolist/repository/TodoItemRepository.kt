@@ -1,7 +1,7 @@
 package com.nickanderssohn.todolist.repository
 
-import com.nickanderssohn.todolist.jooq.TodoItemRecord
-import com.nickanderssohn.todolist.jooq.TodoItemTable.Companion.TODO_ITEM
+import com.nickanderssohn.todolist.jooq.tables.TodoItem.Companion.TODO_ITEM
+import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
 
