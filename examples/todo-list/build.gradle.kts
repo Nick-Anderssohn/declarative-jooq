@@ -11,13 +11,13 @@ plugins {
     kotlin("plugin.spring") version "2.1.20"
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.nickanderssohn.declarative-jooq") version "1.0.0"
+    id("com.nickanderssohn.declarative-jooq") version "1.0.1"
     id("org.flywaydb.flyway") version "10.20.1"
     id("nu.studer.jooq") version "10.2.1"
 }
 
 group = "com.nickanderssohn"
-version = "1.0.0"
+version = "1.0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -62,7 +62,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.20.6")
     testImplementation("org.testcontainers:postgresql:1.20.6")
     testImplementation("org.testcontainers:junit-jupiter:1.20.6")
-    testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.0.0")
+    testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.0.1")
 }
 
 flyway {
