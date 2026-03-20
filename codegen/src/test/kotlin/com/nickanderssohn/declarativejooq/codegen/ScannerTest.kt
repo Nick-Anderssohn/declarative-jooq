@@ -45,7 +45,15 @@ class ScannerTest {
             names.contains("com.nickanderssohn.declarativejooq.MilestoneTable"),
             "Expected MilestoneTable but got: $names"
         )
-        assertEquals(6, names.size, "Expected exactly 6 table classes but got: $names")
+        assertTrue(
+            names.contains("com.nickanderssohn.declarativejooq.DocTable"),
+            "Expected DocTable but got: $names"
+        )
+        assertTrue(
+            names.contains("com.nickanderssohn.declarativejooq.DocRevisionTable"),
+            "Expected DocRevisionTable but got: $names"
+        )
+        assertEquals(8, names.size, "Expected exactly 8 table classes but got: $names")
     }
 
     @Test
@@ -68,7 +76,7 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        assertEquals(6, tables.size, "Expected 6 tables (organization, user, category, task, Project, milestone)")
+        assertEquals(8, tables.size, "Expected 8 tables including doc and doc_revision")
 
         val org = tables.find { it.tableName == "organization" }
             ?: fail("organization table not found")
@@ -214,6 +222,25 @@ class ScannerTest {
         // -> use child table name "Project" -> camelCase "project"
         assertEquals("project", fk.builderFunctionName,
             "FK to organization via OrganizationId (NAME-01): should use child table name 'project'")
+    }
+
+    @Test
+    fun compositeOutboundFkHasOrderedChildFieldExpressions() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val rev = tables.find { it.tableName == "doc_revision" }
+            ?: fail("doc_revision table not found")
+        assertEquals(1, rev.outboundFKs.size, "doc_revision should have one outbound FK")
+        val fk = rev.outboundFKs[0]
+        assertEquals(2, fk.childFieldExpressions.size)
+        val fkColumnOrder = fk.childFieldExpressions.map { expr ->
+            rev.columns.find { it.tableFieldRefExpression == expr }?.columnName
+                ?: error("no column IR for $expr")
+        }
+        assertEquals(listOf("org_id", "doc_id"), fkColumnOrder)
+        assertEquals("doc", fk.parentTableName)
     }
 
     @Test

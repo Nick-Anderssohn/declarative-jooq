@@ -9,15 +9,16 @@ import com.nickanderssohn.todolist.jooq.SharedWithTable
 import kotlin.Boolean
 import kotlin.Long
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class SharedWithBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
-  parentFkField: TableField<*, *>?,
+  parentFkFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<SharedWithRecord>(table = SharedWithTable.SHARED_WITH, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<SharedWithRecord>(table = SharedWithTable.SHARED_WITH, parentNode = parentNode, parentFkFields = parentFkFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var todoListId: Long? = null
 
   public var userId: Long? = null
@@ -26,7 +27,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWithTable.SHARED_WITH.TODO_LIST_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWithTable.SHARED_WITH.TODO_LIST_ID as TableField<*, *>), value.record))
       }
     }
 
@@ -34,7 +35,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWithTable.SHARED_WITH.USER_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWithTable.SHARED_WITH.USER_ID as TableField<*, *>), value.record))
       }
     }
 

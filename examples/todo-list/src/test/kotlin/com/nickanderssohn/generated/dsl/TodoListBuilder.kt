@@ -12,15 +12,16 @@ import kotlin.Boolean
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class TodoListBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
-  parentFkField: TableField<*, *>?,
+  parentFkFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<TodoListRecord>(table = TodoListTable.TODO_LIST, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<TodoListRecord>(table = TodoListTable.TODO_LIST, parentNode = parentNode, parentFkFields = parentFkFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var title: String? = null
 
   public var description: String? = null
@@ -29,7 +30,7 @@ public class TodoListBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoListTable.TODO_LIST.CREATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoListTable.TODO_LIST.CREATED_BY as TableField<*, *>), value.record))
       }
     }
 
@@ -37,7 +38,7 @@ public class TodoListBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoListTable.TODO_LIST.UPDATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoListTable.TODO_LIST.UPDATED_BY as TableField<*, *>), value.record))
       }
     }
 
@@ -51,7 +52,7 @@ public class TodoListBuilder(
   }
 
   public fun sharedWith(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = SharedWithTable.SHARED_WITH.TODO_LIST_ID)
+    val builder = SharedWithBuilder(recordGraph = recordGraph, parentNode = null, parentFkFields = listOf(SharedWithTable.SHARED_WITH.TODO_LIST_ID as TableField<*, *>))
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -62,7 +63,7 @@ public class TodoListBuilder(
   }
 
   public fun todoItem(block: TodoItemBuilder.() -> Unit): TodoItemResult {
-    val builder = TodoItemBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = TodoItemTable.TODO_ITEM.TODO_LIST_ID)
+    val builder = TodoItemBuilder(recordGraph = recordGraph, parentNode = null, parentFkFields = listOf(TodoItemTable.TODO_ITEM.TODO_LIST_ID as TableField<*, *>))
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->

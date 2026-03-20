@@ -14,12 +14,13 @@ import com.nickanderssohn.todolist.jooq.UserTable
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class AppUserBuilder(
   private val graph: RecordGraph,
-) : RecordBuilder<UserRecord>(table = UserTable.APP_USER, parentNode = null, parentFkField = null, recordGraph = graph) {
+) : RecordBuilder<UserRecord>(table = UserTable.APP_USER, parentNode = null, parentFkFields = emptyList(), recordGraph = graph) {
   public var name: String? = null
 
   public var email: String? = null
@@ -34,7 +35,7 @@ public class AppUserBuilder(
   }
 
   public fun user(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkField = SharedWithTable.SHARED_WITH.USER_ID)
+    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkFields = listOf(SharedWithTable.SHARED_WITH.USER_ID as TableField<*, *>))
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -45,7 +46,12 @@ public class AppUserBuilder(
   }
 
   public fun todoItem(fkField: TableField<TodoItemRecord, *>, block: TodoItemBuilder.() -> Unit): TodoItemResult {
-    val builder = TodoItemBuilder(recordGraph = graph, parentNode = null, parentFkField = fkField)
+    val parentFkFields = when (fkField) {
+      TodoItemTable.TODO_ITEM.CREATED_BY -> listOf(TodoItemTable.TODO_ITEM.CREATED_BY as TableField<*, *>)
+      TodoItemTable.TODO_ITEM.UPDATED_BY -> listOf(TodoItemTable.TODO_ITEM.UPDATED_BY as TableField<*, *>)
+      else -> throw IllegalArgumentException("Unknown FK field: " + fkField)
+    }
+    val builder = TodoItemBuilder(recordGraph = graph, parentNode = null, parentFkFields = parentFkFields)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -56,7 +62,12 @@ public class AppUserBuilder(
   }
 
   public fun todoList(fkField: TableField<TodoListRecord, *>, block: TodoListBuilder.() -> Unit): TodoListResult {
-    val builder = TodoListBuilder(recordGraph = graph, parentNode = null, parentFkField = fkField)
+    val parentFkFields = when (fkField) {
+      TodoListTable.TODO_LIST.CREATED_BY -> listOf(TodoListTable.TODO_LIST.CREATED_BY as TableField<*, *>)
+      TodoListTable.TODO_LIST.UPDATED_BY -> listOf(TodoListTable.TODO_LIST.UPDATED_BY as TableField<*, *>)
+      else -> throw IllegalArgumentException("Unknown FK field: " + fkField)
+    }
+    val builder = TodoListBuilder(recordGraph = graph, parentNode = null, parentFkFields = parentFkFields)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->

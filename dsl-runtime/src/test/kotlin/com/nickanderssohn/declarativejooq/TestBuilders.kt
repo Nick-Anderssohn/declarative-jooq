@@ -1,5 +1,7 @@
 package com.nickanderssohn.declarativejooq
 
+import org.jooq.TableField
+
 /**
  * Hand-written DSL builders that simulate what Phase 2 codegen will produce.
  *
@@ -14,7 +16,7 @@ class OrganizationBuilder(
 ) : RecordBuilder<OrganizationRecord>(
     table = OrganizationTable.ORGANIZATION,
     parentNode = null,
-    parentFkField = null,
+    parentFkFields = emptyList(),
     recordGraph = graph
 ) {
     var name: String? = null
@@ -37,7 +39,7 @@ class OrganizationBuilder(
             val builder = UserBuilder(
                 recordGraph = graph,
                 parentNode = parentNode,
-                parentFkField = UserTable.USER.ORGANIZATION_ID
+                parentFkFields = listOf(UserTable.USER.ORGANIZATION_ID)
             )
             builder.block()
             builder.build()
@@ -61,11 +63,11 @@ class OrganizationBuilder(
 class UserBuilder(
     recordGraph: RecordGraph,
     parentNode: RecordNode,
-    parentFkField: org.jooq.TableField<*, *>
+    parentFkFields: List<TableField<*, *>>
 ) : RecordBuilder<UserRecord>(
     table = UserTable.USER,
     parentNode = parentNode,
-    parentFkField = parentFkField,
+    parentFkFields = parentFkFields,
     recordGraph = recordGraph
 ) {
     var name: String? = null
@@ -87,6 +89,78 @@ class UserBuilder(
  */
 fun DslScope.organization(block: OrganizationBuilder.() -> Unit) {
     val builder = OrganizationBuilder(recordGraph)
+    builder.block()
+    val node = builder.buildWithChildren()
+    recordGraph.addRootNode(node)
+}
+
+// ---------------------------------------------------------------------------
+// Composite FK sample: doc (org_id, doc_id) <- doc_revision(org_id, doc_id)
+// ---------------------------------------------------------------------------
+
+class DocumentBuilder(
+    private val graph: RecordGraph
+) : RecordBuilder<DocRecord>(
+    table = DocTable.DOC,
+    parentNode = null,
+    parentFkFields = emptyList(),
+    recordGraph = graph
+) {
+    var orgId: Long? = null
+    var title: String? = null
+
+    private val childBlocks = mutableListOf<(RecordNode) -> Unit>()
+
+    override fun buildRecord(): DocRecord {
+        val record = DocRecord()
+        record.set(DocTable.DOC.ORG_ID, orgId)
+        record.set(DocTable.DOC.TITLE, title)
+        return record
+    }
+
+    fun revision(block: RevisionBuilder.() -> Unit) {
+        childBlocks.add { parentNode ->
+            val builder = RevisionBuilder(
+                recordGraph = graph,
+                parentNode = parentNode,
+                parentFkFields = listOf(
+                    DocRevisionTable.DOC_REVISION.ORG_ID,
+                    DocRevisionTable.DOC_REVISION.DOC_ID
+                )
+            )
+            builder.block()
+            builder.build()
+        }
+    }
+
+    fun buildWithChildren(): RecordNode {
+        val node = build()
+        childBlocks.forEach { it(node) }
+        return node
+    }
+}
+
+class RevisionBuilder(
+    recordGraph: RecordGraph,
+    parentNode: RecordNode,
+    parentFkFields: List<TableField<*, *>>
+) : RecordBuilder<DocRevisionRecord>(
+    table = DocRevisionTable.DOC_REVISION,
+    parentNode = parentNode,
+    parentFkFields = parentFkFields,
+    recordGraph = recordGraph
+) {
+    var summary: String? = null
+
+    override fun buildRecord(): DocRevisionRecord {
+        val record = DocRevisionRecord()
+        record.set(DocRevisionTable.DOC_REVISION.SUMMARY, summary)
+        return record
+    }
+}
+
+fun DslScope.document(block: DocumentBuilder.() -> Unit) {
+    val builder = DocumentBuilder(recordGraph)
     builder.block()
     val node = builder.buildWithChildren()
     recordGraph.addRootNode(node)

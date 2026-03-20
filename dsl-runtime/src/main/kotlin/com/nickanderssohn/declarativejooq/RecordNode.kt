@@ -6,14 +6,16 @@ import org.jooq.UpdatableRecord
 
 data class PlaceholderRef(
     val targetNode: RecordNode,   // the node being referenced (the placeholder)
-    val fkField: TableField<*, *> // the FK field on THIS node's record that should receive the target's PK
+    /** Child-side FK columns in key order; values are taken from the target's primary key in order. */
+    val fkFields: List<TableField<*, *>>
 )
 
 class RecordNode(
     val table: Table<*>,
     val record: UpdatableRecord<*>,
     val parentNode: RecordNode?,
-    val parentFkField: TableField<*, *>?,
+    /** Child-side FK columns linking this node to parentNode; empty if not nested under a parent. */
+    val parentFkFields: List<TableField<*, *>>,
     val declarationIndex: Int,
     val isSelfReferential: Boolean = false
 ) {

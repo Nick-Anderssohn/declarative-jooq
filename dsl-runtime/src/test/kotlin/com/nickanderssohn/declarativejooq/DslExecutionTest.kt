@@ -34,6 +34,8 @@ class DslExecutionTest {
     @BeforeEach
     fun cleanTables() {
         // Delete child rows first to satisfy FK constraint
+        dslContext.deleteFrom(DocRevisionTable.DOC_REVISION).execute()
+        dslContext.deleteFrom(DocTable.DOC).execute()
         dslContext.deleteFrom(UserTable.USER).execute()
         dslContext.deleteFrom(OrganizationTable.ORGANIZATION).execute()
     }
@@ -67,6 +69,33 @@ class DslExecutionTest {
         val rows = dslContext.selectFrom(OrganizationTable.ORGANIZATION).fetch()
         assertEquals(1, rows.size, "Expected 1 organization row in DB")
         assertEquals("RootCorp", rows[0].get(OrganizationTable.ORGANIZATION.NAME))
+    }
+
+    // -----------------------------------------------------------------------
+    // Multi-column FK: child receives full composite parent key from context
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun testMultiColumnParentFk() {
+        DecDsl.execute(dslContext) {
+            document {
+                orgId = 7L
+                title = "Handbook"
+                revision { summary = "First draft" }
+            }
+        }
+
+        val docs = dslContext.selectFrom(DocTable.DOC).fetch()
+        assertEquals(1, docs.size)
+        assertEquals(7L, docs[0].get(DocTable.DOC.ORG_ID))
+        val docId = docs[0].get(DocTable.DOC.DOC_ID)
+        assertNotNull(docId)
+
+        val revs = dslContext.selectFrom(DocRevisionTable.DOC_REVISION).fetch()
+        assertEquals(1, revs.size)
+        assertEquals(7L, revs[0].get(DocRevisionTable.DOC_REVISION.ORG_ID))
+        assertEquals(docId, revs[0].get(DocRevisionTable.DOC_REVISION.DOC_ID))
+        assertEquals("First draft", revs[0].get(DocRevisionTable.DOC_REVISION.SUMMARY))
     }
 
     // -----------------------------------------------------------------------

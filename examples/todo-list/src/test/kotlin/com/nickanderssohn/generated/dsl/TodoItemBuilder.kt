@@ -10,15 +10,16 @@ import kotlin.Boolean
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class TodoItemBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
-  parentFkField: TableField<*, *>?,
+  parentFkFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<TodoItemRecord>(table = TodoItemTable.TODO_ITEM, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<TodoItemRecord>(table = TodoItemTable.TODO_ITEM, parentNode = parentNode, parentFkFields = parentFkFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var todoListId: Long? = null
 
   public var title: String? = null
@@ -29,7 +30,7 @@ public class TodoItemBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItemTable.TODO_ITEM.TODO_LIST_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoItemTable.TODO_ITEM.TODO_LIST_ID as TableField<*, *>), value.record))
       }
     }
 
@@ -37,7 +38,7 @@ public class TodoItemBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItemTable.TODO_ITEM.CREATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoItemTable.TODO_ITEM.CREATED_BY as TableField<*, *>), value.record))
       }
     }
 
@@ -45,7 +46,7 @@ public class TodoItemBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoItemTable.TODO_ITEM.UPDATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoItemTable.TODO_ITEM.UPDATED_BY as TableField<*, *>), value.record))
       }
     }
 

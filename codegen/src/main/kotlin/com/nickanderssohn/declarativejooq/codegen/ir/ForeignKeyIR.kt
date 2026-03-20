@@ -3,7 +3,8 @@ package com.nickanderssohn.declarativejooq.codegen.ir
 data class ForeignKeyIR(
     val fkName: String,                      // "fk_user_organization"
     val childTableName: String,              // "user"
-    val childFieldExpression: String,        // "UserTable.USER.ORGANIZATION_ID"
+    /** Child-side FK columns in key order (length 1 for single-column FKs). */
+    val childFieldExpressions: List<String>, // e.g. listOf("UserTable.USER.ORGANIZATION_ID")
     val parentTableName: String,             // "organization"
     val parentBuilderClassName: String,      // "OrganizationBuilder"
     val parentResultClassName: String,       // "OrganizationResult"
