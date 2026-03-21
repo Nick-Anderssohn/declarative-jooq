@@ -39,28 +39,20 @@ object NamingConventions {
         // PASCAL_CASE or CAMEL_CASE: split on camelCase boundaries
         // Strategy: insert boundary before each uppercase letter that follows a lowercase letter,
         // or before an uppercase letter followed by a lowercase letter (handles "XMLParser" -> "XML", "Parser")
-        val words = mutableListOf<String>()
-        val current = StringBuilder()
+        return name
+            .foldIndexed(mutableListOf(StringBuilder())) { i, words, c ->
+                val isUpper = c.isUpperCase()
+                val prevIsLower = i > 0 && name[i - 1].isLowerCase()
+                val nextIsLower = i + 1 < name.length && name[i + 1].isLowerCase()
 
-        for (i in name.indices) {
-            val c = name[i]
-            val isUpper = c.isUpperCase()
-            val prevIsLower = i > 0 && name[i - 1].isLowerCase()
-            val nextIsLower = i + 1 < name.length && name[i + 1].isLowerCase()
-
-            if (isUpper && (prevIsLower || (nextIsLower && current.isNotEmpty()))) {
-                if (current.isNotEmpty()) {
-                    words.add(current.toString().lowercase())
-                    current.clear()
+                if (isUpper && (prevIsLower || (nextIsLower && words.last().isNotEmpty()))) {
+                    words.add(StringBuilder())
                 }
+                words.last().append(c)
+                words
             }
-            current.append(c)
-        }
-        if (current.isNotEmpty()) {
-            words.add(current.toString().lowercase())
-        }
-
-        return words.filter { it.isNotEmpty() }
+            .map { it.toString().lowercase() }
+            .filter { it.isNotEmpty() }
     }
 
     /**

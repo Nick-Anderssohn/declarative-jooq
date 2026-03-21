@@ -8,13 +8,11 @@ import org.jooq.UpdatableRecord
  */
 object ResultAssembler {
     fun assemble(allNodes: List<RecordNode>): DslResult {
-        val recordsByTable = LinkedHashMap<String, MutableList<UpdatableRecord<*>>>()
-        // Sort by declaration index to preserve DSL declaration order (DSL-08)
-        for (node in allNodes.sortedBy { it.declarationIndex }) {
-            recordsByTable
-                .getOrPut(node.table.name) { mutableListOf() }
-                .add(node.record as UpdatableRecord<*>)
-        }
+        val recordsByTable = allNodes
+            .sortedBy { it.declarationIndex }
+            .groupBy({ it.table.name }, { it.record as UpdatableRecord<*> })
+            .mapValuesTo(LinkedHashMap()) { (_, records) -> records.toMutableList() }
+
         return DslResult(recordsByTable)
     }
 }

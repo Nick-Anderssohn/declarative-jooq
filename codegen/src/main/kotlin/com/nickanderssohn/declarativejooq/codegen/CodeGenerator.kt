@@ -76,10 +76,9 @@ class CodeGenerator {
         val dslScopeEmitter = DslScopeEmitter()
         val dslResultEmitter = DslResultEmitter()
 
-        val result = mutableListOf<Pair<String, String>>()
         val tableByName = tables.associateBy { it.tableName }
 
-        for (table in tables) {
+        val tableFiles = tables.map { table ->
             val fileSpec = FileSpec.builder(outputPackage, table.builderClassName)
             fileSpec.addType(builderEmitter.emit(table, outputPackage))
             fileSpec.addType(resultEmitter.emit(table, outputPackage))
@@ -94,16 +93,15 @@ class CodeGenerator {
                 fileSpec.addImport("org.jooq", "TableField")
             }
             val built = fileSpec.build()
-            result.add(Pair("${table.builderClassName}.kt", built.toString()))
+            "${table.builderClassName}.kt" to built.toString()
         }
 
-        // GeneratedDslResult file
-        val dslResultSpec = FileSpec.builder(outputPackage, "GeneratedDslResult")
-        dslResultSpec.addType(dslResultEmitter.emit(tables, outputPackage))
-        val dslResultBuilt = dslResultSpec.build()
-        result.add(Pair("GeneratedDslResult.kt", dslResultBuilt.toString()))
+        val dslResultFile = FileSpec.builder(outputPackage, "GeneratedDslResult")
+            .apply { addType(dslResultEmitter.emit(tables, outputPackage)) }
+            .build()
+            .let { "GeneratedDslResult.kt" to it.toString() }
 
-        return result
+        return tableFiles + dslResultFile
     }
 
     /**

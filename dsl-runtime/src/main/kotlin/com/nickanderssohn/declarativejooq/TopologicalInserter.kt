@@ -21,12 +21,9 @@ class TopologicalInserter(private val dslContext: DSLContext) {
         val sortedTables = TopologicalSorter.sort(tableGraph)
 
         // Group nodes by table name, preserving declaration order within each group
-        val nodesByTable = LinkedHashMap<String, MutableList<RecordNode>>()
-        for (tableName in sortedTables) {
-            nodesByTable[tableName] = mutableListOf()
-        }
-        for (node in allNodes.sortedBy { it.declarationIndex }) {
-            nodesByTable[node.table.name]?.add(node)
+        val sortedNodes = allNodes.sortedBy { it.declarationIndex }
+        val nodesByTable = sortedTables.associateWithTo(LinkedHashMap()) { tableName ->
+            sortedNodes.filter { it.table.name == tableName }.toMutableList()
         }
 
         // Insert in topological order
@@ -86,19 +83,22 @@ class TopologicalInserter(private val dslContext: DSLContext) {
     }
 
     private fun buildTableGraph(nodes: List<RecordNode>, graph: RecordGraph): Map<String, Set<String>> {
-        val tableGraph = mutableMapOf<String, MutableSet<String>>()
-        for (node in nodes) {
-            tableGraph.getOrPut(node.table.name) { mutableSetOf() }
-            if (node.parentNode != null) {
-                tableGraph.getOrPut(node.table.name) { mutableSetOf() }
-                    .add(node.parentNode.table.name)
+        val parentEdges = nodes
+            .filter { it.parentNode != null }
+            .map { it.table.name to it.parentNode!!.table.name }
+
+        val placeholderEdges = graph.placeholderRefs
+            .map { (sourceNode, ref) -> sourceNode.table.name to ref.targetNode.table.name }
+
+        val allTableNames = nodes.map { it.table.name }.toSet()
+
+        return (parentEdges + placeholderEdges)
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, targets) -> targets.toSet() }
+            .let { edgeMap ->
+                allTableNames.associateWith { tableName ->
+                    edgeMap[tableName] ?: emptySet()
+                }
             }
-        }
-        // Add cross-tree placeholder edges
-        for ((sourceNode, ref) in graph.placeholderRefs) {
-            tableGraph.getOrPut(sourceNode.table.name) { mutableSetOf() }
-                .add(ref.targetNode.table.name)
-        }
-        return tableGraph
     }
 }

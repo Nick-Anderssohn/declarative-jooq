@@ -13,8 +13,12 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import org.jooq.impl.TableImpl
 import java.io.File
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.math.BigDecimal
 import java.net.URLClassLoader
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Reflectively inspects compiled jOOQ table classes to extract schema metadata (columns,
@@ -216,11 +220,9 @@ class MetadataExtractor {
 
         // Phase 3: cross-link inboundFKs
         val tableByName = tables.associateBy { it.tableName }
-        for (table in tables) {
-            for (fk in table.outboundFKs) {
-                tableByName[fk.parentTableName]?.inboundFKs?.add(fk)
-            }
-        }
+        tables
+            .flatMap { it.outboundFKs }
+            .forEach { fk -> tableByName[fk.parentTableName]?.inboundFKs?.add(fk) }
 
         return tables
     }
@@ -246,35 +248,34 @@ class MetadataExtractor {
      * This handles cases where the field name differs from the column name.
      */
     private fun buildFieldRefMap(tableClass: Class<*>, tableInstance: TableImpl<*>): Map<String, String> {
-        val result = mutableMapOf<String, String>()
         val tableFields = tableInstance.fields()
-        for (declaredField in tableClass.declaredFields) {
-            if (Modifier.isStatic(declaredField.modifiers)) continue
-            declaredField.isAccessible = true
-            try {
-                val value = declaredField.get(tableInstance)
-                if (value != null) {
-                    val matchingField = tableFields.find { it === value }
-                    if (matchingField != null) {
-                        result[matchingField.name] = declaredField.name
-                    }
-                }
-            } catch (_: Exception) {
-                // Skip fields that can't be accessed
+
+        return tableClass
+            .declaredFields
+            .asSequence()
+            .filterNot { Modifier.isStatic(it.modifiers) }
+            .onEach { it.isAccessible = true }
+            .mapNotNull { declaredField ->
+                declaredField
+                    .getOrNull(tableInstance)
+                    ?.let { value -> tableFields.find { it === value } }
+                    ?.let { matchingField -> matchingField.name to declaredField.name }
             }
-        }
-        return result
+            .toMap()
     }
+
+    private fun Field.getOrNull(obj: Any): Any? =
+        try { get(obj) } catch (_: Exception) { null }
 
     private fun mapJavaTypeToKotlinPoet(javaType: Class<*>): TypeName {
         return when (javaType) {
             java.lang.Long::class.java, Long::class.java -> LONG
-            java.lang.Integer::class.java, Int::class.java -> INT
+            Integer::class.java, Int::class.java -> INT
             java.lang.String::class.java -> STRING
             java.lang.Boolean::class.java, Boolean::class.java -> BOOLEAN
-            java.math.BigDecimal::class.java -> ClassName("java.math", "BigDecimal")
-            java.time.LocalDate::class.java -> ClassName("java.time", "LocalDate")
-            java.time.LocalDateTime::class.java -> ClassName("java.time", "LocalDateTime")
+            BigDecimal::class.java -> ClassName("java.math", "BigDecimal")
+            LocalDate::class.java -> ClassName("java.time", "LocalDate")
+            LocalDateTime::class.java -> ClassName("java.time", "LocalDateTime")
             else -> javaType.asTypeName()
         }
     }

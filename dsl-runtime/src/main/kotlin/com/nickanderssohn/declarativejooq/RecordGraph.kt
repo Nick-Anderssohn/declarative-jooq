@@ -36,12 +36,9 @@ class RecordGraph {
     fun nodeForRecord(record: UpdatableRecord<*>): RecordNode? = _nodeByRecord[record]
 
     fun allNodes(): List<RecordNode> {
-        val result = mutableListOf<RecordNode>()
-        fun collect(node: RecordNode) {
-            result.add(node)
-            node.children.forEach { collect(it) }
-        }
-        _rootNodes.forEach { collect(it) }
-        return result
+        fun RecordNode.collectAll(): List<RecordNode> =
+            listOf(this) + children.flatMap { it.collectAll() }
+
+        return _rootNodes.flatMap { it.collectAll() }
     }
 }
