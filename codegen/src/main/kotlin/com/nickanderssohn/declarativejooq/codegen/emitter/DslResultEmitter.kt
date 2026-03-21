@@ -39,15 +39,20 @@ class DslResultEmitter {
 
         // Accessor function for EVERY table (not just roots)
         for (table in tables) {
-            val recordClass = ClassName(table.recordSourcePackage, table.recordClassName)
+            val recordClass = ClassName(
+                table.recordSourcePackage,
+                table.recordClassName
+            )
             val resultClass = ClassName(outputPackage, table.resultClassName)
-            val returnType = listType.parameterizedBy(resultClass)
+            val returnType = listType
+                .parameterizedBy(resultClass)
 
             // pluralize by appending "s"
             val functionName = table.dslFunctionName + "s"
 
             classBuilder.addFunction(
-                FunSpec.builder(functionName)
+                FunSpec
+                    .builder(functionName)
                     .returns(returnType)
                     .addStatement(
                         "return result.records<%T>(%S).map { %T(it as %T) }",

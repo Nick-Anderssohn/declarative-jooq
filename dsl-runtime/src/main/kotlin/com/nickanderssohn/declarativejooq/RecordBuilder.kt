@@ -54,11 +54,19 @@ class RecordBuilder<R : UpdatableRecord<R>>(
         )
         recordGraph.registerNode(node)
         for (pending in pendingPlaceholderRefs) {
-            val targetNode = recordGraph.nodeForRecord(pending.targetRecord)
+            val targetNode = recordGraph
+                .nodeForRecord(pending.targetRecord)
                 ?: throw IllegalStateException(
                     "Placeholder target record not found in graph — was the placeholder created in the same execute block?"
                 )
-            recordGraph.addPlaceholderRef(node, PlaceholderRef(targetNode, pending.fkFields, pending.refFields))
+            recordGraph.addPlaceholderRef(
+                node,
+                PlaceholderRef(
+                    targetNode,
+                    pending.fkFields,
+                    pending.refFields
+                )
+            )
         }
         parentNode?.children?.add(node)
         return node

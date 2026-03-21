@@ -27,16 +27,22 @@ object TopologicalSorter {
             }
         }
 
-        val queue = ArrayDeque(inDegree.filter { it.value == 0 }.keys.sorted()) // sorted for determinism
+        val queue = inDegree
+            .filter { it.value == 0 }
+            .keys
+            .sorted()
+            .let { ArrayDeque(it) } // sorted for determinism
         val result = mutableListOf<String>()
 
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             result.add(current)
-            dependents[current]?.sorted()?.forEach { dependent ->
-                inDegree[dependent] = inDegree[dependent]!! - 1
-                if (inDegree[dependent] == 0) queue.add(dependent)
-            }
+            dependents[current]
+                ?.sorted()
+                ?.forEach { dependent ->
+                    inDegree[dependent] = inDegree[dependent]!! - 1
+                    if (inDegree[dependent] == 0) queue.add(dependent)
+                }
         }
 
         if (result.size != inDegree.size) {

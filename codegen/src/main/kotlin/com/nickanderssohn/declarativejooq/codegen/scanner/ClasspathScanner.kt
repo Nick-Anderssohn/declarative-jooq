@@ -16,11 +16,14 @@ class ClasspathScanner {
         if (packageFilter != null) {
             scanner.acceptPackages(packageFilter)
         }
-        return scanner.scan().use { scan ->
-            scan.getSubclasses("org.jooq.impl.TableImpl")
-                .filterNot { it.isAbstract || it.isInnerClass }
-                .map { it.name }
-        }
+        return scanner
+            .scan()
+            .use { scan ->
+                scan
+                    .getSubclasses("org.jooq.impl.TableImpl")
+                    .filterNot { it.isAbstract || it.isInnerClass }
+                    .map { it.name }
+            }
     }
 
     fun findRecordClassNames(classDir: File, packageFilter: String? = null): List<String> {
@@ -30,10 +33,13 @@ class ClasspathScanner {
         if (packageFilter != null) {
             scanner.acceptPackages(packageFilter)
         }
-        return scanner.scan().use { scan ->
-            scan.getSubclasses("org.jooq.impl.UpdatableRecordImpl")
-                .filterNot { it.isAbstract || it.isInnerClass }
-                .map { it.name }
-        }
+        return scanner
+            .scan()
+            .use { scan ->
+                scan
+                    .getSubclasses("org.jooq.impl.UpdatableRecordImpl")
+                    .filterNot { it.isAbstract || it.isInnerClass }
+                    .map { it.name }
+            }
     }
 }

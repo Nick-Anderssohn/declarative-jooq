@@ -5,3 +5,4 @@
 - Use `.asSequence()` for lazy evaluation when chaining multiple operations over collections.
 - Extract small extension functions for side concerns (e.g., error handling) to keep the main logic a clean, readable chain.
 - Use scope functions (`let`, `onEach`, etc.) to keep transformations inside the chain rather than breaking out into intermediate variables.
+- Use newlines liberally to aid readability. Each chained method call (`.forEach`, `.zip`, `.map`, etc.) should start on its own line. Multi-argument function calls should break each argument to its own line. Prefer vertical clarity over compact code.

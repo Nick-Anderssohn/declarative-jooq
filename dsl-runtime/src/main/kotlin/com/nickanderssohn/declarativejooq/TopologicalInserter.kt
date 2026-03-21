@@ -22,46 +22,55 @@ class TopologicalInserter(private val dslContext: DSLContext) {
 
         // Group nodes by table name, preserving declaration order within each group
         val sortedNodes = allNodes.sortedBy { it.declarationIndex }
-        val nodesByTable = sortedTables.associateWithTo(LinkedHashMap()) { tableName ->
-            sortedNodes.filter { it.table.name == tableName }.toMutableList()
-        }
 
         // Insert in topological order
-        for ((_, nodes) in nodesByTable) {
-            for (node in nodes) {
+        sortedTables
+            .flatMap { tableName ->
+                sortedNodes.filter { it.table.name == tableName }
+            }
+            .forEach { node ->
                 // Resolve FK from parent if applicable (skip self-referential on first pass)
                 if (node.parentNode != null && node.parentFkFields.isNotEmpty() && !node.isSelfReferential) {
                     resolveParentFk(node)
                 }
 
                 // Resolve placeholder FK references (overrides parent-context FK if same field)
-                for (ref in node.placeholderRefs) {
-                    for (i in ref.fkFields.indices) {
-                        val targetValue = ref.targetNode.record.get(ref.refFields[i])
-                            ?: throw IllegalStateException(
-                                "Placeholder target field is null — target must be inserted before referencing node. " +
-                                "Table: ${ref.targetNode.table.name}, FK field: ${ref.fkFields[i].name}"
-                            )
-                        @Suppress("UNCHECKED_CAST")
-                        (node.record as org.jooq.Record).set(
-                            ref.fkFields[i] as org.jooq.Field<Any?>,
-                            targetValue
-                        )
+                node
+                    .placeholderRefs
+                    .forEach { ref ->
+                        ref
+                            .fkFields
+                            .zip(ref.refFields)
+                            .forEach { (fkField, refField) ->
+                                val targetValue = ref
+                                    .targetNode
+                                    .record
+                                    .get(refField)
+                                    ?: throw IllegalStateException(
+                                        "Placeholder target field is null — target must be inserted before referencing node. " +
+                                                "Table: ${ref.targetNode.table.name}, FK field: ${fkField.name}"
+                                    )
+
+                                @Suppress("UNCHECKED_CAST")
+                                (node.record as org.jooq.Record).set(
+                                    fkField as org.jooq.Field<Any?>,
+                                    targetValue
+                                )
+                            }
                     }
-                }
 
                 // Attach to DSLContext and insert
                 node.record.attach(dslContext.configuration())
                 node.record.store()
             }
-        }
 
         // Second pass: update self-referential FK values now that all PKs are known
-        val selfRefNodes = allNodes.filter { it.isSelfReferential && it.parentNode != null }
-        for (node in selfRefNodes) {
-            resolveParentFk(node)
-            node.record.store()
-        }
+        allNodes
+            .filter { it.isSelfReferential && it.parentNode != null }
+            .forEach { node ->
+                resolveParentFk(node)
+                node.record.store()
+            }
 
         return ResultAssembler.assemble(allNodes)
     }
@@ -69,17 +78,23 @@ class TopologicalInserter(private val dslContext: DSLContext) {
     private fun resolveParentFk(node: RecordNode) {
         val parent = node.parentNode
             ?: throw IllegalStateException("resolveParentFk called on node without parent")
-        for (i in node.parentFkFields.indices) {
-            val parentValue = parent.record.get(node.parentRefFields[i])
-                ?: throw IllegalStateException(
-                    "Parent record field ${node.parentRefFields[i].name} is null — parent must be inserted before child"
+        node
+            .parentFkFields
+            .zip(node.parentRefFields)
+            .forEach { (fkField, refField) ->
+                val parentValue = parent
+                    .record
+                    .get(refField)
+                    ?: throw IllegalStateException(
+                        "Parent record field ${refField.name} is null — parent must be inserted before child"
+                    )
+
+                @Suppress("UNCHECKED_CAST")
+                (node.record as org.jooq.Record).set(
+                    fkField as org.jooq.Field<Any?>,
+                    parentValue
                 )
-            @Suppress("UNCHECKED_CAST")
-            (node.record as org.jooq.Record).set(
-                node.parentFkFields[i] as org.jooq.Field<Any?>,
-                parentValue
-            )
-        }
+            }
     }
 
     private fun buildTableGraph(nodes: List<RecordNode>, graph: RecordGraph): Map<String, Set<String>> {
@@ -87,13 +102,21 @@ class TopologicalInserter(private val dslContext: DSLContext) {
             .filter { it.parentNode != null }
             .map { it.table.name to it.parentNode!!.table.name }
 
-        val placeholderEdges = graph.placeholderRefs
-            .map { (sourceNode, ref) -> sourceNode.table.name to ref.targetNode.table.name }
+        val placeholderEdges = graph
+            .placeholderRefs
+            .map { (sourceNode, ref) ->
+                sourceNode.table.name to ref.targetNode.table.name
+            }
 
-        val allTableNames = nodes.map { it.table.name }.toSet()
+        val allTableNames = nodes
+            .map { it.table.name }
+            .toSet()
 
         return (parentEdges + placeholderEdges)
-            .groupBy({ it.first }, { it.second })
+            .groupBy(
+                { it.first },
+                { it.second }
+            )
             .mapValues { (_, targets) -> targets.toSet() }
             .let { edgeMap ->
                 allTableNames.associateWith { tableName ->

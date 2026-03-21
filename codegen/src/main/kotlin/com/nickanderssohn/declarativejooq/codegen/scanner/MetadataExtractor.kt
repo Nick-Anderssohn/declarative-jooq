@@ -39,7 +39,9 @@ class MetadataExtractor {
     fun extract(classDir: File, tableClassNames: List<String>): List<TableIR> {
         val classLoader = URLClassLoader(
             arrayOf(classDir.toURI().toURL()),
-            Thread.currentThread().contextClassLoader
+            Thread
+                .currentThread()
+                .contextClassLoader
         )
 
         // Phase 1: pre-load all table instances and field ref maps so parent field
@@ -78,18 +80,20 @@ class MetadataExtractor {
 
             // Extract columns
             val identityField = tableInstance.identity?.field
-            val columns = tableInstance.fields().map { field ->
-                val refFieldName = fieldRefMap[field.name] ?: field.name.uppercase()
-                val tableFieldRef = "$tableClassName.$tableConstantName.$refFieldName"
-                ColumnIR(
-                    columnName = field.name,
-                    propertyName = toCamelCase(field.name),
-                    kotlinTypeName = mapJavaTypeToKotlinPoet(field.dataType.type),
-                    isIdentity = field == identityField,
-                    isNullable = field.dataType.nullable(),
-                    tableFieldRefExpression = tableFieldRef
-                )
-            }
+            val columns = tableInstance
+                .fields()
+                .map { field ->
+                    val refFieldName = fieldRefMap[field.name] ?: field.name.uppercase()
+                    val tableFieldRef = "$tableClassName.$tableConstantName.$refFieldName"
+                    ColumnIR(
+                        columnName = field.name,
+                        propertyName = toCamelCase(field.name),
+                        kotlinTypeName = mapJavaTypeToKotlinPoet(field.dataType.type),
+                        isIdentity = field == identityField,
+                        isNullable = field.dataType.nullable(),
+                        tableFieldRefExpression = tableFieldRef
+                    )
+                }
 
             // Extract outbound FKs using two-pass naming algorithm
 
@@ -107,26 +111,34 @@ class MetadataExtractor {
             )
 
             // Pass 1: Collect FK data and compute candidate names per NAME-01/02/04 rules
-            val rawFks = tableInstance.references.map { fk ->
-                val fkColumnNames = fk.fields.map { it.name }
+            val rawFks = tableInstance
+                .references
+                .map { fk ->
+                    val fkColumnNames = fk.fields.map { it.name }
                 val isComposite = fkColumnNames.size > 1
 
-                val childFieldExprs = fkColumnNames.map { colName ->
-                    columns.find { it.columnName == colName }
-                        ?.tableFieldRefExpression
-                        ?: "$tableClassName.$tableConstantName.${colName.uppercase()}"
-                }
+                val childFieldExprs = fkColumnNames
+                    .map { colName ->
+                        columns
+                            .find { it.columnName == colName }
+                            ?.tableFieldRefExpression
+                            ?: "$tableClassName.$tableConstantName.${colName.uppercase()}"
+                    }
 
                 val parentTableName = fk.key.table.name
                 val parentMeta = metaByTableName[parentTableName]
-                val parentFieldExprs = fk.key.fields.map { parentField ->
-                    if (parentMeta != null) {
-                        val refName = parentMeta.fieldRefMap[parentField.name] ?: parentField.name.uppercase()
-                        "${parentMeta.tableClassName}.${parentMeta.tableConstantName}.$refName"
-                    } else {
-                        parentField.name.uppercase()
+                val parentFieldExprs = fk
+                    .key
+                    .fields
+                    .map { parentField ->
+                        if (parentMeta != null) {
+                            val refName = parentMeta.fieldRefMap[parentField.name]
+                                ?: parentField.name.uppercase()
+                            "${parentMeta.tableClassName}.${parentMeta.tableConstantName}.$refName"
+                        } else {
+                            parentField.name.uppercase()
+                        }
                     }
-                }
 
                 val parentBuilderClassName = toPascalCase(parentTableName) + "Builder"
                 val isSelfRef = parentTableName == tableName
@@ -165,15 +177,25 @@ class MetadataExtractor {
             }
 
             // Detect multi-FK-to-same-parent groups
-            val parentGroupCounts = rawFks.groupingBy { it.parentTableName }.eachCount()
-            val multiFkParents = parentGroupCounts.filter { it.value > 1 }.keys
+            val parentGroupCounts = rawFks
+                .groupingBy { it.parentTableName }
+                .eachCount()
+            val multiFkParents = parentGroupCounts
+                .filter { it.value > 1 }
+                .keys
 
             // Pass 2: Collision detection per NAME-03
-            val nonMultiFkRaws = rawFks.filter { it.parentTableName !in multiFkParents }
-            val nameCounts = nonMultiFkRaws.groupingBy { it.candidateName }.eachCount()
-            val collidingNames = nameCounts.filter { it.value > 1 }.keys
+            val nonMultiFkRaws = rawFks
+                .filter { it.parentTableName !in multiFkParents }
+            val nameCounts = nonMultiFkRaws
+                .groupingBy { it.candidateName }
+                .eachCount()
+            val collidingNames = nameCounts
+                .filter { it.value > 1 }
+                .keys
 
-            val outboundFKs = rawFks.map { raw ->
+            val outboundFKs = rawFks
+                .map { raw ->
                 val isMultiFk = raw.parentTableName in multiFkParents
                 val finalName = when {
                     isMultiFk -> toCamelCase(tableName)
@@ -222,14 +244,19 @@ class MetadataExtractor {
         val tableByName = tables.associateBy { it.tableName }
         tables
             .flatMap { it.outboundFKs }
-            .forEach { fk -> tableByName[fk.parentTableName]?.inboundFKs?.add(fk) }
+            .forEach { fk ->
+                tableByName[fk.parentTableName]
+                    ?.inboundFKs
+                    ?.add(fk)
+            }
 
         return tables
     }
 
     private fun loadTableInstance(klass: Class<*>): Pair<TableImpl<*>, String> {
         // Find a static field whose type equals the class — this is the companion object singleton
-        val staticField = klass.declaredFields
+        val staticField = klass
+            .declaredFields
             .firstOrNull { field ->
                 Modifier.isStatic(field.modifiers) && field.type == klass
             }

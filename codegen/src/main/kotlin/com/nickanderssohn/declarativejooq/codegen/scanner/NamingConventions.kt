@@ -33,7 +33,10 @@ object NamingConventions {
     fun splitWords(name: String): List<String> {
         if (name.contains('_')) {
             // SNAKE_CASE: split on underscores, lowercase each part
-            return name.split('_').filter { it.isNotEmpty() }.map { it.lowercase() }
+            return name
+                .split('_')
+                .filter { it.isNotEmpty() }
+                .map { it.lowercase() }
         }
 
         // PASCAL_CASE or CAMEL_CASE: split on camelCase boundaries
@@ -67,7 +70,11 @@ object NamingConventions {
     fun toCamelCase(name: String): String {
         val words = splitWords(name)
         if (words.isEmpty()) return name
-        return words[0] + words.drop(1).joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+        return words[0] + words
+            .drop(1)
+            .joinToString("") {
+                it.replaceFirstChar { c -> c.uppercaseChar() }
+            }
     }
 
     /**
@@ -81,7 +88,9 @@ object NamingConventions {
     fun toPascalCase(name: String): String {
         val words = splitWords(name)
         if (words.isEmpty()) return name
-        return words.joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+        return words.joinToString("") {
+            it.replaceFirstChar { c -> c.uppercaseChar() }
+        }
     }
 
     /**
@@ -101,8 +110,14 @@ object NamingConventions {
             // Return in the original convention
             return when (detect(name)) {
                 Convention.SNAKE_CASE -> strippedWords.joinToString("_")
-                Convention.PASCAL_CASE -> strippedWords.joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-                Convention.CAMEL_CASE -> strippedWords[0] + strippedWords.drop(1).joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+                Convention.PASCAL_CASE -> strippedWords.joinToString("") {
+                    it.replaceFirstChar { c -> c.uppercaseChar() }
+                }
+                Convention.CAMEL_CASE -> strippedWords[0] + strippedWords
+                    .drop(1)
+                    .joinToString("") {
+                        it.replaceFirstChar { c -> c.uppercaseChar() }
+                    }
             }
         }
 

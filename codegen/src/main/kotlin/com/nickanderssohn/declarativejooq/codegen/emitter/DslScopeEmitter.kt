@@ -14,15 +14,26 @@ import com.squareup.kotlinpoet.UNIT
 class DslScopeEmitter {
 
     fun emit(tableIR: TableIR, outputPackage: String): FunSpec {
-        val dslScopeType = ClassName("com.nickanderssohn.declarativejooq", "DslScope")
+        val dslScopeType = ClassName(
+            "com.nickanderssohn.declarativejooq",
+            "DslScope"
+        )
         val builderClass = ClassName(outputPackage, tableIR.builderClassName)
         val resultClass = ClassName(outputPackage, tableIR.resultClassName)
-        val recordType = ClassName(tableIR.recordSourcePackage, tableIR.recordClassName)
-        val blockType = LambdaTypeName.get(receiver = builderClass, returnType = UNIT)
+        val recordType = ClassName(
+            tableIR.recordSourcePackage,
+            tableIR.recordClassName
+        )
+        val blockType = LambdaTypeName.get(
+            receiver = builderClass,
+            returnType = UNIT
+        )
 
-        val builderConstruction = "val builder = %T(recordGraph = recordGraph, parentNode = null)"
+        val builderConstruction =
+            "val builder = %T(recordGraph = recordGraph, parentNode = null)"
 
-        return FunSpec.builder(tableIR.dslFunctionName)
+        return FunSpec
+            .builder(tableIR.dslFunctionName)
             .receiver(dslScopeType)
             .addParameter("block", blockType)
             .returns(resultClass)
@@ -30,7 +41,11 @@ class DslScopeEmitter {
             .addStatement("builder.block()")
             .addStatement("val node = builder.buildWithChildren()")
             .addStatement("recordGraph.addRootNode(node)")
-            .addStatement("val result = %T(node.record as %T)", resultClass, recordType)
+            .addStatement(
+                "val result = %T(node.record as %T)",
+                resultClass,
+                recordType
+            )
             .addStatement("return result")
             .build()
     }

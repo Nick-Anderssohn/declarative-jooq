@@ -96,7 +96,8 @@ class CodeGenerator {
             "${table.builderClassName}.kt" to built.toString()
         }
 
-        val dslResultFile = FileSpec.builder(outputPackage, "GeneratedDslResult")
+        val dslResultFile = FileSpec
+            .builder(outputPackage, "GeneratedDslResult")
             .apply { addType(dslResultEmitter.emit(tables, outputPackage)) }
             .build()
             .let { "GeneratedDslResult.kt" to it.toString() }
@@ -113,14 +114,20 @@ class CodeGenerator {
      *   and parent table classes referenced in parentFieldExpressions (for multi-FK when blocks).
      * - Outbound FKs: parent table classes referenced in parentFieldExpressions (for placeholder setters).
      */
-    private fun addFkChildTableImports(fileSpec: FileSpec.Builder, table: TableIR, tableByName: Map<String, TableIR>) {
+    private fun addFkChildTableImports(
+        fileSpec: FileSpec.Builder,
+        table: TableIR,
+        tableByName: Map<String, TableIR>
+    ) {
         for (fk in table.inboundFKs) {
             val childTable = tableByName[fk.childTableName] ?: continue
             fileSpec.addImport(childTable.sourcePackage, childTable.tableClassName)
             // Parent table class is also needed in the generated multi-FK when block
             // for parentRefFields expressions (e.g., OrganizationTable.ORGANIZATION.ID)
             val parentTable = tableByName[fk.parentTableName] ?: continue
-            if (parentTable.sourcePackage != table.sourcePackage || parentTable.tableClassName != table.tableClassName) {
+            if (parentTable.sourcePackage != table.sourcePackage ||
+                parentTable.tableClassName != table.tableClassName
+            ) {
                 fileSpec.addImport(parentTable.sourcePackage, parentTable.tableClassName)
             }
         }
@@ -133,5 +140,7 @@ class CodeGenerator {
     private fun scanAndExtract(classDir: File, packageFilter: String?) =
         ClasspathScanner()
             .findTableClassNames(classDir, packageFilter)
-            .let { tableNames -> MetadataExtractor().extract(classDir, tableNames) }
+            .let { tableNames ->
+                MetadataExtractor().extract(classDir, tableNames)
+            }
 }

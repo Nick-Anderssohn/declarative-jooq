@@ -27,8 +27,10 @@ class BuilderEmitter {
     fun emit(tableIR: TableIR, outputPackage: String): TypeSpec {
         val recordType = ClassName(tableIR.recordSourcePackage, tableIR.recordClassName)
         val tableClass = ClassName(tableIR.sourcePackage, tableIR.tableClassName)
-        val recordBuilderType = ClassName("com.nickanderssohn.declarativejooq", "RecordBuilder")
-            .parameterizedBy(recordType)
+        val recordBuilderType = ClassName(
+            "com.nickanderssohn.declarativejooq",
+            "RecordBuilder"
+        ).parameterizedBy(recordType)
         val recordGraphType = ClassName("com.nickanderssohn.declarativejooq", "RecordGraph")
         val recordNodeType = ClassName("com.nickanderssohn.declarativejooq", "RecordNode")
         val dslAnnotation = ClassName("com.nickanderssohn.declarativejooq", "DeclarativeJooqDsl")
@@ -71,7 +73,8 @@ class BuilderEmitter {
 
         // Collect placeholder property names — these claim the column property slot for outbound FKs
         // where the placeholder name equals the column name (e.g., created_by -> createdBy).
-        val placeholderClaimedNames = tableIR.outboundFKs
+        val placeholderClaimedNames = tableIR
+            .outboundFKs
             .map { it.placeholderPropertyName }
             .toSet()
 
@@ -90,7 +93,10 @@ class BuilderEmitter {
         // Placeholder-accepting properties for outbound FKs
         for (fk in tableIR.outboundFKs) {
             val parentResultClass = ClassName(outputPackage, fk.parentResultClassName)
-            val pendingPlaceholderRefClass = ClassName("com.nickanderssohn.declarativejooq", "PendingPlaceholderRef")
+            val pendingPlaceholderRefClass = ClassName(
+                "com.nickanderssohn.declarativejooq",
+                "PendingPlaceholderRef"
+            )
 
             val fkFieldsExpr = listOfFieldExprs(fk.childFieldExpressions)
             val refFieldsExpr = listOfFieldExprs(fk.parentFieldExpressions)
@@ -99,7 +105,9 @@ class BuilderEmitter {
                 .addStatement("field = value")
                 .beginControlFlow("if (value != null)")
                 .addStatement(
-                    "recordBuilder.pendingPlaceholderRefs.add(%T($fkFieldsExpr, $refFieldsExpr, value.record))",
+                    "recordBuilder.pendingPlaceholderRefs.add(" +
+                        "%T($fkFieldsExpr, $refFieldsExpr, value.record)" +
+                        ")",
                     pendingPlaceholderRefClass
                 )
                 .endControlFlow()
@@ -159,13 +167,21 @@ class BuilderEmitter {
 
         // Child builder functions for each inbound FK
         if (hasChildren) {
-            val fkGroups = tableIR.inboundFKs.groupBy { it.builderFunctionName }
+            val fkGroups = tableIR
+                .inboundFKs
+                .groupBy { it.builderFunctionName }
 
             for ((_, fkGroup) in fkGroups) {
                 val fk = fkGroup.first()
-                val childBuilderClass = ClassName(outputPackage, toPascalCase(fk.childTableName) + "Builder")
+                val childBuilderClass = ClassName(
+                    outputPackage,
+                    toPascalCase(fk.childTableName) + "Builder"
+                )
                 val childResultClass = ClassName(outputPackage, fk.childResultClassName)
-                val childRecordClass = ClassName(fk.childRecordSourcePackage, fk.childRecordClassName)
+                val childRecordClass = ClassName(
+                    fk.childRecordSourcePackage,
+                    fk.childRecordClassName
+                )
                 val blockType = LambdaTypeName.get(
                     receiver = childBuilderClass,
                     returnType = UNIT
@@ -175,12 +191,20 @@ class BuilderEmitter {
 
                 if (isMultiFkGroup) {
                     emitMultiFkChildFunction(
-                        classBuilder, fkGroup, childBuilderClass, childResultClass,
-                        childRecordClass, blockType, listOfTableFieldStarType
+                        classBuilder,
+                        fkGroup,
+                        childBuilderClass,
+                        childResultClass,
+                        childRecordClass,
+                        blockType,
+                        listOfTableFieldStarType
                     )
                 } else {
                     emitSingleFkChildFunction(
-                        classBuilder, fk, childBuilderClass, childResultClass,
+                        classBuilder,
+                        fk,
+                        childBuilderClass,
+                        childResultClass,
                         blockType
                     )
                 }
@@ -213,25 +237,42 @@ class BuilderEmitter {
         val childFunBody = CodeBlock.builder()
         if (fk.isSelfReferential) {
             childFunBody.addStatement(
-                "val builder = %T(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = $fkFieldsExpr, parentRefFields = $refFieldsExpr, isSelfReferential = true)",
+                "val builder = %T(" +
+                    "recordGraph = recordBuilder.recordGraph, " +
+                    "parentNode = null, " +
+                    "parentFkFields = $fkFieldsExpr, " +
+                    "parentRefFields = $refFieldsExpr, " +
+                    "isSelfReferential = true" +
+                    ")",
                 childBuilderClass
             )
         } else {
             childFunBody.addStatement(
-                "val builder = %T(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = $fkFieldsExpr, parentRefFields = $refFieldsExpr)",
+                "val builder = %T(" +
+                    "recordGraph = recordBuilder.recordGraph, " +
+                    "parentNode = null, " +
+                    "parentFkFields = $fkFieldsExpr, " +
+                    "parentRefFields = $refFieldsExpr" +
+                    ")",
                 childBuilderClass
             )
         }
         childFunBody.addStatement("builder.block()")
-        childFunBody.addStatement("val placeholderRecord = builder.recordBuilder.getOrBuildRecord()")
+        childFunBody.addStatement(
+            "val placeholderRecord = builder.recordBuilder.getOrBuildRecord()"
+        )
         childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
         childFunBody.addStatement("builder.recordBuilder.parentNode = parentNode")
         childFunBody.addStatement("builder.buildWithChildren()")
         childFunBody.endControlFlow()
-        childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
+        childFunBody.addStatement(
+            "return %T(placeholderRecord)",
+            childResultClass
+        )
 
         classBuilder.addFunction(
-            FunSpec.builder(fk.builderFunctionName)
+            FunSpec
+                .builder(fk.builderFunctionName)
                 .addParameter("block", blockType)
                 .returns(childResultClass)
                 .addCode(childFunBody.build())
@@ -250,26 +291,43 @@ class BuilderEmitter {
     ) {
         val fk = fkGroup.first()
         val tableFieldType = ClassName("org.jooq", "TableField")
-            .parameterizedBy(childRecordClass, com.squareup.kotlinpoet.STAR)
+            .parameterizedBy(
+                childRecordClass,
+                com.squareup.kotlinpoet.STAR
+            )
 
         val childFunBody = CodeBlock.builder()
-        childFunBody.addStatement("val fkNames = fkFields.map { it.name }.toSet()")
+        childFunBody.addStatement(
+            "val fkNames = fkFields.map { it.name }.toSet()"
+        )
         childFunBody.addStatement("val parentFkFields: %T", listOfTableFieldStarType)
         childFunBody.addStatement("val parentRefFields: %T", listOfTableFieldStarType)
 
         // if/else-if chain matching FK column name sets to full field mappings
         val first = fkGroup[0]
-        val firstNamesSet = first.fkColumnNames.joinToString(", ") { "\"$it\"" }
+        val firstNamesSet = first
+            .fkColumnNames
+            .joinToString(", ") { "\"$it\"" }
         childFunBody.beginControlFlow("if (fkNames == setOf($firstNamesSet))")
-        childFunBody.addStatement("parentFkFields = ${listOfFieldExprs(first.childFieldExpressions)}")
-        childFunBody.addStatement("parentRefFields = ${listOfFieldExprs(first.parentFieldExpressions)}")
+        childFunBody.addStatement(
+            "parentFkFields = ${listOfFieldExprs(first.childFieldExpressions)}"
+        )
+        childFunBody.addStatement(
+            "parentRefFields = ${listOfFieldExprs(first.parentFieldExpressions)}"
+        )
 
         for (i in 1 until fkGroup.size) {
             val groupFk = fkGroup[i]
-            val namesSet = groupFk.fkColumnNames.joinToString(", ") { "\"$it\"" }
+            val namesSet = groupFk
+                .fkColumnNames
+                .joinToString(", ") { "\"$it\"" }
             childFunBody.nextControlFlow("else if (fkNames == setOf($namesSet))")
-            childFunBody.addStatement("parentFkFields = ${listOfFieldExprs(groupFk.childFieldExpressions)}")
-            childFunBody.addStatement("parentRefFields = ${listOfFieldExprs(groupFk.parentFieldExpressions)}")
+            childFunBody.addStatement(
+                "parentFkFields = ${listOfFieldExprs(groupFk.childFieldExpressions)}"
+            )
+            childFunBody.addStatement(
+                "parentRefFields = ${listOfFieldExprs(groupFk.parentFieldExpressions)}"
+            )
         }
 
         childFunBody.nextControlFlow("else")
@@ -277,21 +335,33 @@ class BuilderEmitter {
         childFunBody.endControlFlow()
 
         childFunBody.addStatement(
-            "val builder = %T(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)",
+            "val builder = %T(" +
+                "recordGraph = recordBuilder.recordGraph, " +
+                "parentNode = null, " +
+                "parentFkFields = parentFkFields, " +
+                "parentRefFields = parentRefFields" +
+                ")",
             childBuilderClass
         )
         childFunBody.addStatement("builder.block()")
-        childFunBody.addStatement("val placeholderRecord = builder.recordBuilder.getOrBuildRecord()")
+        childFunBody.addStatement(
+            "val placeholderRecord = builder.recordBuilder.getOrBuildRecord()"
+        )
         childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
         childFunBody.addStatement("builder.recordBuilder.parentNode = parentNode")
         childFunBody.addStatement("builder.buildWithChildren()")
         childFunBody.endControlFlow()
-        childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
+        childFunBody.addStatement(
+            "return %T(placeholderRecord)",
+            childResultClass
+        )
 
         classBuilder.addFunction(
-            FunSpec.builder(fk.builderFunctionName)
+            FunSpec
+                .builder(fk.builderFunctionName)
                 .addParameter(
-                    ParameterSpec.builder("fkFields", tableFieldType)
+                    ParameterSpec
+                        .builder("fkFields", tableFieldType)
                         .addModifiers(KModifier.VARARG)
                         .build()
                 )
