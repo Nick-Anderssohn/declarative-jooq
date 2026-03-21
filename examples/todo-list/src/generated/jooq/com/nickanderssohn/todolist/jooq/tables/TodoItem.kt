@@ -5,11 +5,13 @@ package com.nickanderssohn.todolist.jooq.tables
 
 
 import com.nickanderssohn.todolist.jooq.Public
+import com.nickanderssohn.todolist.jooq.keys.TODO_ITEM_LABEL__TODO_ITEM_LABEL_TODO_ITEM_ID_FKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_ITEM_PKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_ITEM__TODO_ITEM_CREATED_BY_FKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_ITEM__TODO_ITEM_TODO_LIST_ID_FKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_ITEM__TODO_ITEM_UPDATED_BY_FKEY
 import com.nickanderssohn.todolist.jooq.tables.AppUser.AppUserPath
+import com.nickanderssohn.todolist.jooq.tables.TodoItemLabel.TodoItemLabelPath
 import com.nickanderssohn.todolist.jooq.tables.TodoList.TodoListPath
 import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
 
@@ -196,6 +198,22 @@ open class TodoItem(
 
     val todoItemUpdatedByFkey: AppUserPath
         get(): AppUserPath = todoItemUpdatedByFkey()
+
+    private lateinit var _todoItemLabel: TodoItemLabelPath
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>public.todo_item_label</code> table
+     */
+    fun todoItemLabel(): TodoItemLabelPath {
+        if (!this::_todoItemLabel.isInitialized)
+            _todoItemLabel = TodoItemLabelPath(this, null, TODO_ITEM_LABEL__TODO_ITEM_LABEL_TODO_ITEM_ID_FKEY.inverseKey)
+
+        return _todoItemLabel;
+    }
+
+    val todoItemLabel: TodoItemLabelPath
+        get(): TodoItemLabelPath = todoItemLabel()
     override fun `as`(alias: String): TodoItem = TodoItem(DSL.name(alias), this)
     override fun `as`(alias: Name): TodoItem = TodoItem(alias, this)
     override fun `as`(alias: Table<*>): TodoItem = TodoItem(alias.qualifiedName, this)

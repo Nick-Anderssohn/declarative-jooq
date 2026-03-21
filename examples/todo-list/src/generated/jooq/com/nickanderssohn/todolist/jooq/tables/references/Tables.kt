@@ -5,8 +5,10 @@ package com.nickanderssohn.todolist.jooq.tables.references
 
 
 import com.nickanderssohn.todolist.jooq.tables.AppUser
+import com.nickanderssohn.todolist.jooq.tables.Label
 import com.nickanderssohn.todolist.jooq.tables.SharedWith
 import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.TodoItemLabel
 import com.nickanderssohn.todolist.jooq.tables.TodoList
 
 
@@ -17,6 +19,11 @@ import com.nickanderssohn.todolist.jooq.tables.TodoList
 val APP_USER: AppUser = AppUser.APP_USER
 
 /**
+ * The table <code>public.label</code>.
+ */
+val LABEL: Label = Label.LABEL
+
+/**
  * The table <code>public.shared_with</code>.
  */
 val SHARED_WITH: SharedWith = SharedWith.SHARED_WITH
@@ -25,6 +32,11 @@ val SHARED_WITH: SharedWith = SharedWith.SHARED_WITH
  * The table <code>public.todo_item</code>.
  */
 val TODO_ITEM: TodoItem = TodoItem.TODO_ITEM
+
+/**
+ * The table <code>public.todo_item_label</code>.
+ */
+val TODO_ITEM_LABEL: TodoItemLabel = TodoItemLabel.TODO_ITEM_LABEL
 
 /**
  * The table <code>public.todo_list</code>.

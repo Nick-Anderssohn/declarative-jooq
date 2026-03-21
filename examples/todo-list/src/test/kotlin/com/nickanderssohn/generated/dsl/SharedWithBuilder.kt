@@ -4,20 +4,24 @@ import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
 import com.nickanderssohn.declarativejooq.RecordNode
+import com.nickanderssohn.todolist.jooq.tables.AppUser
 import com.nickanderssohn.todolist.jooq.tables.SharedWith
+import com.nickanderssohn.todolist.jooq.tables.TodoList
 import com.nickanderssohn.todolist.jooq.tables.records.SharedWithRecord
 import kotlin.Boolean
 import kotlin.Long
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class SharedWithBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
-  parentFkField: TableField<*, *>?,
+  parentFkFields: List<TableField<*, *>> = emptyList(),
+  parentRefFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<SharedWithRecord>(table = SharedWith.SHARED_WITH, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<SharedWithRecord>(table = SharedWith.SHARED_WITH, parentNode = parentNode, parentFkFields = parentFkFields, parentRefFields = parentRefFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var todoListId: Long? = null
 
   public var userId: Long? = null
@@ -26,7 +30,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWith.SHARED_WITH.TODO_LIST_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWith.SHARED_WITH.TODO_LIST_ID as TableField<*, *>), listOf(TodoList.TODO_LIST.ID as TableField<*, *>), value.record))
       }
     }
 
@@ -34,7 +38,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>), listOf(AppUser.APP_USER.ID as TableField<*, *>), value.record))
       }
     }
 

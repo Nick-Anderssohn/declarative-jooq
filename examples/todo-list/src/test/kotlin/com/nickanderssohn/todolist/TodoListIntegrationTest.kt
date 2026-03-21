@@ -8,8 +8,10 @@ import com.nickanderssohn.todolist.controller.CreateUserRequest
 import com.nickanderssohn.todolist.controller.ShareTodoListRequest
 import com.nickanderssohn.todolist.jooq.tables.AppUser.Companion.APP_USER
 import com.nickanderssohn.todolist.jooq.tables.SharedWith.Companion.SHARED_WITH
+import com.nickanderssohn.todolist.jooq.tables.Label
 import com.nickanderssohn.todolist.jooq.tables.TodoItem
 import com.nickanderssohn.todolist.jooq.tables.TodoItem.Companion.TODO_ITEM
+import com.nickanderssohn.todolist.jooq.tables.TodoItemLabel
 import com.nickanderssohn.todolist.jooq.tables.TodoList
 import com.nickanderssohn.todolist.jooq.tables.TodoList.Companion.TODO_LIST
 import org.jooq.DSLContext
@@ -54,7 +56,7 @@ class TodoListIntegrationTest {
 
     @BeforeEach
     fun truncateTables() {
-        dslContext.execute("TRUNCATE shared_with, todo_item, todo_list, app_user RESTART IDENTITY CASCADE")
+        dslContext.execute("TRUNCATE todo_item_label, label, shared_with, todo_item, todo_list, app_user RESTART IDENTITY CASCADE")
     }
 
     // -----------------------------------------------------------------------
@@ -415,5 +417,53 @@ class TodoListIntegrationTest {
         val share = (sharesResponse.body!![0] as Map<String, Any>)
         assertEquals(user2Id, (share["userId"] as Number).toLong(),
             "Shared user should be Bob")
+    }
+
+    // -----------------------------------------------------------------------
+    // TEST-06: DSL seeds labels with composite FK
+    // -----------------------------------------------------------------------
+
+    @Test
+    fun `DSL seeds labels with composite FK`() {
+        DecDsl.execute(dslContext) {
+            appUser {
+                name = "Alice"; email = "alice@example.com"
+                todoList(TodoList.TODO_LIST.CREATED_BY) {
+                    title = "Sprint Tasks"
+                    val fixBug = todoItem {
+                        title = "Fix bug"
+                    }
+                    label {
+                        name = "urgent"
+                        color = "#ef4444"
+                        todoItemLabel {
+                            todoItem = fixBug
+                        }
+                    }
+                    label {
+                        name = "later"
+                        color = "#22c55e"
+                    }
+                }
+            }
+        }
+
+        val labelCount = dslContext.selectCount().from(Label.LABEL).fetchOne(0, Int::class.java)!!
+        assertEquals(2, labelCount, "Expected 2 label rows")
+
+        val tilCount = dslContext.selectCount().from(TodoItemLabel.TODO_ITEM_LABEL).fetchOne(0, Int::class.java)!!
+        assertEquals(1, tilCount, "Expected 1 todo_item_label row")
+
+        val til = dslContext.selectFrom(TodoItemLabel.TODO_ITEM_LABEL).fetchOne()!!
+        val listId = dslContext.select(TODO_LIST.ID).from(TODO_LIST).fetchOne(TODO_LIST.ID)
+        assertEquals(listId, til.get(TodoItemLabel.TODO_ITEM_LABEL.TODO_LIST_ID),
+            "todo_item_label.todo_list_id should match the parent label's todo_list_id (composite FK)")
+
+        assertEquals("urgent", til.get(TodoItemLabel.TODO_ITEM_LABEL.LABEL_NAME),
+            "todo_item_label.label_name should match the parent label's name (composite FK)")
+
+        val itemId = dslContext.select(TODO_ITEM.ID).from(TODO_ITEM).fetchOne(TODO_ITEM.ID)
+        assertEquals(itemId, til.get(TodoItemLabel.TODO_ITEM_LABEL.TODO_ITEM_ID),
+            "todo_item_label.todo_item_id should reference the todo_item via placeholder")
     }
 }

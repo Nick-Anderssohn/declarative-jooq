@@ -5,8 +5,10 @@ package com.nickanderssohn.todolist.jooq
 
 
 import com.nickanderssohn.todolist.jooq.tables.AppUser
+import com.nickanderssohn.todolist.jooq.tables.Label
 import com.nickanderssohn.todolist.jooq.tables.SharedWith
 import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.TodoItemLabel
 import com.nickanderssohn.todolist.jooq.tables.TodoList
 
 import kotlin.collections.List
@@ -35,6 +37,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val APP_USER: AppUser get() = AppUser.APP_USER
 
     /**
+     * The table <code>public.label</code>.
+     */
+    val LABEL: Label get() = Label.LABEL
+
+    /**
      * The table <code>public.shared_with</code>.
      */
     val SHARED_WITH: SharedWith get() = SharedWith.SHARED_WITH
@@ -45,6 +52,11 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
     val TODO_ITEM: TodoItem get() = TodoItem.TODO_ITEM
 
     /**
+     * The table <code>public.todo_item_label</code>.
+     */
+    val TODO_ITEM_LABEL: TodoItemLabel get() = TodoItemLabel.TODO_ITEM_LABEL
+
+    /**
      * The table <code>public.todo_list</code>.
      */
     val TODO_LIST: TodoList get() = TodoList.TODO_LIST
@@ -53,8 +65,10 @@ open class Public : SchemaImpl("public", DefaultCatalog.DEFAULT_CATALOG) {
 
     override fun getTables(): List<Table<*>> = listOf(
         AppUser.APP_USER,
+        Label.LABEL,
         SharedWith.SHARED_WITH,
         TodoItem.TODO_ITEM,
+        TodoItemLabel.TODO_ITEM_LABEL,
         TodoList.TODO_LIST
     )
 }

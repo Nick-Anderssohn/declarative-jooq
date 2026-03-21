@@ -29,3 +29,18 @@ CREATE TABLE shared_with (
     user_id      BIGINT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     UNIQUE(todo_list_id, user_id)
 );
+
+CREATE TABLE label (
+    todo_list_id BIGINT NOT NULL REFERENCES todo_list(id) ON DELETE CASCADE,
+    name         VARCHAR(100) NOT NULL,
+    color        VARCHAR(7) DEFAULT '#3b82f6',
+    PRIMARY KEY (todo_list_id, name)
+);
+
+CREATE TABLE todo_item_label (
+    id           BIGSERIAL PRIMARY KEY,
+    todo_item_id BIGINT NOT NULL REFERENCES todo_item(id) ON DELETE CASCADE,
+    todo_list_id BIGINT NOT NULL,
+    label_name   VARCHAR(100) NOT NULL,
+    FOREIGN KEY (todo_list_id, label_name) REFERENCES label(todo_list_id, name) ON DELETE CASCADE
+);

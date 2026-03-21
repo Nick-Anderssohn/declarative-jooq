@@ -5,11 +5,15 @@ package com.nickanderssohn.todolist.jooq.keys
 
 
 import com.nickanderssohn.todolist.jooq.tables.AppUser
+import com.nickanderssohn.todolist.jooq.tables.Label
 import com.nickanderssohn.todolist.jooq.tables.SharedWith
 import com.nickanderssohn.todolist.jooq.tables.TodoItem
+import com.nickanderssohn.todolist.jooq.tables.TodoItemLabel
 import com.nickanderssohn.todolist.jooq.tables.TodoList
 import com.nickanderssohn.todolist.jooq.tables.records.AppUserRecord
+import com.nickanderssohn.todolist.jooq.tables.records.LabelRecord
 import com.nickanderssohn.todolist.jooq.tables.records.SharedWithRecord
+import com.nickanderssohn.todolist.jooq.tables.records.TodoItemLabelRecord
 import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
 import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
 
@@ -26,19 +30,24 @@ import org.jooq.impl.Internal
 
 val APP_USER_EMAIL_KEY: UniqueKey<AppUserRecord> = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_email_key"), arrayOf(AppUser.APP_USER.EMAIL), true)
 val APP_USER_PKEY: UniqueKey<AppUserRecord> = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("app_user_pkey"), arrayOf(AppUser.APP_USER.ID), true)
+val LABEL_PKEY: UniqueKey<LabelRecord> = Internal.createUniqueKey(Label.LABEL, DSL.name("label_pkey"), arrayOf(Label.LABEL.TODO_LIST_ID, Label.LABEL.NAME), true)
 val SHARED_WITH_PKEY: UniqueKey<SharedWithRecord> = Internal.createUniqueKey(SharedWith.SHARED_WITH, DSL.name("shared_with_pkey"), arrayOf(SharedWith.SHARED_WITH.ID), true)
 val SHARED_WITH_TODO_LIST_ID_USER_ID_KEY: UniqueKey<SharedWithRecord> = Internal.createUniqueKey(SharedWith.SHARED_WITH, DSL.name("shared_with_todo_list_id_user_id_key"), arrayOf(SharedWith.SHARED_WITH.TODO_LIST_ID, SharedWith.SHARED_WITH.USER_ID), true)
 val TODO_ITEM_PKEY: UniqueKey<TodoItemRecord> = Internal.createUniqueKey(TodoItem.TODO_ITEM, DSL.name("todo_item_pkey"), arrayOf(TodoItem.TODO_ITEM.ID), true)
+val TODO_ITEM_LABEL_PKEY: UniqueKey<TodoItemLabelRecord> = Internal.createUniqueKey(TodoItemLabel.TODO_ITEM_LABEL, DSL.name("todo_item_label_pkey"), arrayOf(TodoItemLabel.TODO_ITEM_LABEL.ID), true)
 val TODO_LIST_PKEY: UniqueKey<TodoListRecord> = Internal.createUniqueKey(TodoList.TODO_LIST, DSL.name("todo_list_pkey"), arrayOf(TodoList.TODO_LIST.ID), true)
 
 // -------------------------------------------------------------------------
 // FOREIGN KEY definitions
 // -------------------------------------------------------------------------
 
+val LABEL__LABEL_TODO_LIST_ID_FKEY: ForeignKey<LabelRecord, TodoListRecord> = Internal.createForeignKey(Label.LABEL, DSL.name("label_todo_list_id_fkey"), arrayOf(Label.LABEL.TODO_LIST_ID), com.nickanderssohn.todolist.jooq.keys.TODO_LIST_PKEY, arrayOf(TodoList.TODO_LIST.ID), true)
 val SHARED_WITH__SHARED_WITH_TODO_LIST_ID_FKEY: ForeignKey<SharedWithRecord, TodoListRecord> = Internal.createForeignKey(SharedWith.SHARED_WITH, DSL.name("shared_with_todo_list_id_fkey"), arrayOf(SharedWith.SHARED_WITH.TODO_LIST_ID), com.nickanderssohn.todolist.jooq.keys.TODO_LIST_PKEY, arrayOf(TodoList.TODO_LIST.ID), true)
 val SHARED_WITH__SHARED_WITH_USER_ID_FKEY: ForeignKey<SharedWithRecord, AppUserRecord> = Internal.createForeignKey(SharedWith.SHARED_WITH, DSL.name("shared_with_user_id_fkey"), arrayOf(SharedWith.SHARED_WITH.USER_ID), com.nickanderssohn.todolist.jooq.keys.APP_USER_PKEY, arrayOf(AppUser.APP_USER.ID), true)
 val TODO_ITEM__TODO_ITEM_CREATED_BY_FKEY: ForeignKey<TodoItemRecord, AppUserRecord> = Internal.createForeignKey(TodoItem.TODO_ITEM, DSL.name("todo_item_created_by_fkey"), arrayOf(TodoItem.TODO_ITEM.CREATED_BY), com.nickanderssohn.todolist.jooq.keys.APP_USER_PKEY, arrayOf(AppUser.APP_USER.ID), true)
 val TODO_ITEM__TODO_ITEM_TODO_LIST_ID_FKEY: ForeignKey<TodoItemRecord, TodoListRecord> = Internal.createForeignKey(TodoItem.TODO_ITEM, DSL.name("todo_item_todo_list_id_fkey"), arrayOf(TodoItem.TODO_ITEM.TODO_LIST_ID), com.nickanderssohn.todolist.jooq.keys.TODO_LIST_PKEY, arrayOf(TodoList.TODO_LIST.ID), true)
 val TODO_ITEM__TODO_ITEM_UPDATED_BY_FKEY: ForeignKey<TodoItemRecord, AppUserRecord> = Internal.createForeignKey(TodoItem.TODO_ITEM, DSL.name("todo_item_updated_by_fkey"), arrayOf(TodoItem.TODO_ITEM.UPDATED_BY), com.nickanderssohn.todolist.jooq.keys.APP_USER_PKEY, arrayOf(AppUser.APP_USER.ID), true)
+val TODO_ITEM_LABEL__TODO_ITEM_LABEL_TODO_ITEM_ID_FKEY: ForeignKey<TodoItemLabelRecord, TodoItemRecord> = Internal.createForeignKey(TodoItemLabel.TODO_ITEM_LABEL, DSL.name("todo_item_label_todo_item_id_fkey"), arrayOf(TodoItemLabel.TODO_ITEM_LABEL.TODO_ITEM_ID), com.nickanderssohn.todolist.jooq.keys.TODO_ITEM_PKEY, arrayOf(TodoItem.TODO_ITEM.ID), true)
+val TODO_ITEM_LABEL__TODO_ITEM_LABEL_TODO_LIST_ID_LABEL_NAME_FKEY: ForeignKey<TodoItemLabelRecord, LabelRecord> = Internal.createForeignKey(TodoItemLabel.TODO_ITEM_LABEL, DSL.name("todo_item_label_todo_list_id_label_name_fkey"), arrayOf(TodoItemLabel.TODO_ITEM_LABEL.TODO_LIST_ID, TodoItemLabel.TODO_ITEM_LABEL.LABEL_NAME), com.nickanderssohn.todolist.jooq.keys.LABEL_PKEY, arrayOf(Label.LABEL.TODO_LIST_ID, Label.LABEL.NAME), true)
 val TODO_LIST__TODO_LIST_CREATED_BY_FKEY: ForeignKey<TodoListRecord, AppUserRecord> = Internal.createForeignKey(TodoList.TODO_LIST, DSL.name("todo_list_created_by_fkey"), arrayOf(TodoList.TODO_LIST.CREATED_BY), com.nickanderssohn.todolist.jooq.keys.APP_USER_PKEY, arrayOf(AppUser.APP_USER.ID), true)
 val TODO_LIST__TODO_LIST_UPDATED_BY_FKEY: ForeignKey<TodoListRecord, AppUserRecord> = Internal.createForeignKey(TodoList.TODO_LIST, DSL.name("todo_list_updated_by_fkey"), arrayOf(TodoList.TODO_LIST.UPDATED_BY), com.nickanderssohn.todolist.jooq.keys.APP_USER_PKEY, arrayOf(AppUser.APP_USER.ID), true)

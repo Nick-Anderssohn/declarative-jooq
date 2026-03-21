@@ -14,12 +14,13 @@ import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class AppUserBuilder(
   private val graph: RecordGraph,
-) : RecordBuilder<AppUserRecord>(table = AppUser.APP_USER, parentNode = null, parentFkField = null, recordGraph = graph) {
+) : RecordBuilder<AppUserRecord>(table = AppUser.APP_USER, parentNode = null, recordGraph = graph) {
   public var name: String? = null
 
   public var email: String? = null
@@ -34,7 +35,7 @@ public class AppUserBuilder(
   }
 
   public fun user(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkField = SharedWith.SHARED_WITH.USER_ID)
+    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkFields = listOf(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>), parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>))
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -44,8 +45,20 @@ public class AppUserBuilder(
     return SharedWithResult(placeholderRecord)
   }
 
-  public fun todoItem(fkField: TableField<TodoItemRecord, *>, block: TodoItemBuilder.() -> Unit): TodoItemResult {
-    val builder = TodoItemBuilder(recordGraph = graph, parentNode = null, parentFkField = fkField)
+  public fun todoItem(vararg fkFields: TableField<TodoItemRecord, *>, block: TodoItemBuilder.() -> Unit): TodoItemResult {
+    val fkNames = fkFields.map { it.name }.toSet()
+    val parentFkFields: List<TableField<*, *>>
+    val parentRefFields: List<TableField<*, *>>
+    if (fkNames == setOf("created_by")) {
+      parentFkFields = listOf(TodoItem.TODO_ITEM.CREATED_BY as TableField<*, *>)
+      parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>)
+    } else if (fkNames == setOf("updated_by")) {
+      parentFkFields = listOf(TodoItem.TODO_ITEM.UPDATED_BY as TableField<*, *>)
+      parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>)
+    } else {
+      error("No FK matching field names: ${'$'}fkNames")
+    }
+    val builder = TodoItemBuilder(recordGraph = graph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -55,8 +68,20 @@ public class AppUserBuilder(
     return TodoItemResult(placeholderRecord)
   }
 
-  public fun todoList(fkField: TableField<TodoListRecord, *>, block: TodoListBuilder.() -> Unit): TodoListResult {
-    val builder = TodoListBuilder(recordGraph = graph, parentNode = null, parentFkField = fkField)
+  public fun todoList(vararg fkFields: TableField<TodoListRecord, *>, block: TodoListBuilder.() -> Unit): TodoListResult {
+    val fkNames = fkFields.map { it.name }.toSet()
+    val parentFkFields: List<TableField<*, *>>
+    val parentRefFields: List<TableField<*, *>>
+    if (fkNames == setOf("created_by")) {
+      parentFkFields = listOf(TodoList.TODO_LIST.CREATED_BY as TableField<*, *>)
+      parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>)
+    } else if (fkNames == setOf("updated_by")) {
+      parentFkFields = listOf(TodoList.TODO_LIST.UPDATED_BY as TableField<*, *>)
+      parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>)
+    } else {
+      error("No FK matching field names: ${'$'}fkNames")
+    }
+    val builder = TodoListBuilder(recordGraph = graph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->

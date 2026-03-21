@@ -4,6 +4,8 @@ import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
 import com.nickanderssohn.declarativejooq.RecordNode
+import com.nickanderssohn.todolist.jooq.tables.AppUser
+import com.nickanderssohn.todolist.jooq.tables.Label
 import com.nickanderssohn.todolist.jooq.tables.SharedWith
 import com.nickanderssohn.todolist.jooq.tables.TodoItem
 import com.nickanderssohn.todolist.jooq.tables.TodoList
@@ -13,15 +15,17 @@ import kotlin.Boolean
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
+import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
 public class TodoListBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
-  parentFkField: TableField<*, *>?,
+  parentFkFields: List<TableField<*, *>> = emptyList(),
+  parentRefFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<TodoListRecord>(table = TodoList.TODO_LIST, parentNode = parentNode, parentFkField = parentFkField, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) : RecordBuilder<TodoListRecord>(table = TodoList.TODO_LIST, parentNode = parentNode, parentFkFields = parentFkFields, parentRefFields = parentRefFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
   public var title: String? = null
 
   public var description: String? = null
@@ -32,7 +36,7 @@ public class TodoListBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoList.TODO_LIST.CREATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoList.TODO_LIST.CREATED_BY as TableField<*, *>), listOf(AppUser.APP_USER.ID as TableField<*, *>), value.record))
       }
     }
 
@@ -40,7 +44,7 @@ public class TodoListBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(TodoList.TODO_LIST.UPDATED_BY as TableField<*, *>, value.record))
+        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(TodoList.TODO_LIST.UPDATED_BY as TableField<*, *>), listOf(AppUser.APP_USER.ID as TableField<*, *>), value.record))
       }
     }
 
@@ -54,8 +58,19 @@ public class TodoListBuilder(
     return record
   }
 
+  public fun label(block: LabelBuilder.() -> Unit): LabelResult {
+    val builder = LabelBuilder(recordGraph = recordGraph, parentNode = null, parentFkFields = listOf(Label.LABEL.TODO_LIST_ID as TableField<*, *>), parentRefFields = listOf(TodoList.TODO_LIST.ID as TableField<*, *>))
+    builder.block()
+    val placeholderRecord = builder.getOrBuildRecord()
+    childBlocks.add { parentNode ->
+      builder.parentNode = parentNode
+      builder.buildWithChildren()
+    }
+    return LabelResult(placeholderRecord)
+  }
+
   public fun sharedWith(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = SharedWith.SHARED_WITH.TODO_LIST_ID)
+    val builder = SharedWithBuilder(recordGraph = recordGraph, parentNode = null, parentFkFields = listOf(SharedWith.SHARED_WITH.TODO_LIST_ID as TableField<*, *>), parentRefFields = listOf(TodoList.TODO_LIST.ID as TableField<*, *>))
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->
@@ -66,7 +81,7 @@ public class TodoListBuilder(
   }
 
   public fun todoItem(block: TodoItemBuilder.() -> Unit): TodoItemResult {
-    val builder = TodoItemBuilder(recordGraph = recordGraph, parentNode = null, parentFkField = TodoItem.TODO_ITEM.TODO_LIST_ID)
+    val builder = TodoItemBuilder(recordGraph = recordGraph, parentNode = null, parentFkFields = listOf(TodoItem.TODO_ITEM.TODO_LIST_ID as TableField<*, *>), parentRefFields = listOf(TodoList.TODO_LIST.ID as TableField<*, *>))
     builder.block()
     val placeholderRecord = builder.getOrBuildRecord()
     childBlocks.add { parentNode ->

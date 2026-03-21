@@ -5,12 +5,14 @@ package com.nickanderssohn.todolist.jooq.tables
 
 
 import com.nickanderssohn.todolist.jooq.Public
+import com.nickanderssohn.todolist.jooq.keys.LABEL__LABEL_TODO_LIST_ID_FKEY
 import com.nickanderssohn.todolist.jooq.keys.SHARED_WITH__SHARED_WITH_TODO_LIST_ID_FKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_ITEM__TODO_ITEM_TODO_LIST_ID_FKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_LIST_PKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_LIST__TODO_LIST_CREATED_BY_FKEY
 import com.nickanderssohn.todolist.jooq.keys.TODO_LIST__TODO_LIST_UPDATED_BY_FKEY
 import com.nickanderssohn.todolist.jooq.tables.AppUser.AppUserPath
+import com.nickanderssohn.todolist.jooq.tables.Label.LabelPath
 import com.nickanderssohn.todolist.jooq.tables.SharedWith.SharedWithPath
 import com.nickanderssohn.todolist.jooq.tables.TodoItem.TodoItemPath
 import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
@@ -178,6 +180,21 @@ open class TodoList(
 
     val todoListUpdatedByFkey: AppUserPath
         get(): AppUserPath = todoListUpdatedByFkey()
+
+    private lateinit var _label: LabelPath
+
+    /**
+     * Get the implicit to-many join path to the <code>public.label</code> table
+     */
+    fun label(): LabelPath {
+        if (!this::_label.isInitialized)
+            _label = LabelPath(this, null, LABEL__LABEL_TODO_LIST_ID_FKEY.inverseKey)
+
+        return _label;
+    }
+
+    val label: LabelPath
+        get(): LabelPath = label()
 
     private lateinit var _sharedWith: SharedWithPath
 
