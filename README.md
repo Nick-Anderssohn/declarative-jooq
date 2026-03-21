@@ -70,11 +70,11 @@ In your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-    id("com.nickanderssohn.declarative-jooq") version "1.0.1"
+    id("com.nickanderssohn.declarative-jooq") version "1.1.0"
 }
 
 dependencies {
-    testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.0.1")
+    testImplementation("com.nickanderssohn:declarative-jooq-dsl-runtime:1.1.0")
 }
 ```
 
