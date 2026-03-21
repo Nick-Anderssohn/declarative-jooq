@@ -1,5 +1,6 @@
 package com.nickanderssohn.generated.dsl
 
+import com.nickanderssohn.declarativejooq.DeclarativeJooqDsl
 import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
@@ -15,13 +16,14 @@ import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
+@DeclarativeJooqDsl
 public class SharedWithBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
   parentFkFields: List<TableField<*, *>> = emptyList(),
   parentRefFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<SharedWithRecord>(table = SharedWith.SHARED_WITH, parentNode = parentNode, parentFkFields = parentFkFields, parentRefFields = parentRefFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) {
   public var todoListId: Long? = null
 
   public var userId: Long? = null
@@ -30,7 +32,7 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWith.SHARED_WITH.TODO_LIST_ID as TableField<*, *>), listOf(TodoList.TODO_LIST.ID as TableField<*, *>), value.record))
+        recordBuilder.pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWith.SHARED_WITH.TODO_LIST_ID as TableField<*, *>), listOf(TodoList.TODO_LIST.ID as TableField<*, *>), value.record))
       }
     }
 
@@ -38,21 +40,29 @@ public class SharedWithBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>), listOf(AppUser.APP_USER.ID as TableField<*, *>), value.record))
+        recordBuilder.pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>), listOf(AppUser.APP_USER.ID as TableField<*, *>), value.record))
       }
     }
 
+  internal val recordBuilder: RecordBuilder<SharedWithRecord> = RecordBuilder(
+    table = SharedWith.SHARED_WITH,
+    parentNode = parentNode,
+    parentFkFields = parentFkFields,
+    parentRefFields = parentRefFields,
+    recordGraph = recordGraph,
+    isSelfReferential = isSelfReferential,
+    buildRecord = {
+      val record = SharedWithRecord()
+      todoListId?.let { record.set(SharedWith.SHARED_WITH.TODO_LIST_ID, it) }
+      userId?.let { record.set(SharedWith.SHARED_WITH.USER_ID, it) }
+      record
+    }
+  )
+
   private val childBlocks: MutableList<(RecordNode) -> Unit> = mutableListOf()
 
-  override fun buildRecord(): SharedWithRecord {
-    val record = SharedWithRecord()
-    todoListId?.let { record.set(SharedWith.SHARED_WITH.TODO_LIST_ID, it) }
-    userId?.let { record.set(SharedWith.SHARED_WITH.USER_ID, it) }
-    return record
-  }
-
   public fun buildWithChildren(): RecordNode {
-    val node = build()
+    val node = recordBuilder.build()
     childBlocks.forEach { it(node) }
     return node
   }

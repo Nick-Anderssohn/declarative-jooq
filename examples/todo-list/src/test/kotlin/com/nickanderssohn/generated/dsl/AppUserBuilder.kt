@@ -1,5 +1,6 @@
 package com.nickanderssohn.generated.dsl
 
+import com.nickanderssohn.declarativejooq.DeclarativeJooqDsl
 import com.nickanderssohn.declarativejooq.DslScope
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
@@ -11,6 +12,7 @@ import com.nickanderssohn.todolist.jooq.tables.TodoList
 import com.nickanderssohn.todolist.jooq.tables.records.AppUserRecord
 import com.nickanderssohn.todolist.jooq.tables.records.TodoItemRecord
 import com.nickanderssohn.todolist.jooq.tables.records.TodoListRecord
+import kotlin.Boolean
 import kotlin.Long
 import kotlin.String
 import kotlin.Unit
@@ -18,28 +20,41 @@ import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
+@DeclarativeJooqDsl
 public class AppUserBuilder(
-  private val graph: RecordGraph,
-) : RecordBuilder<AppUserRecord>(table = AppUser.APP_USER, parentNode = null, recordGraph = graph) {
+  recordGraph: RecordGraph,
+  parentNode: RecordNode?,
+  parentFkFields: List<TableField<*, *>> = emptyList(),
+  parentRefFields: List<TableField<*, *>> = emptyList(),
+  isSelfReferential: Boolean = false,
+) {
   public var name: String? = null
 
   public var email: String? = null
 
+  internal val recordBuilder: RecordBuilder<AppUserRecord> = RecordBuilder(
+    table = AppUser.APP_USER,
+    parentNode = parentNode,
+    parentFkFields = parentFkFields,
+    parentRefFields = parentRefFields,
+    recordGraph = recordGraph,
+    isSelfReferential = isSelfReferential,
+    buildRecord = {
+      val record = AppUserRecord()
+      name?.let { record.set(AppUser.APP_USER.NAME, it) }
+      email?.let { record.set(AppUser.APP_USER.EMAIL, it) }
+      record
+    }
+  )
+
   private val childBlocks: MutableList<(RecordNode) -> Unit> = mutableListOf()
 
-  override fun buildRecord(): AppUserRecord {
-    val record = AppUserRecord()
-    name?.let { record.set(AppUser.APP_USER.NAME, it) }
-    email?.let { record.set(AppUser.APP_USER.EMAIL, it) }
-    return record
-  }
-
   public fun user(block: SharedWithBuilder.() -> Unit): SharedWithResult {
-    val builder = SharedWithBuilder(recordGraph = graph, parentNode = null, parentFkFields = listOf(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>), parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>))
+    val builder = SharedWithBuilder(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = listOf(SharedWith.SHARED_WITH.USER_ID as TableField<*, *>), parentRefFields = listOf(AppUser.APP_USER.ID as TableField<*, *>))
     builder.block()
-    val placeholderRecord = builder.getOrBuildRecord()
+    val placeholderRecord = builder.recordBuilder.getOrBuildRecord()
     childBlocks.add { parentNode ->
-      builder.parentNode = parentNode
+      builder.recordBuilder.parentNode = parentNode
       builder.buildWithChildren()
     }
     return SharedWithResult(placeholderRecord)
@@ -58,11 +73,11 @@ public class AppUserBuilder(
     } else {
       error("No FK matching field names: ${'$'}fkNames")
     }
-    val builder = TodoItemBuilder(recordGraph = graph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)
+    val builder = TodoItemBuilder(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)
     builder.block()
-    val placeholderRecord = builder.getOrBuildRecord()
+    val placeholderRecord = builder.recordBuilder.getOrBuildRecord()
     childBlocks.add { parentNode ->
-      builder.parentNode = parentNode
+      builder.recordBuilder.parentNode = parentNode
       builder.buildWithChildren()
     }
     return TodoItemResult(placeholderRecord)
@@ -81,18 +96,18 @@ public class AppUserBuilder(
     } else {
       error("No FK matching field names: ${'$'}fkNames")
     }
-    val builder = TodoListBuilder(recordGraph = graph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)
+    val builder = TodoListBuilder(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)
     builder.block()
-    val placeholderRecord = builder.getOrBuildRecord()
+    val placeholderRecord = builder.recordBuilder.getOrBuildRecord()
     childBlocks.add { parentNode ->
-      builder.parentNode = parentNode
+      builder.recordBuilder.parentNode = parentNode
       builder.buildWithChildren()
     }
     return TodoListResult(placeholderRecord)
   }
 
   public fun buildWithChildren(): RecordNode {
-    val node = build()
+    val node = recordBuilder.build()
     childBlocks.forEach { it(node) }
     return node
   }
@@ -112,7 +127,7 @@ public class AppUserResult(
 }
 
 public fun DslScope.appUser(block: AppUserBuilder.() -> Unit): AppUserResult {
-  val builder = AppUserBuilder(recordGraph)
+  val builder = AppUserBuilder(recordGraph = recordGraph, parentNode = null)
   builder.block()
   val node = builder.buildWithChildren()
   recordGraph.addRootNode(node)

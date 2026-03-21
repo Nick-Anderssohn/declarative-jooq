@@ -21,16 +21,15 @@ data class PendingPlaceholderRef(
  * builders extend this and override [buildRecord] to set column values from DSL properties.
  */
 @DeclarativeJooqDsl
-abstract class RecordBuilder<R : UpdatableRecord<R>>(
+class RecordBuilder<R : UpdatableRecord<R>>(
     val table: Table<R>,
     var parentNode: RecordNode?,
     val parentFkFields: List<TableField<*, *>> = emptyList(),
     val parentRefFields: List<TableField<*, *>> = emptyList(),
     val recordGraph: RecordGraph,
-    val isSelfReferential: Boolean = false
+    val isSelfReferential: Boolean = false,
+    private val buildRecord: () -> R
 ) {
-    abstract fun buildRecord(): R
-
     private var _cachedRecord: R? = null
 
     fun getOrBuildRecord(): R {

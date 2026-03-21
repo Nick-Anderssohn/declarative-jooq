@@ -1,5 +1,6 @@
 package com.nickanderssohn.generated.dsl
 
+import com.nickanderssohn.declarativejooq.DeclarativeJooqDsl
 import com.nickanderssohn.declarativejooq.PendingPlaceholderRef
 import com.nickanderssohn.declarativejooq.RecordBuilder
 import com.nickanderssohn.declarativejooq.RecordGraph
@@ -16,13 +17,14 @@ import kotlin.collections.List
 import kotlin.collections.MutableList
 import org.jooq.TableField
 
+@DeclarativeJooqDsl
 public class LabelBuilder(
   recordGraph: RecordGraph,
   parentNode: RecordNode?,
   parentFkFields: List<TableField<*, *>> = emptyList(),
   parentRefFields: List<TableField<*, *>> = emptyList(),
   isSelfReferential: Boolean = false,
-) : RecordBuilder<LabelRecord>(table = Label.LABEL, parentNode = parentNode, parentFkFields = parentFkFields, parentRefFields = parentRefFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential) {
+) {
   public var todoListId: Long? = null
 
   public var name: String? = null
@@ -33,33 +35,41 @@ public class LabelBuilder(
     set(`value`) {
       field = value
       if (value != null) {
-        pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(Label.LABEL.TODO_LIST_ID as TableField<*, *>), listOf(TodoList.TODO_LIST.ID as TableField<*, *>), value.record))
+        recordBuilder.pendingPlaceholderRefs.add(PendingPlaceholderRef(listOf(Label.LABEL.TODO_LIST_ID as TableField<*, *>), listOf(TodoList.TODO_LIST.ID as TableField<*, *>), value.record))
       }
     }
 
+  internal val recordBuilder: RecordBuilder<LabelRecord> = RecordBuilder(
+    table = Label.LABEL,
+    parentNode = parentNode,
+    parentFkFields = parentFkFields,
+    parentRefFields = parentRefFields,
+    recordGraph = recordGraph,
+    isSelfReferential = isSelfReferential,
+    buildRecord = {
+      val record = LabelRecord()
+      todoListId?.let { record.set(Label.LABEL.TODO_LIST_ID, it) }
+      name?.let { record.set(Label.LABEL.NAME, it) }
+      color?.let { record.set(Label.LABEL.COLOR, it) }
+      record
+    }
+  )
+
   private val childBlocks: MutableList<(RecordNode) -> Unit> = mutableListOf()
 
-  override fun buildRecord(): LabelRecord {
-    val record = LabelRecord()
-    todoListId?.let { record.set(Label.LABEL.TODO_LIST_ID, it) }
-    name?.let { record.set(Label.LABEL.NAME, it) }
-    color?.let { record.set(Label.LABEL.COLOR, it) }
-    return record
-  }
-
   public fun todoItemLabel(block: TodoItemLabelBuilder.() -> Unit): TodoItemLabelResult {
-    val builder = TodoItemLabelBuilder(recordGraph = recordGraph, parentNode = null, parentFkFields = listOf(TodoItemLabel.TODO_ITEM_LABEL.TODO_LIST_ID as TableField<*, *>, TodoItemLabel.TODO_ITEM_LABEL.LABEL_NAME as TableField<*, *>), parentRefFields = listOf(Label.LABEL.TODO_LIST_ID as TableField<*, *>, Label.LABEL.NAME as TableField<*, *>))
+    val builder = TodoItemLabelBuilder(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = listOf(TodoItemLabel.TODO_ITEM_LABEL.TODO_LIST_ID as TableField<*, *>, TodoItemLabel.TODO_ITEM_LABEL.LABEL_NAME as TableField<*, *>), parentRefFields = listOf(Label.LABEL.TODO_LIST_ID as TableField<*, *>, Label.LABEL.NAME as TableField<*, *>))
     builder.block()
-    val placeholderRecord = builder.getOrBuildRecord()
+    val placeholderRecord = builder.recordBuilder.getOrBuildRecord()
     childBlocks.add { parentNode ->
-      builder.parentNode = parentNode
+      builder.recordBuilder.parentNode = parentNode
       builder.buildWithChildren()
     }
     return TodoItemLabelResult(placeholderRecord)
   }
 
   public fun buildWithChildren(): RecordNode {
-    val node = build()
+    val node = recordBuilder.build()
     childBlocks.forEach { it(node) }
     return node
   }

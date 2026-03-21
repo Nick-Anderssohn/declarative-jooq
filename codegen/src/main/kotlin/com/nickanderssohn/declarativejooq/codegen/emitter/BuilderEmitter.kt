@@ -18,7 +18,7 @@ import com.squareup.kotlinpoet.asTypeName
 
 /**
  * Emits a per-table builder class (e.g., `OrganizationBuilder`) from a [TableIR].
- * The builder extends [RecordBuilder][com.nickanderssohn.declarativejooq.RecordBuilder],
+ * The builder composes a [RecordBuilder][com.nickanderssohn.declarativejooq.RecordBuilder],
  * exposes mutable properties for each column, placeholder properties for outbound FKs,
  * and child builder functions for each inbound FK relationship.
  */
@@ -31,9 +31,9 @@ class BuilderEmitter {
             .parameterizedBy(recordType)
         val recordGraphType = ClassName("com.nickanderssohn.declarativejooq", "RecordGraph")
         val recordNodeType = ClassName("com.nickanderssohn.declarativejooq", "RecordNode")
+        val dslAnnotation = ClassName("com.nickanderssohn.declarativejooq", "DeclarativeJooqDsl")
 
         val hasChildren = tableIR.inboundFKs.isNotEmpty()
-        val hasSelfRefInbound = tableIR.inboundFKs.any { it.isSelfReferential }
 
         val tableFieldStarType = ClassName("org.jooq", "TableField")
             .parameterizedBy(
@@ -44,61 +44,30 @@ class BuilderEmitter {
             .parameterizedBy(tableFieldStarType)
 
         val classBuilder = TypeSpec.classBuilder(tableIR.builderClassName)
+        classBuilder.addAnnotation(dslAnnotation)
 
-        // Constructor parameters and superclass call
-        if (tableIR.isRoot && !hasSelfRefInbound) {
-            classBuilder.primaryConstructor(
-                FunSpec.constructorBuilder()
-                    .addParameter(
-                        ParameterSpec.builder("graph", recordGraphType)
-                            .build()
-                    )
-                    .build()
-            )
-            classBuilder.addProperty(
-                PropertySpec.builder("graph", recordGraphType, KModifier.PRIVATE)
-                    .initializer("graph")
-                    .build()
-            )
-            classBuilder.superclass(recordBuilderType)
-            classBuilder.addSuperclassConstructorParameter(
-                CodeBlock.of(
-                    "table = %T.%L, parentNode = null, recordGraph = graph",
-                    tableClass,
-                    tableIR.tableConstantName
+        // Unified constructor for all builders
+        classBuilder.primaryConstructor(
+            FunSpec.constructorBuilder()
+                .addParameter(ParameterSpec.builder("recordGraph", recordGraphType).build())
+                .addParameter(ParameterSpec.builder("parentNode", recordNodeType.copy(nullable = true)).build())
+                .addParameter(
+                    ParameterSpec.builder("parentFkFields", listOfTableFieldStarType)
+                        .defaultValue("emptyList()")
+                        .build()
                 )
-            )
-        } else {
-            classBuilder.primaryConstructor(
-                FunSpec.constructorBuilder()
-                    .addParameter(ParameterSpec.builder("recordGraph", recordGraphType).build())
-                    .addParameter(ParameterSpec.builder("parentNode", recordNodeType.copy(nullable = true)).build())
-                    .addParameter(
-                        ParameterSpec.builder("parentFkFields", listOfTableFieldStarType)
-                            .defaultValue("emptyList()")
-                            .build()
-                    )
-                    .addParameter(
-                        ParameterSpec.builder("parentRefFields", listOfTableFieldStarType)
-                            .defaultValue("emptyList()")
-                            .build()
-                    )
-                    .addParameter(
-                        ParameterSpec.builder("isSelfReferential", BOOLEAN)
-                            .defaultValue("false")
-                            .build()
-                    )
-                    .build()
-            )
-            classBuilder.superclass(recordBuilderType)
-            classBuilder.addSuperclassConstructorParameter(
-                CodeBlock.of(
-                    "table = %T.%L, parentNode = parentNode, parentFkFields = parentFkFields, parentRefFields = parentRefFields, recordGraph = recordGraph, isSelfReferential = isSelfReferential",
-                    tableClass,
-                    tableIR.tableConstantName
+                .addParameter(
+                    ParameterSpec.builder("parentRefFields", listOfTableFieldStarType)
+                        .defaultValue("emptyList()")
+                        .build()
                 )
-            )
-        }
+                .addParameter(
+                    ParameterSpec.builder("isSelfReferential", BOOLEAN)
+                        .defaultValue("false")
+                        .build()
+                )
+                .build()
+        )
 
         // Collect placeholder property names — these claim the column property slot for outbound FKs
         // where the placeholder name equals the column name (e.g., created_by -> createdBy).
@@ -130,7 +99,7 @@ class BuilderEmitter {
                 .addStatement("field = value")
                 .beginControlFlow("if (value != null)")
                 .addStatement(
-                    "pendingPlaceholderRefs.add(%T($fkFieldsExpr, $refFieldsExpr, value.record))",
+                    "recordBuilder.pendingPlaceholderRefs.add(%T($fkFieldsExpr, $refFieldsExpr, value.record))",
                     pendingPlaceholderRefClass
                 )
                 .endControlFlow()
@@ -150,23 +119,28 @@ class BuilderEmitter {
             )
         }
 
-        // Override buildRecord()
-        val buildRecordBody = CodeBlock.builder()
-        buildRecordBody.addStatement("val record = %T()", recordType)
+        // Composed RecordBuilder property with buildRecord lambda
+        val recordBuilderInit = CodeBlock.builder()
+        recordBuilderInit.add(
+            "%T(\n⇥table = %T.%L,\nparentNode = parentNode,\nparentFkFields = parentFkFields,\nparentRefFields = parentRefFields,\nrecordGraph = recordGraph,\nisSelfReferential = isSelfReferential,\nbuildRecord = {\n⇥",
+            recordBuilderType.rawType,
+            tableClass,
+            tableIR.tableConstantName
+        )
+        recordBuilderInit.addStatement("val record = %T()", recordType)
         for (col in rawColumnProps) {
-            buildRecordBody.addStatement(
+            recordBuilderInit.addStatement(
                 "%L?.let { record.set(%L, it) }",
                 col.propertyName,
                 col.tableFieldRefExpression
             )
         }
-        buildRecordBody.addStatement("return record")
+        recordBuilderInit.addStatement("record")
+        recordBuilderInit.add("⇤}\n⇤)")
 
-        classBuilder.addFunction(
-            FunSpec.builder("buildRecord")
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(recordType)
-                .addCode(buildRecordBody.build())
+        classBuilder.addProperty(
+            PropertySpec.builder("recordBuilder", recordBuilderType, KModifier.INTERNAL)
+                .initializer(recordBuilderInit.build())
                 .build()
         )
 
@@ -186,7 +160,6 @@ class BuilderEmitter {
         // Child builder functions for each inbound FK
         if (hasChildren) {
             val fkGroups = tableIR.inboundFKs.groupBy { it.builderFunctionName }
-            val graphVar = if (tableIR.isRoot && !hasSelfRefInbound) "graph" else "recordGraph"
 
             for ((_, fkGroup) in fkGroups) {
                 val fk = fkGroup.first()
@@ -203,12 +176,12 @@ class BuilderEmitter {
                 if (isMultiFkGroup) {
                     emitMultiFkChildFunction(
                         classBuilder, fkGroup, childBuilderClass, childResultClass,
-                        childRecordClass, blockType, graphVar, listOfTableFieldStarType
+                        childRecordClass, blockType, listOfTableFieldStarType
                     )
                 } else {
                     emitSingleFkChildFunction(
                         classBuilder, fk, childBuilderClass, childResultClass,
-                        blockType, graphVar
+                        blockType
                     )
                 }
             }
@@ -218,7 +191,7 @@ class BuilderEmitter {
         classBuilder.addFunction(
             FunSpec.builder("buildWithChildren")
                 .returns(recordNodeType)
-                .addStatement("val node = build()")
+                .addStatement("val node = recordBuilder.build()")
                 .addStatement("childBlocks.forEach { it(node) }")
                 .addStatement("return node")
                 .build()
@@ -232,8 +205,7 @@ class BuilderEmitter {
         fk: ForeignKeyIR,
         childBuilderClass: ClassName,
         childResultClass: ClassName,
-        blockType: LambdaTypeName,
-        graphVar: String
+        blockType: LambdaTypeName
     ) {
         val fkFieldsExpr = listOfFieldExprs(fk.childFieldExpressions)
         val refFieldsExpr = listOfFieldExprs(fk.parentFieldExpressions)
@@ -241,19 +213,19 @@ class BuilderEmitter {
         val childFunBody = CodeBlock.builder()
         if (fk.isSelfReferential) {
             childFunBody.addStatement(
-                "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkFields = $fkFieldsExpr, parentRefFields = $refFieldsExpr, isSelfReferential = true)",
+                "val builder = %T(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = $fkFieldsExpr, parentRefFields = $refFieldsExpr, isSelfReferential = true)",
                 childBuilderClass
             )
         } else {
             childFunBody.addStatement(
-                "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkFields = $fkFieldsExpr, parentRefFields = $refFieldsExpr)",
+                "val builder = %T(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = $fkFieldsExpr, parentRefFields = $refFieldsExpr)",
                 childBuilderClass
             )
         }
         childFunBody.addStatement("builder.block()")
-        childFunBody.addStatement("val placeholderRecord = builder.getOrBuildRecord()")
+        childFunBody.addStatement("val placeholderRecord = builder.recordBuilder.getOrBuildRecord()")
         childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
-        childFunBody.addStatement("builder.parentNode = parentNode")
+        childFunBody.addStatement("builder.recordBuilder.parentNode = parentNode")
         childFunBody.addStatement("builder.buildWithChildren()")
         childFunBody.endControlFlow()
         childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
@@ -274,7 +246,6 @@ class BuilderEmitter {
         childResultClass: ClassName,
         childRecordClass: ClassName,
         blockType: LambdaTypeName,
-        graphVar: String,
         listOfTableFieldStarType: com.squareup.kotlinpoet.TypeName
     ) {
         val fk = fkGroup.first()
@@ -306,13 +277,13 @@ class BuilderEmitter {
         childFunBody.endControlFlow()
 
         childFunBody.addStatement(
-            "val builder = %T(recordGraph = $graphVar, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)",
+            "val builder = %T(recordGraph = recordBuilder.recordGraph, parentNode = null, parentFkFields = parentFkFields, parentRefFields = parentRefFields)",
             childBuilderClass
         )
         childFunBody.addStatement("builder.block()")
-        childFunBody.addStatement("val placeholderRecord = builder.getOrBuildRecord()")
+        childFunBody.addStatement("val placeholderRecord = builder.recordBuilder.getOrBuildRecord()")
         childFunBody.beginControlFlow("childBlocks.add { parentNode ->")
-        childFunBody.addStatement("builder.parentNode = parentNode")
+        childFunBody.addStatement("builder.recordBuilder.parentNode = parentNode")
         childFunBody.addStatement("builder.buildWithChildren()")
         childFunBody.endControlFlow()
         childFunBody.addStatement("return %T(placeholderRecord)", childResultClass)
