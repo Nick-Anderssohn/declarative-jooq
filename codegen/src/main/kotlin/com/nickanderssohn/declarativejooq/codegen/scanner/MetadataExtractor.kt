@@ -115,66 +115,66 @@ class MetadataExtractor {
                 .references
                 .map { fk ->
                     val fkColumnNames = fk.fields.map { it.name }
-                val isComposite = fkColumnNames.size > 1
+                    val isComposite = fkColumnNames.size > 1
 
-                val childFieldExprs = fkColumnNames
-                    .map { colName ->
-                        columns
-                            .find { it.columnName == colName }
-                            ?.tableFieldRefExpression
-                            ?: "$tableClassName.$tableConstantName.${colName.uppercase()}"
-                    }
-
-                val parentTableName = fk.key.table.name
-                val parentMeta = metaByTableName[parentTableName]
-                val parentFieldExprs = fk
-                    .key
-                    .fields
-                    .map { parentField ->
-                        if (parentMeta != null) {
-                            val refName = parentMeta.fieldRefMap[parentField.name]
-                                ?: parentField.name.uppercase()
-                            "${parentMeta.tableClassName}.${parentMeta.tableConstantName}.$refName"
-                        } else {
-                            parentField.name.uppercase()
+                    val childFieldExprs = fkColumnNames
+                        .map { colName ->
+                            columns
+                                .find { it.columnName == colName }
+                                ?.tableFieldRefExpression
+                                ?: "$tableClassName.$tableConstantName.${colName.uppercase()}"
                         }
-                    }
 
-                val parentBuilderClassName = toPascalCase(parentTableName) + "Builder"
-                val isSelfRef = parentTableName == tableName
+                    val parentTableName = fk.key.table.name
+                    val parentMeta = metaByTableName[parentTableName]
+                    val parentFieldExprs = fk
+                        .key
+                        .fields
+                        .map { parentField ->
+                            if (parentMeta != null) {
+                                val refName = parentMeta.fieldRefMap[parentField.name]
+                                    ?: parentField.name.uppercase()
+                                "${parentMeta.tableClassName}.${parentMeta.tableConstantName}.$refName"
+                            } else {
+                                parentField.name.uppercase()
+                            }
+                        }
 
-                val candidateName: String
-                val placeholderPropertyName: String
+                    val parentBuilderClassName = toPascalCase(parentTableName) + "Builder"
+                    val isSelfRef = parentTableName == tableName
 
-                if (isComposite) {
-                    candidateName = toCamelCase(tableName)
-                    placeholderPropertyName = toCamelCase(parentTableName)
-                } else {
-                    val fkColumnName = fkColumnNames[0]
-                    val strippedFkCol = NamingConventions.stripIdSuffix(fkColumnName)
-                    candidateName = if (isSelfRef) {
-                        toCamelCase(tableName)
-                    } else if (NamingConventions.normalizedEquals(strippedFkCol, parentTableName)) {
-                        toCamelCase(tableName)
+                    val candidateName: String
+                    val placeholderPropertyName: String
+
+                    if (isComposite) {
+                        candidateName = toCamelCase(tableName)
+                        placeholderPropertyName = toCamelCase(parentTableName)
                     } else {
-                        toCamelCase(strippedFkCol)
+                        val fkColumnName = fkColumnNames[0]
+                        val strippedFkCol = NamingConventions.stripIdSuffix(fkColumnName)
+                        candidateName = if (isSelfRef) {
+                            toCamelCase(tableName)
+                        } else if (NamingConventions.normalizedEquals(strippedFkCol, parentTableName)) {
+                            toCamelCase(tableName)
+                        } else {
+                            toCamelCase(strippedFkCol)
+                        }
+                        placeholderPropertyName = toCamelCase(NamingConventions.stripIdSuffix(fkColumnName))
                     }
-                    placeholderPropertyName = toCamelCase(NamingConventions.stripIdSuffix(fkColumnName))
-                }
 
-                RawFk(
-                    fkName = fk.name,
-                    fkColumnNames = fkColumnNames,
-                    childFieldExprs = childFieldExprs,
-                    parentFieldExprs = parentFieldExprs,
-                    parentTableName = parentTableName,
-                    parentBuilderClassName = parentBuilderClassName,
-                    isSelfRef = isSelfRef,
-                    isComposite = isComposite,
-                    candidateName = candidateName,
-                    placeholderPropertyName = placeholderPropertyName
-                )
-            }
+                    RawFk(
+                        fkName = fk.name,
+                        fkColumnNames = fkColumnNames,
+                        childFieldExprs = childFieldExprs,
+                        parentFieldExprs = parentFieldExprs,
+                        parentTableName = parentTableName,
+                        parentBuilderClassName = parentBuilderClassName,
+                        isSelfRef = isSelfRef,
+                        isComposite = isComposite,
+                        candidateName = candidateName,
+                        placeholderPropertyName = placeholderPropertyName
+                    )
+                }
 
             // Detect multi-FK-to-same-parent groups
             val parentGroupCounts = rawFks
@@ -196,32 +196,33 @@ class MetadataExtractor {
 
             val outboundFKs = rawFks
                 .map { raw ->
-                val isMultiFk = raw.parentTableName in multiFkParents
-                val finalName = when {
-                    isMultiFk -> toCamelCase(tableName)
-                    raw.candidateName in collidingNames && !raw.isComposite ->
-                        toCamelCase(NamingConventions.stripIdSuffix(raw.fkColumnNames[0]))
-                    else -> raw.candidateName
+                    val isMultiFk = raw.parentTableName in multiFkParents
+                    val finalName = when {
+                        isMultiFk -> toCamelCase(tableName)
+                        raw.candidateName in collidingNames && !raw.isComposite ->
+                            toCamelCase(NamingConventions.stripIdSuffix(raw.fkColumnNames[0]))
+
+                        else -> raw.candidateName
+                    }
+                    ForeignKeyIR(
+                        fkName = raw.fkName,
+                        childTableName = tableName,
+                        childFieldExpressions = raw.childFieldExprs,
+                        parentTableName = raw.parentTableName,
+                        parentFieldExpressions = raw.parentFieldExprs,
+                        parentBuilderClassName = raw.parentBuilderClassName,
+                        parentResultClassName = toPascalCase(raw.parentTableName) + "Result",
+                        builderFunctionName = finalName,
+                        placeholderPropertyName = raw.placeholderPropertyName,
+                        childResultClassName = resultClassName,
+                        childRecordClassName = recordClassName,
+                        childSourcePackage = sourcePackage,
+                        childRecordSourcePackage = recordSourcePackage,
+                        isSelfReferential = raw.isSelfRef,
+                        isMultiFk = isMultiFk,
+                        fkColumnNames = raw.fkColumnNames
+                    )
                 }
-                ForeignKeyIR(
-                    fkName = raw.fkName,
-                    childTableName = tableName,
-                    childFieldExpressions = raw.childFieldExprs,
-                    parentTableName = raw.parentTableName,
-                    parentFieldExpressions = raw.parentFieldExprs,
-                    parentBuilderClassName = raw.parentBuilderClassName,
-                    parentResultClassName = toPascalCase(raw.parentTableName) + "Result",
-                    builderFunctionName = finalName,
-                    placeholderPropertyName = raw.placeholderPropertyName,
-                    childResultClassName = resultClassName,
-                    childRecordClassName = recordClassName,
-                    childSourcePackage = sourcePackage,
-                    childRecordSourcePackage = recordSourcePackage,
-                    isSelfReferential = raw.isSelfRef,
-                    isMultiFk = isMultiFk,
-                    fkColumnNames = raw.fkColumnNames
-                )
-            }
 
             TableIR(
                 tableName = tableName,
