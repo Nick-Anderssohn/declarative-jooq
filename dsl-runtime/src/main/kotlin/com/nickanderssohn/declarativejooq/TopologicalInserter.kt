@@ -33,63 +33,56 @@ class TopologicalInserter(private val dslContext: DSLContext) {
         for ((_, nodes) in nodesByTable) {
             for (node in nodes) {
                 // Resolve FK from parent if applicable (skip self-referential on first pass)
-                if (node.parentNode != null && node.parentFkField != null && !node.isSelfReferential) {
-                    val parentPk = node.parentNode.table.primaryKey
-                        ?: throw IllegalStateException(
-                            "Parent table ${node.parentNode.table.name} has no primary key"
-                        )
-                    val parentPkValue = node.parentNode.record.get(parentPk.fields[0])
-                        ?: throw IllegalStateException(
-                            "Parent record PK is null — parent must be inserted before child"
-                        )
-                    @Suppress("UNCHECKED_CAST")
-                    (node.record as org.jooq.Record).set(
-                        node.parentFkField as org.jooq.Field<Any?>,
-                        parentPkValue
-                    )
+                if (node.parentNode != null && node.parentFkFields.isNotEmpty() && !node.isSelfReferential) {
+                    resolveParentFk(node)
                 }
 
                 // Resolve placeholder FK references (overrides parent-context FK if same field)
                 for (ref in node.placeholderRefs) {
-                    val targetPk = ref.targetNode.table.primaryKey
-                        ?: throw IllegalStateException(
-                            "Placeholder target table ${ref.targetNode.table.name} has no primary key"
+                    for (i in ref.fkFields.indices) {
+                        val targetValue = ref.targetNode.record.get(ref.refFields[i])
+                            ?: throw IllegalStateException(
+                                "Placeholder target field is null — target must be inserted before referencing node. " +
+                                "Table: ${ref.targetNode.table.name}, FK field: ${ref.fkFields[i].name}"
+                            )
+                        @Suppress("UNCHECKED_CAST")
+                        (node.record as org.jooq.Record).set(
+                            ref.fkFields[i] as org.jooq.Field<Any?>,
+                            targetValue
                         )
-                    val targetPkValue = ref.targetNode.record.get(targetPk.fields[0])
-                        ?: throw IllegalStateException(
-                            "Placeholder target PK is null — target must be inserted before referencing node. " +
-                            "Table: ${ref.targetNode.table.name}, FK field: ${ref.fkField.name}"
-                        )
-                    @Suppress("UNCHECKED_CAST")
-                    (node.record as org.jooq.Record).set(
-                        ref.fkField as org.jooq.Field<Any?>,
-                        targetPkValue
-                    )
+                    }
                 }
 
                 // Attach to DSLContext and insert
                 node.record.attach(dslContext.configuration())
                 node.record.store()
-                // After store(), jOOQ auto-populates generated PK via getGeneratedKeys()
             }
         }
 
         // Second pass: update self-referential FK values now that all PKs are known
         val selfRefNodes = allNodes.filter { it.isSelfReferential && it.parentNode != null }
         for (node in selfRefNodes) {
-            val parentPk = node.parentNode!!.table.primaryKey
-                ?: throw IllegalStateException("Parent table ${node.parentNode.table.name} has no primary key")
-            val parentPkValue = node.parentNode.record.get(parentPk.fields[0])
-                ?: throw IllegalStateException("Parent record PK is null after insert")
-            @Suppress("UNCHECKED_CAST")
-            (node.record as org.jooq.Record).set(
-                node.parentFkField as org.jooq.Field<Any?>,
-                parentPkValue
-            )
-            node.record.store()  // UPDATE with the FK value
+            resolveParentFk(node)
+            node.record.store()
         }
 
         return ResultAssembler.assemble(allNodes)
+    }
+
+    private fun resolveParentFk(node: RecordNode) {
+        val parent = node.parentNode
+            ?: throw IllegalStateException("resolveParentFk called on node without parent")
+        for (i in node.parentFkFields.indices) {
+            val parentValue = parent.record.get(node.parentRefFields[i])
+                ?: throw IllegalStateException(
+                    "Parent record field ${node.parentRefFields[i].name} is null — parent must be inserted before child"
+                )
+            @Suppress("UNCHECKED_CAST")
+            (node.record as org.jooq.Record).set(
+                node.parentFkFields[i] as org.jooq.Field<Any?>,
+                parentValue
+            )
+        }
     }
 
     private fun buildTableGraph(nodes: List<RecordNode>, graph: RecordGraph): Map<String, Set<String>> {

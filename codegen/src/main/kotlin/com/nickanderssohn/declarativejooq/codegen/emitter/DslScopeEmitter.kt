@@ -23,8 +23,8 @@ class DslScopeEmitter {
         val hasSelfRefInbound = tableIR.inboundFKs.any { it.isSelfReferential }
 
         val builderConstruction = if (hasSelfRefInbound) {
-            // Self-ref root: uses child-style constructor with null parent
-            "val builder = %T(recordGraph = recordGraph, parentNode = null, parentFkField = null)"
+            // Self-ref root: uses child-style constructor with null parent (fk fields default to empty)
+            "val builder = %T(recordGraph = recordGraph, parentNode = null)"
         } else {
             // Regular root: uses graph-only constructor
             "val builder = %T(recordGraph)"

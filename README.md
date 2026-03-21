@@ -192,7 +192,45 @@ DecDsl.execute(dslContext) {
 
 ### Composite FKs
 
-Coming soon (within a week)
+Composite (multi-column) foreign keys work the same way as single-column FKs. When a table has only one FK to its parent, nesting is automatic:
+
+```kotlin
+DecDsl.execute(ctx) {
+    organization {
+        name = "Example"
+        // department has a composite PK (organization_id, department_id)
+        department {
+            departmentId = 10
+            name = "Engineering"
+            // employee has a composite FK (organization_id, department_id) -> department
+            employee {
+                name = "Alice"
+            }
+        }
+    }
+}
+```
+
+If a table has multiple composite FKs to the same parent (or a mix of single and composite FKs), pass all columns that make up the FK to disambiguate:
+
+```kotlin
+DecDsl.execute(ctx) {
+    organization {
+        name = "Example"
+        // department has a composite PK (organization_id, department_id)
+        department {
+            departmentId = 10
+            name = "Engineering"
+            // employee has a composite FK (organization_id, department_id) -> department
+            employee(EmployeeTable.EMPLOYEE.ORGANIZATION_ID, EmployeeTable.EMPLOYEE.DEPARTMENT_ID) {
+                name = "Alice"
+            }
+        }
+    }
+}
+```
+
+This is the same pattern used for [single-column FK disambiguation](#fk-disambiguation) — you just pass multiple columns instead of one.
 
 ### Accessing The Resulting Records
 

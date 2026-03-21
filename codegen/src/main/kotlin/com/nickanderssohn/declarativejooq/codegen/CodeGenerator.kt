@@ -47,6 +47,8 @@ class CodeGenerator {
             addFkChildTableImports(fileSpec, table, tableByName)
             if (table.outboundFKs.isNotEmpty()) {
                 fileSpec.addImport("com.nickanderssohn.declarativejooq", "PendingPlaceholderRef")
+            }
+            if (table.outboundFKs.isNotEmpty() || table.inboundFKs.isNotEmpty()) {
                 fileSpec.addImport("org.jooq", "TableField")
             }
             fileSpec.build().writeTo(outputDir)
@@ -87,6 +89,8 @@ class CodeGenerator {
             addFkChildTableImports(fileSpec, table, tableByName)
             if (table.outboundFKs.isNotEmpty()) {
                 fileSpec.addImport("com.nickanderssohn.declarativejooq", "PendingPlaceholderRef")
+            }
+            if (table.outboundFKs.isNotEmpty() || table.inboundFKs.isNotEmpty()) {
                 fileSpec.addImport("org.jooq", "TableField")
             }
             val built = fileSpec.build()
@@ -103,16 +107,28 @@ class CodeGenerator {
     }
 
     /**
-     * Adds explicit imports for any child table classes referenced in FK expressions.
-     * When a root/intermediate builder has inbound FKs, it references child table classes
-     * (e.g., UserTable.USER.ORGANIZATION_ID) via raw string expressions in addStatement().
+     * Adds explicit imports for table classes referenced in raw FK field expressions.
      * KotlinPoet does not automatically import classes used in raw code strings, so we add
      * them explicitly here.
+     *
+     * - Inbound FKs: child table classes (e.g., UserTable) referenced in childFieldExpressions
+     *   and parent table classes referenced in parentFieldExpressions (for multi-FK when blocks).
+     * - Outbound FKs: parent table classes referenced in parentFieldExpressions (for placeholder setters).
      */
     private fun addFkChildTableImports(fileSpec: FileSpec.Builder, table: TableIR, tableByName: Map<String, TableIR>) {
         for (fk in table.inboundFKs) {
             val childTable = tableByName[fk.childTableName] ?: continue
             fileSpec.addImport(childTable.sourcePackage, childTable.tableClassName)
+            // Parent table class is also needed in the generated multi-FK when block
+            // for parentRefFields expressions (e.g., OrganizationTable.ORGANIZATION.ID)
+            val parentTable = tableByName[fk.parentTableName] ?: continue
+            if (parentTable.sourcePackage != table.sourcePackage || parentTable.tableClassName != table.tableClassName) {
+                fileSpec.addImport(parentTable.sourcePackage, parentTable.tableClassName)
+            }
+        }
+        for (fk in table.outboundFKs) {
+            val parentTable = tableByName[fk.parentTableName] ?: continue
+            fileSpec.addImport(parentTable.sourcePackage, parentTable.tableClassName)
         }
     }
 

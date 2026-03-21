@@ -33,7 +33,9 @@ class DslExecutionTest {
 
     @BeforeEach
     fun cleanTables() {
-        // Delete child rows first to satisfy FK constraint
+        // Delete child rows first to satisfy FK constraints
+        dslContext.deleteFrom(EmployeeTable.EMPLOYEE).execute()
+        dslContext.deleteFrom(DepartmentTable.DEPARTMENT).execute()
         dslContext.deleteFrom(UserTable.USER).execute()
         dslContext.deleteFrom(OrganizationTable.ORGANIZATION).execute()
     }

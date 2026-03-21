@@ -14,7 +14,6 @@ class OrganizationBuilder(
 ) : RecordBuilder<OrganizationRecord>(
     table = OrganizationTable.ORGANIZATION,
     parentNode = null,
-    parentFkField = null,
     recordGraph = graph
 ) {
     var name: String? = null
@@ -37,11 +36,11 @@ class OrganizationBuilder(
             val builder = UserBuilder(
                 recordGraph = graph,
                 parentNode = parentNode,
-                parentFkField = UserTable.USER.ORGANIZATION_ID
+                parentFkFields = listOf(UserTable.USER.ORGANIZATION_ID),
+                parentRefFields = listOf(OrganizationTable.ORGANIZATION.ID)
             )
             builder.block()
             builder.build()
-            // build() appends the child node to parentNode.children via RecordBuilder.build()
         }
     }
 
@@ -61,11 +60,13 @@ class OrganizationBuilder(
 class UserBuilder(
     recordGraph: RecordGraph,
     parentNode: RecordNode,
-    parentFkField: org.jooq.TableField<*, *>
+    parentFkFields: List<org.jooq.TableField<*, *>>,
+    parentRefFields: List<org.jooq.TableField<*, *>>
 ) : RecordBuilder<UserRecord>(
     table = UserTable.USER,
     parentNode = parentNode,
-    parentFkField = parentFkField,
+    parentFkFields = parentFkFields,
+    parentRefFields = parentRefFields,
     recordGraph = recordGraph
 ) {
     var name: String? = null

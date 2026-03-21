@@ -7,9 +7,11 @@ import org.jooq.UpdatableRecord
 /**
  * Captures a placeholder FK assignment made during DSL evaluation, before the target node
  * exists in the graph. Converted to a [PlaceholderRef] when [RecordBuilder.build] is called.
+ * [fkFields] and [refFields] are positionally matched: fkFields[i] receives the value from refFields[i].
  */
 data class PendingPlaceholderRef(
-    val fkField: TableField<*, *>,
+    val fkFields: List<TableField<*, *>>,
+    val refFields: List<TableField<*, *>>,
     val targetRecord: UpdatableRecord<*>
 )
 
@@ -22,7 +24,8 @@ data class PendingPlaceholderRef(
 abstract class RecordBuilder<R : UpdatableRecord<R>>(
     val table: Table<R>,
     var parentNode: RecordNode?,
-    val parentFkField: TableField<*, *>?,
+    val parentFkFields: List<TableField<*, *>> = emptyList(),
+    val parentRefFields: List<TableField<*, *>> = emptyList(),
     val recordGraph: RecordGraph,
     val isSelfReferential: Boolean = false
 ) {
@@ -45,7 +48,8 @@ abstract class RecordBuilder<R : UpdatableRecord<R>>(
             table = table,
             record = record,
             parentNode = parentNode,
-            parentFkField = parentFkField,
+            parentFkFields = parentFkFields,
+            parentRefFields = parentRefFields,
             declarationIndex = recordGraph.nextDeclarationIndex(),
             isSelfReferential = isSelfReferential
         )
@@ -55,7 +59,7 @@ abstract class RecordBuilder<R : UpdatableRecord<R>>(
                 ?: throw IllegalStateException(
                     "Placeholder target record not found in graph — was the placeholder created in the same execute block?"
                 )
-            recordGraph.addPlaceholderRef(node, PlaceholderRef(targetNode, pending.fkField))
+            recordGraph.addPlaceholderRef(node, PlaceholderRef(targetNode, pending.fkFields, pending.refFields))
         }
         parentNode?.children?.add(node)
         return node

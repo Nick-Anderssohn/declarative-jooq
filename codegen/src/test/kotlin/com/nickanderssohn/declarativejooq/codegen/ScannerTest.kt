@@ -45,7 +45,15 @@ class ScannerTest {
             names.contains("com.nickanderssohn.declarativejooq.MilestoneTable"),
             "Expected MilestoneTable but got: $names"
         )
-        assertEquals(6, names.size, "Expected exactly 6 table classes but got: $names")
+        assertTrue(
+            names.contains("com.nickanderssohn.declarativejooq.DepartmentTable"),
+            "Expected DepartmentTable but got: $names"
+        )
+        assertTrue(
+            names.contains("com.nickanderssohn.declarativejooq.EmployeeTable"),
+            "Expected EmployeeTable but got: $names"
+        )
+        assertEquals(8, names.size, "Expected exactly 8 table classes but got: $names")
     }
 
     @Test
@@ -68,7 +76,7 @@ class ScannerTest {
         val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
         val tables = MetadataExtractor().extract(classDir, tableNames)
 
-        assertEquals(6, tables.size, "Expected 6 tables (organization, user, category, task, Project, milestone)")
+        assertEquals(8, tables.size, "Expected 8 tables (organization, user, category, task, Project, milestone, department, employee)")
 
         val org = tables.find { it.tableName == "organization" }
             ?: fail("organization table not found")
@@ -238,5 +246,62 @@ class ScannerTest {
             "FK to Project via projectId (NAME-01): should use child table name 'milestone'")
         assertEquals("project", fk.placeholderPropertyName,
             "placeholderPropertyName: projectId stripped -> 'project'")
+    }
+
+    @Test
+    fun compositeFkProducesCorrectIR() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val employee = tables.find { it.tableName == "employee" }
+            ?: fail("employee table not found")
+
+        assertFalse(employee.isRoot, "employee should not be root (has outbound FK)")
+        assertEquals(1, employee.outboundFKs.size, "employee should have 1 outbound FK (composite to department)")
+
+        val fk = employee.outboundFKs[0]
+        assertEquals("department", fk.parentTableName)
+        assertTrue(fk.isComposite, "FK should be composite (2 columns)")
+        assertEquals(2, fk.childFieldExpressions.size, "Should have 2 child field expressions")
+        assertEquals(2, fk.parentFieldExpressions.size, "Should have 2 parent field expressions")
+        assertEquals(listOf("organization_id", "department_id"), fk.fkColumnNames)
+        assertEquals("department", fk.placeholderPropertyName,
+            "Composite FK placeholder should use parent table name 'department'")
+        assertEquals("employee", fk.builderFunctionName,
+            "Composite FK builder function should use child table name 'employee'")
+
+        assertTrue(fk.childFieldExpressions[0].contains("ORGANIZATION_ID"),
+            "First child field expr should reference ORGANIZATION_ID")
+        assertTrue(fk.childFieldExpressions[1].contains("DEPARTMENT_ID"),
+            "Second child field expr should reference DEPARTMENT_ID")
+        assertTrue(fk.parentFieldExpressions[0].contains("ORGANIZATION_ID"),
+            "First parent field expr should reference ORGANIZATION_ID")
+        assertTrue(fk.parentFieldExpressions[1].contains("DEPARTMENT_ID"),
+            "Second parent field expr should reference DEPARTMENT_ID")
+    }
+
+    @Test
+    fun compositePkTableHasSingleColumnFk() {
+        requireClassDir()
+        val tableNames = ClasspathScanner().findTableClassNames(classDir, "com.nickanderssohn.declarativejooq")
+        val tables = MetadataExtractor().extract(classDir, tableNames)
+
+        val department = tables.find { it.tableName == "department" }
+            ?: fail("department table not found")
+
+        assertFalse(department.isRoot, "department should not be root (has outbound FK to organization)")
+        assertEquals(1, department.outboundFKs.size, "department should have 1 outbound FK")
+
+        val fk = department.outboundFKs[0]
+        assertEquals("organization", fk.parentTableName)
+        assertFalse(fk.isComposite, "FK to organization should be single-column")
+        assertEquals(1, fk.childFieldExpressions.size)
+        assertEquals(1, fk.parentFieldExpressions.size)
+
+        assertTrue(department.inboundFKs.isNotEmpty(), "department should have inbound FK from employee")
+        val inboundFk = department.inboundFKs.find { it.childTableName == "employee" }
+            ?: fail("Inbound FK from employee not found on department")
+        assertTrue(inboundFk.isComposite, "Inbound FK from employee should be composite")
     }
 }
